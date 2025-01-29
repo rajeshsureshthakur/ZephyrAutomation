@@ -28,8 +28,8 @@ private void showReleaseDetailsPopup() {
             JLabel phaseLabel = new JLabel("(0 phases)");
             phaseLabels.put(testType, phaseLabel);
             
-            checkbox.addItemListener(e -> {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
+             checkbox.addActionListener(e -> {
+                if (checkbox.isSelected()) {
                     // Show phase input dialog
                     String input = showPhaseInputDialog(testType);
                     if (input != null) {
@@ -38,7 +38,6 @@ private void showReleaseDetailsPopup() {
                             if (phases > 0) {
                                 phaseCounts.put(testType, phases);
                                 phaseLabel.setText("(" + phases + " phases)");
-                                checkbox.setSelected(true);  // Ensure checkbox stays selected
                             } else {
                                 checkbox.setSelected(false);
                                 JOptionPane.showMessageDialog(dialog,
@@ -54,11 +53,10 @@ private void showReleaseDetailsPopup() {
                                 JOptionPane.ERROR_MESSAGE);
                         }
                     } else {
-                        // Only uncheck if user cancels
                         checkbox.setSelected(false);
                     }
-                } else if (e.getStateChange() == ItemEvent.DESELECTED) {
-                    // When manually unchecked
+                } else {
+                    // When unchecked
                     phaseCounts.remove(testType);
                     phaseLabel.setText("(0 phases)");
                 }
