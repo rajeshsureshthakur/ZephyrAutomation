@@ -1,0 +1,229 @@
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.util.Random;
+
+public class TestManagementApp extends JFrame {
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
+    private final String IMAGE_FOLDER = "images"; // Folder name containing images
+    
+    public TestManagementApp() {
+        setTitle("Test Management Application");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(600, 560);
+        setLocationRelativeTo(null);
+        
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
+        
+        mainPanel.add(createHomeScreen(), "HOME");
+        mainPanel.add(createZephyrScreen(), "ZEPHYR");
+        mainPanel.add(createJiraScreen(), "JIRA");
+        
+        add(mainPanel);
+    }
+    
+    private String getRandomImagePath() {
+        File folder = new File(IMAGE_FOLDER);
+        File[] listOfFiles = folder.listFiles((dir, name) -> {
+            String lowercaseName = name.toLowerCase();
+            return lowercaseName.endsWith(".png") || 
+                   lowercaseName.endsWith(".jpg") || 
+                   lowercaseName.endsWith(".jpeg") || 
+                   lowercaseName.endsWith(".gif");
+        });
+        
+        if (listOfFiles != null && listOfFiles.length > 0) {
+            Random rand = new Random();
+            int randomIndex = rand.nextInt(listOfFiles.length);
+            return listOfFiles[randomIndex].getPath();
+        }
+        return null;
+    }
+    
+    private JPanel createHomeScreen() {
+        JPanel homePanel = new JPanel();
+        homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS));
+        
+        // Add random image
+        String imagePath = getRandomImagePath();
+        if (imagePath != null) {
+            try {
+                ImageIcon imageIcon = new ImageIcon(imagePath);
+                // Scale the image
+                Image image = imageIcon.getImage();
+                Image scaledImage = image.getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+                ImageIcon scaledIcon = new ImageIcon(scaledImage);
+                JLabel imageLabel = new JLabel(scaledIcon);
+                imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                homePanel.add(Box.createVerticalStrut(20));
+                homePanel.add(imageLabel);
+                homePanel.add(Box.createVerticalStrut(20));
+            } catch (Exception e) {
+                System.err.println("Error loading image: " + e.getMessage());
+            }
+        }
+        
+        JLabel titleLabel = new JLabel("Test Management System");
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        
+        Dimension buttonSize = new Dimension(240, 48);
+        
+        JButton zephyrButton = new JButton("Zephyr");
+        zephyrButton.setMaximumSize(buttonSize);
+        zephyrButton.setPreferredSize(buttonSize);
+        zephyrButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        zephyrButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        zephyrButton.addActionListener(e -> cardLayout.show(mainPanel, "ZEPHYR"));
+        
+        JButton jiraButton = new JButton("JIRA");
+        jiraButton.setMaximumSize(buttonSize);
+        jiraButton.setPreferredSize(buttonSize);
+        jiraButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        jiraButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        jiraButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "JIRA");
+        });
+        
+        JPanel footerPanel = new JPanel();
+        footerPanel.setMaximumSize(new Dimension(600, 40));
+        footerPanel.setPreferredSize(new Dimension(600, 40));
+        JLabel footerLabel = new JLabel("Developed by Channels NFT Team");
+        footerLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        footerPanel.add(footerLabel);
+        
+        homePanel.add(titleLabel);
+        homePanel.add(Box.createVerticalStrut(50));
+        homePanel.add(zephyrButton);
+        homePanel.add(Box.createVerticalStrut(30));
+        homePanel.add(jiraButton);
+        homePanel.add(Box.createVerticalGlue());
+        homePanel.add(footerPanel);
+        
+        return homePanel;
+    }
+    
+    private JPanel createZephyrScreen() {
+        JPanel zephyrPanel = new JPanel();
+        zephyrPanel.setLayout(new BoxLayout(zephyrPanel, BoxLayout.Y_AXIS));
+        
+        JLabel titleLabel = new JLabel("Zephyr Section");
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        
+        Dimension buttonSize = new Dimension(240, 48);
+        String[] buttonLabels = {
+            "Create Release",
+            "Update Release",
+            "Import Requirements",
+            "Update Central Test Repo",
+            "Update Confluence"
+        };
+        
+        zephyrPanel.add(Box.createVerticalStrut(30));
+        zephyrPanel.add(titleLabel);
+        zephyrPanel.add(Box.createVerticalStrut(40));
+        
+        for (String label : buttonLabels) {
+            JButton button = new JButton(label);
+            button.setMaximumSize(buttonSize);
+            button.setPreferredSize(buttonSize);
+            button.setAlignmentX(Component.CENTER_ALIGNMENT);
+            button.setFont(new Font("Arial", Font.PLAIN, 14));
+            button.addActionListener(e -> handleZephyrAction(label));
+            zephyrPanel.add(button);
+            zephyrPanel.add(Box.createVerticalStrut(15));
+        }
+        
+        JButton backButton = new JButton("Back to Home");
+        backButton.setMaximumSize(buttonSize);
+        backButton.setPreferredSize(buttonSize);
+        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        backButton.addActionListener(e -> {
+            // Recreate home screen to show new random image
+            mainPanel.remove(mainPanel.getComponent(0));
+            mainPanel.add(createHomeScreen(), "HOME", 0);
+            cardLayout.show(mainPanel, "HOME");
+        });
+        
+        zephyrPanel.add(Box.createVerticalStrut(30));
+        zephyrPanel.add(backButton);
+        zephyrPanel.add(Box.createVerticalGlue());
+        
+        return zephyrPanel;
+    }
+    
+    private JPanel createJiraScreen() {
+        JPanel jiraPanel = new JPanel();
+        jiraPanel.setLayout(new BoxLayout(jiraPanel, BoxLayout.Y_AXIS));
+        
+        JLabel titleLabel = new JLabel("JIRA Section");
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        
+        Dimension buttonSize = new Dimension(240, 48);
+        String[] buttonLabels = {
+            "Create JIRA",
+            "Show My Tasks",
+            "Log Efforts",
+            "Update Defect",
+            "Close A Defect"
+        };
+        
+        jiraPanel.add(Box.createVerticalStrut(30));
+        jiraPanel.add(titleLabel);
+        jiraPanel.add(Box.createVerticalStrut(40));
+        
+        for (String label : buttonLabels) {
+            JButton button = new JButton(label);
+            button.setMaximumSize(buttonSize);
+            button.setPreferredSize(buttonSize);
+            button.setAlignmentX(Component.CENTER_ALIGNMENT);
+            button.setFont(new Font("Arial", Font.PLAIN, 14));
+            button.addActionListener(e -> handleJiraAction(label));
+            jiraPanel.add(button);
+            jiraPanel.add(Box.createVerticalStrut(15));
+        }
+        
+        JButton backButton = new JButton("Back to Home");
+        backButton.setMaximumSize(buttonSize);
+        backButton.setPreferredSize(buttonSize);
+        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        backButton.addActionListener(e -> {
+            // Recreate home screen to show new random image
+            mainPanel.remove(mainPanel.getComponent(0));
+            mainPanel.add(createHomeScreen(), "HOME", 0);
+            cardLayout.show(mainPanel, "HOME");
+        });
+        
+        jiraPanel.add(Box.createVerticalStrut(30));
+        jiraPanel.add(backButton);
+        jiraPanel.add(Box.createVerticalGlue());
+        
+        return jiraPanel;
+    }
+    
+    private void handleZephyrAction(String action) {
+        JOptionPane.showMessageDialog(this, 
+            "Zephyr Action Selected: " + action,
+            "Action",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    private void handleJiraAction(String action) {
+        JOptionPane.showMessageDialog(this,
+            "JIRA Action Selected: " + action,
+            "Action",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new TestManagementApp().setVisible(true);
+        });
+    }
+}
