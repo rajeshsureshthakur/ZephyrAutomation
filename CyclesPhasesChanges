@@ -38,6 +38,7 @@ private void showReleaseDetailsPopup() {
                             if (phases > 0) {
                                 phaseCounts.put(testType, phases);
                                 phaseLabel.setText("(" + phases + " phases)");
+                                checkbox.setSelected(true);  // Ensure checkbox stays selected
                             } else {
                                 checkbox.setSelected(false);
                                 JOptionPane.showMessageDialog(dialog,
@@ -53,10 +54,11 @@ private void showReleaseDetailsPopup() {
                                 JOptionPane.ERROR_MESSAGE);
                         }
                     } else {
+                        // Only uncheck if user cancels
                         checkbox.setSelected(false);
                     }
-                } else {
-                    // When unchecked, remove phase count
+                } else if (e.getStateChange() == ItemEvent.DESELECTED) {
+                    // When manually unchecked
                     phaseCounts.remove(testType);
                     phaseLabel.setText("(0 phases)");
                 }
