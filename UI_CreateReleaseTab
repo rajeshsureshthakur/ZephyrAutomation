@@ -1,0 +1,187 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import com.toedter.calendar.JDateChooser;  // You'll need to add JCalendar library
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+
+public class TestManagementApp extends JFrame {
+    // ... (previous code remains the same until handleZephyrAction method)
+
+    private void handleZephyrAction(String action) {
+        if (action.equals("Create Release")) {
+            showCreateReleaseScreen();
+        } else {
+            JOptionPane.showMessageDialog(this, 
+                "Zephyr Action Selected: " + action,
+                "Action",
+                JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void showCreateReleaseScreen() {
+        JPanel createReleasePanel = new JPanel();
+        createReleasePanel.setLayout(new BoxLayout(createReleasePanel, BoxLayout.Y_AXIS));
+        
+        // Title
+        JLabel titleLabel = new JLabel("Create Release");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Project Dropdown
+        String[] projects = {"Select Project", "Project A", "Project B", "Project C"};
+        JComboBox<String> projectDropdown = new JComboBox<>(projects);
+        projectDropdown.setMaximumSize(new Dimension(300, 30));
+        projectDropdown.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Release Name field (initially invisible)
+        JTextField releaseNameField = new JTextField();
+        releaseNameField.setMaximumSize(new Dimension(300, 30));
+        releaseNameField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        releaseNameField.setVisible(false);
+        JLabel releaseNameLabel = new JLabel("Release Name:");
+        releaseNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        releaseNameLabel.setVisible(false);
+
+        // Date choosers (initially invisible)
+        JDateChooser startDateChooser = new JDateChooser();
+        startDateChooser.setMaximumSize(new Dimension(300, 30));
+        startDateChooser.setAlignmentX(Component.CENTER_ALIGNMENT);
+        startDateChooser.setVisible(false);
+        JLabel startDateLabel = new JLabel("Start Date:");
+        startDateLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        startDateLabel.setVisible(false);
+
+        JDateChooser endDateChooser = new JDateChooser();
+        endDateChooser.setMaximumSize(new Dimension(300, 30));
+        endDateChooser.setAlignmentX(Component.CENTER_ALIGNMENT);
+        endDateChooser.setVisible(false);
+        JLabel endDateLabel = new JLabel("End Date:");
+        endDateLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        endDateLabel.setVisible(false);
+
+        // Release Details button (initially invisible)
+        JButton releaseDetailsButton = new JButton("Release Details");
+        releaseDetailsButton.setMaximumSize(new Dimension(300, 30));
+        releaseDetailsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        releaseDetailsButton.setVisible(false);
+
+        // Submit button (initially invisible)
+        JButton submitButton = new JButton("Submit and Create");
+        submitButton.setMaximumSize(new Dimension(300, 30));
+        submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        submitButton.setVisible(false);
+
+        // Back button
+        JButton backButton = new JButton("Back");
+        backButton.setMaximumSize(new Dimension(300, 30));
+        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backButton.addActionListener(e -> cardLayout.show(mainPanel, "ZEPHYR"));
+
+        // Add listeners
+        projectDropdown.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED && 
+                    !projectDropdown.getSelectedItem().equals("Select Project")) {
+                    releaseNameLabel.setVisible(true);
+                    releaseNameField.setVisible(true);
+                    startDateLabel.setVisible(true);
+                    startDateChooser.setVisible(true);
+                }
+            }
+        });
+
+        startDateChooser.addPropertyChangeListener("date", e -> {
+            if (startDateChooser.getDate() != null) {
+                endDateLabel.setVisible(true);
+                endDateChooser.setVisible(true);
+            }
+        });
+
+        endDateChooser.addPropertyChangeListener("date", e -> {
+            if (endDateChooser.getDate() != null) {
+                releaseDetailsButton.setVisible(true);
+            }
+        });
+
+        releaseDetailsButton.addActionListener(e -> {
+            showReleaseDetailsPopup();
+            submitButton.setVisible(true);
+        });
+
+        submitButton.addActionListener(e -> {
+            // Handle submit action
+            JOptionPane.showMessageDialog(this,
+                "Release created successfully!",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE);
+            cardLayout.show(mainPanel, "ZEPHYR");
+        });
+
+        // Add components to panel
+        createReleasePanel.add(Box.createVerticalStrut(20));
+        createReleasePanel.add(titleLabel);
+        createReleasePanel.add(Box.createVerticalStrut(30));
+        createReleasePanel.add(projectDropdown);
+        createReleasePanel.add(Box.createVerticalStrut(20));
+        createReleasePanel.add(releaseNameLabel);
+        createReleasePanel.add(releaseNameField);
+        createReleasePanel.add(Box.createVerticalStrut(20));
+        createReleasePanel.add(startDateLabel);
+        createReleasePanel.add(startDateChooser);
+        createReleasePanel.add(Box.createVerticalStrut(20));
+        createReleasePanel.add(endDateLabel);
+        createReleasePanel.add(endDateChooser);
+        createReleasePanel.add(Box.createVerticalStrut(20));
+        createReleasePanel.add(releaseDetailsButton);
+        createReleasePanel.add(Box.createVerticalStrut(20));
+        createReleasePanel.add(submitButton);
+        createReleasePanel.add(Box.createVerticalStrut(40));
+        createReleasePanel.add(backButton);
+        createReleasePanel.add(Box.createVerticalGlue());
+
+        // Add panel to main container
+        mainPanel.add(createReleasePanel, "CREATE_RELEASE");
+        cardLayout.show(mainPanel, "CREATE_RELEASE");
+    }
+
+    private void showReleaseDetailsPopup() {
+        JDialog dialog = new JDialog(this, "Release Details", true);
+        dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
+        
+        // Add fields to the popup
+        String[] labels = {"Release Owner:", "Release Type:", "Release Description:", "Release Notes:"};
+        JComponent[] inputs = {
+            new JTextField(20),
+            new JComboBox<>(new String[]{"Major", "Minor", "Patch"}),
+            new JTextArea(4, 20),
+            new JTextArea(4, 20)
+        };
+
+        for (int i = 0; i < labels.length; i++) {
+            JPanel panel = new JPanel();
+            panel.setLayout(new FlowLayout(FlowLayout.LEFT));
+            panel.add(new JLabel(labels[i]));
+            panel.add(inputs[i]);
+            if (inputs[i] instanceof JTextArea) {
+                panel.add(new JScrollPane(inputs[i]));
+            }
+            dialog.add(panel);
+        }
+
+        // Add OK button
+        JButton okButton = new JButton("OK");
+        okButton.addActionListener(e -> dialog.dispose());
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(okButton);
+        dialog.add(buttonPanel);
+
+        // Set dialog properties
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    // ... (rest of the code remains the same)
+}
