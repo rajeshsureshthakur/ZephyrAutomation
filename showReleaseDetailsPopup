@@ -1,0 +1,112 @@
+private void showReleaseDetailsPopup() {
+        JDialog dialog = new JDialog(this, "Release Details", true);
+        dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
+        dialog.setSize(600, 500);
+        
+        // Requirements Folder Structure Section
+        JPanel reqSection = new JPanel();
+        reqSection.setLayout(new BoxLayout(reqSection, BoxLayout.Y_AXIS));
+        reqSection.setBorder(BorderFactory.createTitledBorder("Requirements Folder Structure"));
+        
+        // Parent Folders
+        JPanel parentReqPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel parentReqLabel = new JLabel("Provide Parent Folders:");
+        JTextField parentReqField = new JTextField(30);
+        JLabel parentReqNote = new JLabel("(Comma separated)");
+        parentReqPanel.add(parentReqLabel);
+        parentReqPanel.add(parentReqField);
+        parentReqPanel.add(parentReqNote);
+        
+        // Child Folders
+        JPanel childReqPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel childReqLabel = new JLabel("Provide Child Folders:");
+        JTextField childReqField = new JTextField(30);
+        JLabel childReqNote = new JLabel("(Comma separated)");
+        childReqPanel.add(childReqLabel);
+        childReqPanel.add(childReqField);
+        childReqPanel.add(childReqNote);
+        
+        reqSection.add(parentReqPanel);
+        reqSection.add(childReqPanel);
+        
+        // Test Case Folder Structure Section
+        JPanel testSection = new JPanel();
+        testSection.setLayout(new BoxLayout(testSection, BoxLayout.Y_AXIS));
+        testSection.setBorder(BorderFactory.createTitledBorder("Test Case Folder Structure"));
+        
+        // Parent Folders
+        JPanel parentTestPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel parentTestLabel = new JLabel("Provide Parent Folders:");
+        JTextField parentTestField = new JTextField(30);
+        JLabel parentTestNote = new JLabel("(Comma separated)");
+        parentTestPanel.add(parentTestLabel);
+        parentTestPanel.add(parentTestField);
+        parentTestPanel.add(parentTestNote);
+        
+        // Child Folders
+        JPanel childTestPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel childTestLabel = new JLabel("Provide Child Folders:");
+        JTextField childTestField = new JTextField(30);
+        JLabel childTestNote = new JLabel("(Comma separated)");
+        childTestPanel.add(childTestLabel);
+        childTestPanel.add(childTestField);
+        childTestPanel.add(childTestNote);
+        
+        testSection.add(parentTestPanel);
+        testSection.add(childTestPanel);
+        
+        // Planning Folder Structure Section
+        JPanel planningSection = new JPanel();
+        planningSection.setLayout(new BoxLayout(planningSection, BoxLayout.Y_AXIS));
+        planningSection.setBorder(BorderFactory.createTitledBorder("Planning Folder Structure"));
+        
+        // Project Cycles
+        JPanel cyclesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel cyclesLabel = new JLabel("Project Cycle's:");
+        cyclesPanel.add(cyclesLabel);
+        
+        // Checkboxes
+        JCheckBox loadTestBox = new JCheckBox("Load Test");
+        JCheckBox enduranceTestBox = new JCheckBox("Endurance Test");
+        JCheckBox sanityBox = new JCheckBox("Sanity");
+        JCheckBox standaloneBox = new JCheckBox("Standalone");
+        
+        JPanel checkboxPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        checkboxPanel.add(loadTestBox);
+        checkboxPanel.add(enduranceTestBox);
+        checkboxPanel.add(sanityBox);
+        checkboxPanel.add(standaloneBox);
+        
+        planningSection.add(cyclesPanel);
+        planningSection.add(checkboxPanel);
+        
+        // Button Panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton okButton = new JButton("OK");
+        okButton.addActionListener(e -> {
+            // Here you can add code to save the entered data
+            dialog.dispose();
+        });
+        buttonPanel.add(okButton);
+        
+        // Add all sections to the dialog
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        mainPanel.add(reqSection);
+        mainPanel.add(Box.createVerticalStrut(10));
+        mainPanel.add(testSection);
+        mainPanel.add(Box.createVerticalStrut(10));
+        mainPanel.add(planningSection);
+        mainPanel.add(Box.createVerticalStrut(10));
+        mainPanel.add(buttonPanel);
+        
+        // Add scrolling capability
+        JScrollPane scrollPane = new JScrollPane(mainPanel);
+        scrollPane.setBorder(null);
+        dialog.add(scrollPane);
+        
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
