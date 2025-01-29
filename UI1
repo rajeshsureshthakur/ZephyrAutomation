@@ -1,0 +1,171 @@
+import javax.swing.*;
+import java.awt.*;
+
+public class TestManagementApp extends JFrame {
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
+    
+    public TestManagementApp() {
+        setTitle("Test Management Application");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(500, 400);
+        setLocationRelativeTo(null);
+        
+        // Create the main panel with CardLayout
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
+        
+        // Create and add screens
+        mainPanel.add(createHomeScreen(), "HOME");
+        mainPanel.add(createZephyrScreen(), "ZEPHYR");
+        mainPanel.add(createJiraScreen(), "JIRA");
+        
+        add(mainPanel);
+    }
+    
+    private JPanel createHomeScreen() {
+        JPanel homePanel = new JPanel();
+        homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS));
+        
+        JLabel titleLabel = new JLabel("Test Management System");
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        
+        // Create buttons with consistent size
+        Dimension buttonSize = new Dimension(200, 40);
+        
+        JButton zephyrButton = new JButton("Zephyr");
+        zephyrButton.setMaximumSize(buttonSize);
+        zephyrButton.setPreferredSize(buttonSize);
+        zephyrButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        zephyrButton.addActionListener(e -> cardLayout.show(mainPanel, "ZEPHYR"));
+        
+        JButton jiraButton = new JButton("JIRA");
+        jiraButton.setMaximumSize(buttonSize);
+        jiraButton.setPreferredSize(buttonSize);
+        jiraButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        jiraButton.addActionListener(e -> cardLayout.show(mainPanel, "JIRA"));
+        
+        homePanel.add(Box.createVerticalGlue());
+        homePanel.add(titleLabel);
+        homePanel.add(Box.createVerticalStrut(30));
+        homePanel.add(zephyrButton);
+        homePanel.add(Box.createVerticalStrut(20));
+        homePanel.add(jiraButton);
+        homePanel.add(Box.createVerticalGlue());
+        
+        return homePanel;
+    }
+    
+    private JPanel createZephyrScreen() {
+        JPanel zephyrPanel = new JPanel();
+        zephyrPanel.setLayout(new BoxLayout(zephyrPanel, BoxLayout.Y_AXIS));
+        
+        JLabel titleLabel = new JLabel("Zephyr Section");
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        
+        // Create buttons with consistent size
+        Dimension buttonSize = new Dimension(200, 40);
+        String[] buttonLabels = {
+            "Create Release",
+            "Update Release",
+            "Import Requirements",
+            "Update Central Test Repo",
+            "Update Confluence"
+        };
+        
+        zephyrPanel.add(Box.createVerticalGlue());
+        zephyrPanel.add(titleLabel);
+        zephyrPanel.add(Box.createVerticalStrut(30));
+        
+        for (String label : buttonLabels) {
+            JButton button = new JButton(label);
+            button.setMaximumSize(buttonSize);
+            button.setPreferredSize(buttonSize);
+            button.setAlignmentX(Component.CENTER_ALIGNMENT);
+            button.addActionListener(e -> handleZephyrAction(label));
+            zephyrPanel.add(button);
+            zephyrPanel.add(Box.createVerticalStrut(10));
+        }
+        
+        JButton backButton = new JButton("Back to Home");
+        backButton.setMaximumSize(buttonSize);
+        backButton.setPreferredSize(buttonSize);
+        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backButton.addActionListener(e -> cardLayout.show(mainPanel, "HOME"));
+        
+        zephyrPanel.add(Box.createVerticalStrut(20));
+        zephyrPanel.add(backButton);
+        zephyrPanel.add(Box.createVerticalGlue());
+        
+        return zephyrPanel;
+    }
+    
+    private JPanel createJiraScreen() {
+        JPanel jiraPanel = new JPanel();
+        jiraPanel.setLayout(new BoxLayout(jiraPanel, BoxLayout.Y_AXIS));
+        
+        JLabel titleLabel = new JLabel("JIRA Section");
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        
+        // Create buttons with consistent size
+        Dimension buttonSize = new Dimension(200, 40);
+        String[] buttonLabels = {
+            "Create JIRA",
+            "Show My Tasks",
+            "Log Efforts",
+            "Update Defect",
+            "Close A Defect"
+        };
+        
+        jiraPanel.add(Box.createVerticalGlue());
+        jiraPanel.add(titleLabel);
+        jiraPanel.add(Box.createVerticalStrut(30));
+        
+        for (String label : buttonLabels) {
+            JButton button = new JButton(label);
+            button.setMaximumSize(buttonSize);
+            button.setPreferredSize(buttonSize);
+            button.setAlignmentX(Component.CENTER_ALIGNMENT);
+            button.addActionListener(e -> handleJiraAction(label));
+            jiraPanel.add(button);
+            jiraPanel.add(Box.createVerticalStrut(10));
+        }
+        
+        JButton backButton = new JButton("Back to Home");
+        backButton.setMaximumSize(buttonSize);
+        backButton.setPreferredSize(buttonSize);
+        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backButton.addActionListener(e -> cardLayout.show(mainPanel, "HOME"));
+        
+        jiraPanel.add(Box.createVerticalStrut(20));
+        jiraPanel.add(backButton);
+        jiraPanel.add(Box.createVerticalGlue());
+        
+        return jiraPanel;
+    }
+    
+    private void handleZephyrAction(String action) {
+        // Add your Zephyr action handling logic here
+        JOptionPane.showMessageDialog(this, 
+            "Zephyr Action Selected: " + action,
+            "Action",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    private void handleJiraAction(String action) {
+        // Add your JIRA action handling logic here
+        JOptionPane.showMessageDialog(this,
+            "JIRA Action Selected: " + action,
+            "Action",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new TestManagementApp().setVisible(true);
+        });
+    }
+}
