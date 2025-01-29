@@ -1,0 +1,117 @@
+private void showReleaseDetailsPopup() {
+        JDialog dialog = new JDialog(this, "Release Details", true);
+        // ... (previous code remains same until Planning Folder Structure section)
+
+        // Planning Folder Structure Section with phase counts
+        JPanel planningSection = new JPanel();
+        planningSection.setLayout(new BoxLayout(planningSection, BoxLayout.Y_AXIS));
+        planningSection.setBorder(BorderFactory.createTitledBorder("Planning Folder Structure"));
+        
+        // Project Cycles
+        JPanel cyclesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel cyclesLabel = new JLabel("Project Cycle's:");
+        cyclesPanel.add(cyclesLabel);
+        
+        // HashMap to store phase counts for each test type
+        Map<String, Integer> phaseCounts = new HashMap<>();
+        
+        // Create checkbox panel with individual flow layouts
+        JPanel checkboxPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        
+        // Create checkboxes with phase count labels
+        String[] testTypes = {"Load Test", "Endurance Test", "Sanity", "Standalone"};
+        Map<String, JLabel> phaseLabels = new HashMap<>();
+        
+        for (String testType : testTypes) {
+            JPanel testTypePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            JCheckBox checkbox = new JCheckBox(testType);
+            JLabel phaseLabel = new JLabel("(0 phases)");
+            phaseLabels.put(testType, phaseLabel);
+            
+            checkbox.addItemListener(e -> {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    // Show phase input dialog
+                    String input = showPhaseInputDialog(testType);
+                    if (input != null) {
+                        try {
+                            int phases = Integer.parseInt(input);
+                            if (phases > 0) {
+                                phaseCounts.put(testType, phases);
+                                phaseLabel.setText("(" + phases + " phases)");
+                            } else {
+                                checkbox.setSelected(false);
+                                JOptionPane.showMessageDialog(dialog,
+                                    "Please enter a positive number of phases.",
+                                    "Invalid Input",
+                                    JOptionPane.ERROR_MESSAGE);
+                            }
+                        } catch (NumberFormatException ex) {
+                            checkbox.setSelected(false);
+                            JOptionPane.showMessageDialog(dialog,
+                                "Please enter a valid number.",
+                                "Invalid Input",
+                                JOptionPane.ERROR_MESSAGE);
+                        }
+                    } else {
+                        checkbox.setSelected(false);
+                    }
+                } else {
+                    // When unchecked, remove phase count
+                    phaseCounts.remove(testType);
+                    phaseLabel.setText("(0 phases)");
+                }
+            });
+            
+            testTypePanel.add(checkbox);
+            testTypePanel.add(phaseLabel);
+            checkboxPanel.add(testTypePanel);
+        }
+        
+        planningSection.add(cyclesPanel);
+        planningSection.add(checkboxPanel);
+        
+        // ... (rest of the previous code remains same)
+    }
+    
+    private String showPhaseInputDialog(String testType) {
+        JDialog phaseDialog = new JDialog(this, "Number of Phases", true);
+        phaseDialog.setLayout(new BoxLayout(phaseDialog.getContentPane(), BoxLayout.Y_AXIS));
+        
+        JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JLabel promptLabel = new JLabel("Enter number of phases for " + testType + ":");
+        JTextField phaseInput = new JTextField(10);
+        
+        inputPanel.add(promptLabel);
+        inputPanel.add(phaseInput);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Cancel");
+        
+        final String[] result = {null};
+        
+        okButton.addActionListener(e -> {
+            result[0] = phaseInput.getText();
+            phaseDialog.dispose();
+        });
+        
+        cancelButton.addActionListener(e -> {
+            result[0] = null;
+            phaseDialog.dispose();
+        });
+        
+        buttonPanel.add(okButton);
+        buttonPanel.add(cancelButton);
+        
+        phaseDialog.add(Box.createVerticalStrut(10));
+        phaseDialog.add(inputPanel);
+        phaseDialog.add(Box.createVerticalStrut(10));
+        phaseDialog.add(buttonPanel);
+        phaseDialog.add(Box.createVerticalStrut(10));
+        
+        phaseDialog.pack();
+        phaseDialog.setLocationRelativeTo(this);
+        phaseDialog.setVisible(true);
+        
+        return result[0];
+    }
