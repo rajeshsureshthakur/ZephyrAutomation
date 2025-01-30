@@ -1,0 +1,115 @@
+private boolean showReleaseDetailsPopup() {
+        final boolean[] result = {false};
+        
+        JDialog dialog = new JDialog(this, "Release Details", true);
+        dialog.setLayout(null);  // Using null layout for fixed positioning
+        dialog.setSize(600, 400);
+        
+        // Zephyr Folder Structure section
+        JPanel folderSection = new JPanel(null);
+        folderSection.setBorder(BorderFactory.createTitledBorder("Zephyr Folder Structure"));
+        folderSection.setBounds(20, 20, 540, 150);
+        
+        // Parent Folders input
+        JLabel parentLabel = new JLabel("Parent Folders:");
+        parentLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        parentLabel.setBounds(20, 30, 100, 25);
+        
+        JTextField parentField = new JTextField();
+        parentField.setFont(new Font("Arial", Font.PLAIN, 14));
+        parentField.setBounds(120, 30, 300, 25);
+        
+        JLabel parentNote = new JLabel("(Comma separated)");
+        parentNote.setFont(new Font("Arial", Font.ITALIC, 12));
+        parentNote.setBounds(430, 30, 100, 25);
+        
+        // Child Folders input
+        JLabel childLabel = new JLabel("Child Folders:");
+        childLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        childLabel.setBounds(20, 70, 100, 25);
+        
+        JTextField childField = new JTextField();
+        childField.setFont(new Font("Arial", Font.PLAIN, 14));
+        childField.setBounds(120, 70, 300, 25);
+        
+        JLabel childNote = new JLabel("(Comma separated)");
+        childNote.setFont(new Font("Arial", Font.ITALIC, 12));
+        childNote.setBounds(430, 70, 100, 25);
+        
+        // Add components to folder section
+        folderSection.add(parentLabel);
+        folderSection.add(parentField);
+        folderSection.add(parentNote);
+        folderSection.add(childLabel);
+        folderSection.add(childField);
+        folderSection.add(childNote);
+        
+        // Planning section
+        JPanel planningSection = new JPanel(null);
+        planningSection.setBorder(BorderFactory.createTitledBorder("Planning Folder Structure"));
+        planningSection.setBounds(20, 190, 540, 120);
+        
+        JLabel cyclesLabel = new JLabel("Project Cycle's:");
+        cyclesLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        cyclesLabel.setBounds(20, 30, 100, 25);
+        planningSection.add(cyclesLabel);
+        
+        // Checkboxes with fixed positions
+        JCheckBox[] checkboxes = {
+            new JCheckBox("Load Test"),
+            new JCheckBox("Endurance Test"),
+            new JCheckBox("Sanity"),
+            new JCheckBox("Standalone")
+        };
+        
+        int xOffset = 20;
+        for (int i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].setFont(new Font("Arial", Font.PLAIN, 14));
+            checkboxes[i].setBounds(xOffset, 60, 130, 25);
+            final JCheckBox checkbox = checkboxes[i];
+            
+            checkbox.addActionListener(e -> {
+                if (checkbox.isSelected()) {
+                    String input = JOptionPane.showInputDialog(dialog,
+                        "Enter number of phases for " + checkbox.getText() + ":",
+                        "Number of Phases",
+                        JOptionPane.QUESTION_MESSAGE);
+                    if (input != null) {
+                        try {
+                            int phases = Integer.parseInt(input);
+                            if (phases <= 0) {
+                                checkbox.setSelected(false);
+                            }
+                        } catch (NumberFormatException ex) {
+                            checkbox.setSelected(false);
+                        }
+                    } else {
+                        checkbox.setSelected(false);
+                    }
+                }
+            });
+            planningSection.add(checkbox);
+            xOffset += 135;  // Space between checkboxes
+        }
+        
+        // OK button
+        JButton okButton = new JButton("OK");
+        okButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        okButton.setBounds(250, 320, 100, 30);
+        
+        okButton.addActionListener(e -> {
+            result[0] = true;
+            dialog.dispose();
+        });
+        
+        // Add all sections to dialog
+        dialog.add(folderSection);
+        dialog.add(planningSection);
+        dialog.add(okButton);
+        
+        dialog.setLocationRelativeTo(this);
+        dialog.setResizable(false);
+        dialog.setVisible(true);
+        
+        return result[0];
+    }
