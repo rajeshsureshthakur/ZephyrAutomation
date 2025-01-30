@@ -1,0 +1,101 @@
+private String currentUserSoeid;  // Add this as class member
+
+    private void handleSuccessfulLogin(String soeid) {
+        this.currentUserSoeid = soeid;
+        cardLayout.show(mainPanel, "HOME");
+    }
+
+    // Modify the login button action listener in createLoginScreen()
+    loginButton.addActionListener(e -> {
+        String soeid = soeidField.getText();
+        String password = new String(passwordField.getPassword());
+        
+        if (validateLogin(soeid, password)) {
+            handleSuccessfulLogin(soeid);
+        } else {
+            JOptionPane.showMessageDialog(this,
+                "Invalid SOEID or Password",
+                "Login Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    });
+
+    private String getTimeBasedGreeting() {
+        Calendar now = Calendar.getInstance();
+        int hourOfDay = now.get(Calendar.HOUR_OF_DAY);
+        
+        if (hourOfDay >= 0 && hourOfDay < 12) {
+            return "Good Morning";
+        } else if (hourOfDay >= 12 && hourOfDay < 16) {
+            return "Good Afternoon";
+        } else {
+            return "Good Evening";
+        }
+    }
+    
+    private JPanel createHomeScreen() {
+        JPanel homePanel = new JPanel();
+        homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS));
+        
+        // Add greeting panel
+        JPanel greetingPanel = new JPanel();
+        greetingPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        JLabel greetingLabel = new JLabel(getTimeBasedGreeting() + ", " + currentUserSoeid);
+        greetingLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        greetingPanel.add(greetingLabel);
+        
+        JLabel titleLabel = new JLabel("Test Management System");
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        
+        // Existing buttons and components
+        Dimension buttonSize = new Dimension(240, 48);
+        
+        JButton zephyrButton = new JButton("Zephyr");
+        zephyrButton.setMaximumSize(buttonSize);
+        zephyrButton.setPreferredSize(buttonSize);
+        zephyrButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        zephyrButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        zephyrButton.addActionListener(e -> cardLayout.show(mainPanel, "ZEPHYR"));
+        
+        JButton jiraButton = new JButton("JIRA");
+        jiraButton.setMaximumSize(buttonSize);
+        jiraButton.setPreferredSize(buttonSize);
+        jiraButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        jiraButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        jiraButton.addActionListener(e -> cardLayout.show(mainPanel, "JIRA"));
+        
+        // Add logout button
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setMaximumSize(new Dimension(120, 30));
+        logoutButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        logoutButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        logoutButton.addActionListener(e -> {
+            currentUserSoeid = null;
+            cardLayout.show(mainPanel, "LOGIN");
+        });
+        
+        // Footer panel
+        JPanel footerPanel = new JPanel();
+        footerPanel.setMaximumSize(new Dimension(600, 40));
+        footerPanel.setPreferredSize(new Dimension(600, 40));
+        JLabel footerLabel = new JLabel("Developed by Channels NFT Team");
+        footerLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        footerPanel.add(footerLabel);
+        
+        // Add all components to the panel
+        homePanel.add(Box.createVerticalStrut(20));
+        homePanel.add(greetingPanel);
+        homePanel.add(Box.createVerticalStrut(20));
+        homePanel.add(titleLabel);
+        homePanel.add(Box.createVerticalStrut(50));
+        homePanel.add(zephyrButton);
+        homePanel.add(Box.createVerticalStrut(30));
+        homePanel.add(jiraButton);
+        homePanel.add(Box.createVerticalStrut(30));
+        homePanel.add(logoutButton);
+        homePanel.add(Box.createVerticalGlue());
+        homePanel.add(footerPanel);
+        
+        return homePanel;
+    }
