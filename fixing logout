@@ -161,3 +161,17 @@ zephyrButton.addActionListener(new ActionListener() {
         }
         return null;
     }
+
+
+backButton.addActionListener(e -> {
+        // Remove old screen and create new one
+        String zephyrKey = "ZEPHYR";
+        Component zephyrComp = findComponentByName(mainPanel, zephyrKey);
+        if (zephyrComp != null) {
+            mainPanel.remove(zephyrComp);
+        }
+        mainPanel.add(createZephyrScreen(), zephyrKey);
+        cardLayout.show(mainPanel, zephyrKey);
+        mainPanel.revalidate();
+        mainPanel.repaint();
+    });
