@@ -112,3 +112,42 @@ zephyrButton.addActionListener(new ActionListener() {
                 mainPanel.repaint();
             }
         });
+
+zephyrButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (!hasZephyrToken(currentUserSoeid)) {
+                String token = showTokenInputDialog();
+                if (token != null) {
+                    if (saveZephyrToken(currentUserSoeid, token)) {
+                        // Remove old Zephyr screen and create new one
+                        String zephyrKey = "ZEPHYR";
+                        Component zephyrComp = findComponentByName(mainPanel, zephyrKey);
+                        if (zephyrComp != null) {
+                            mainPanel.remove(zephyrComp);
+                        }
+                        mainPanel.add(createZephyrScreen(), zephyrKey);
+                        cardLayout.show(mainPanel, zephyrKey);
+                        mainPanel.revalidate();
+                        mainPanel.repaint();
+                    } else {
+                        JOptionPane.showMessageDialog(TestManagementApp.this,
+                            "Failed to save Zephyr token. Please try again.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            } else {
+                // Remove old Zephyr screen and create new one
+                String zephyrKey = "ZEPHYR";
+                Component zephyrComp = findComponentByName(mainPanel, zephyrKey);
+                if (zephyrComp != null) {
+                    mainPanel.remove(zephyrComp);
+                }
+                mainPanel.add(createZephyrScreen(), zephyrKey);
+                cardLayout.show(mainPanel, zephyrKey);
+                mainPanel.revalidate();
+                mainPanel.repaint();
+            }
+        }
+    });
