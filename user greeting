@@ -173,3 +173,60 @@ loginButton.addActionListener(e -> {
     });
 
 
+
+
+
+
+
+// Create a main content panel to group the input fields and login button
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Set maximum size to prevent excessive stretching
+        contentPanel.setMaximumSize(new Dimension(400, 250));
+        
+        // SOEID field
+        JPanel soeidPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JLabel soeidLabel = new JLabel("SOEID:");
+        JTextField soeidField = new JTextField(20);
+        soeidPanel.add(soeidLabel);
+        soeidPanel.add(soeidField);
+        
+        // Password field
+        JPanel passwordPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JLabel passwordLabel = new JLabel("Password:");
+        JPasswordField passwordField = new JPasswordField(20);
+        passwordPanel.add(passwordLabel);
+        passwordPanel.add(passwordField);
+        
+        // Login button
+        JButton loginButton = new JButton("Login");
+        loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Register link
+        JButton registerLink = new JButton("New user? Register");
+        registerLink.setBorderPainted(false);
+        registerLink.setContentAreaFilled(false);
+        registerLink.setForeground(Color.BLUE);
+        registerLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        registerLink.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Add components to content panel with specific spacing
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(soeidPanel);
+        contentPanel.add(Box.createVerticalStrut(10));
+        contentPanel.add(passwordPanel);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(loginButton);
+        contentPanel.add(Box.createVerticalStrut(10));
+        contentPanel.add(registerLink);
+        
+        // Add everything to main panel with controlled spacing
+        loginPanel.add(Box.createVerticalStrut(50));
+        loginPanel.add(titleLabel);
+        loginPanel.add(Box.createVerticalStrut(30));
+        loginPanel.add(loginHeading);
+        loginPanel.add(Box.createVerticalStrut(30));
+        loginPanel.add(contentPanel);
+        // Add flexible space that will push everything up
+        loginPanel.add(Box.createVerticalGlue());
