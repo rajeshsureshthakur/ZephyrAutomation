@@ -1,0 +1,101 @@
+private boolean showReleaseDetailsPopup() {
+        final boolean[] result = {false};
+        
+        JDialog dialog = new JDialog(this, "Release Details", true);
+        dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
+        
+        // Zephyr Folder Structure section
+        JPanel folderSection = new JPanel();
+        folderSection.setLayout(new BoxLayout(folderSection, BoxLayout.Y_AXIS));
+        folderSection.setBorder(BorderFactory.createTitledBorder("Zephyr Folder Structure"));
+        
+        // Parent Folders
+        JPanel parentPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel parentLabel = new JLabel("Parent Folders:");
+        JTextField parentField = new JTextField(30);
+        JLabel parentNote = new JLabel("(Comma separated)");
+        parentPanel.add(parentLabel);
+        parentPanel.add(parentField);
+        parentPanel.add(parentNote);
+        
+        // Child Folders
+        JPanel childPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel childLabel = new JLabel("Child Folders:");
+        JTextField childField = new JTextField(30);
+        JLabel childNote = new JLabel("(Comma separated)");
+        childPanel.add(childLabel);
+        childPanel.add(childField);
+        childPanel.add(childNote);
+        
+        // Add folder inputs to the section
+        folderSection.add(parentPanel);
+        folderSection.add(childPanel);
+        
+        // Planning section with checkboxes
+        JPanel planningSection = new JPanel();
+        planningSection.setLayout(new BoxLayout(planningSection, BoxLayout.Y_AXIS));
+        planningSection.setBorder(BorderFactory.createTitledBorder("Planning Folder Structure"));
+        
+        JLabel cyclesLabel = new JLabel("Project Cycle's:");
+        cyclesLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JPanel checkboxPanel = new JPanel(new GridLayout(0, 1));
+        JCheckBox[] checkboxes = {
+            new JCheckBox("Load Test"),
+            new JCheckBox("Endurance Test"),
+            new JCheckBox("Sanity"),
+            new JCheckBox("Standalone")
+        };
+        
+        for (JCheckBox checkbox : checkboxes) {
+            checkbox.addActionListener(e -> {
+                if (checkbox.isSelected()) {
+                    String input = JOptionPane.showInputDialog(dialog,
+                        "Enter number of phases for " + checkbox.getText() + ":",
+                        "Number of Phases",
+                        JOptionPane.QUESTION_MESSAGE);
+                    if (input != null) {
+                        try {
+                            int phases = Integer.parseInt(input);
+                            if (phases <= 0) {
+                                checkbox.setSelected(false);
+                            }
+                        } catch (NumberFormatException ex) {
+                            checkbox.setSelected(false);
+                        }
+                    } else {
+                        checkbox.setSelected(false);
+                    }
+                }
+            });
+            checkboxPanel.add(checkbox);
+        }
+        
+        planningSection.add(cyclesLabel);
+        planningSection.add(checkboxPanel);
+        
+        // OK button
+        JButton okButton = new JButton("OK");
+        okButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        okButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        okButton.addActionListener(e -> {
+            result[0] = true;
+            dialog.dispose();
+        });
+        
+        // Add all components to dialog
+        dialog.add(Box.createVerticalStrut(10));
+        dialog.add(folderSection);
+        dialog.add(Box.createVerticalStrut(10));
+        dialog.add(planningSection);
+        dialog.add(Box.createVerticalStrut(20));
+        dialog.add(okButton);
+        dialog.add(Box.createVerticalStrut(10));
+        
+        // Set dialog properties
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+        
+        return result[0];
+    }
