@@ -5,6 +5,13 @@ import java.util.Map;
 import java.util.Arrays;
 
   TestConfiguration config = configureTestCycles();
+
+TestCycleConfiguration testConfigManager = new TestCycleConfiguration();
+        TestConfiguration testConfig = testConfigManager.configureTestCycles();
+        
+        // Retrieve the test cycles and child folders
+        Map<String, Integer> testCycles = testConfig.getTestCyclePhasesMap();
+        String[] childFolders = testConfig.getChildFolders();
             
             // Now you can use the configuration data
             Map<String, Integer> testCycles = config.getTestCyclePhasesMap();
