@@ -1,0 +1,279 @@
+// Add these as class fields to store values
+    private String[] testFolders;
+    private int[] testCycles;
+    
+    private String getZephyrToken(String soeid) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "SELECT ZEPHYR_TOKEN FROM USERS WHERE SOEID = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setString(1, soeid);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        if (rs.next()) {
+                            return rs.getString("ZEPHYR_TOKEN");
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    private void showCreateReleaseScreen() {
+        // Initialize testCycles array with -1 (indicating not selected)
+        testCycles = new int[] {-1, -1, -1, -1}; // For Load, Endurance, Sanity, Standalone
+        
+        JPanel createReleasePanel = new JPanel();
+        createReleasePanel.setLayout(new BorderLayout());
+
+        // Create a main scroll pane
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Title
+        JLabel titleLabel = new JLabel("Create Release");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        mainPanel.add(titleLabel);
+        mainPanel.add(Box.createVerticalStrut(20));
+
+        // Project Selection
+        JPanel projectPanel = createLabeledComponent("Select Project: *", 
+            projectDropdown = new JComboBox<>());
+        projectDropdown.setPreferredSize(new Dimension(300, 30));
+        populateProjectDropdown(projectDropdown);
+        mainPanel.add(projectPanel);
+        mainPanel.add(Box.createVerticalStrut(15));
+
+        // Release Name
+        JTextField nameField = new JTextField(20);
+        JPanel namePanel = createLabeledComponent("Release Name: *", nameField);
+        namePanel.setVisible(false);
+        mainPanel.add(namePanel);
+        mainPanel.add(Box.createVerticalStrut(15));
+
+        // Start Date
+        JDateChooser startDateChooser = new JDateChooser();
+        JPanel startDatePanel = createLabeledComponent("Start Date: *", startDateChooser);
+        startDatePanel.setVisible(false);
+        mainPanel.add(startDatePanel);
+        mainPanel.add(Box.createVerticalStrut(15));
+
+        // End Date
+        JDateChooser endDateChooser = new JDateChooser();
+        JPanel endDatePanel = createLabeledComponent("End Date: *", endDateChooser);
+        endDatePanel.setVisible(false);
+        mainPanel.add(endDatePanel);
+        mainPanel.add(Box.createVerticalStrut(15));
+
+        // Folder Structure Section
+        JPanel folderSection = new JPanel();
+        folderSection.setLayout(new BoxLayout(folderSection, BoxLayout.Y_AXIS));
+        folderSection.setBorder(BorderFactory.createTitledBorder("Folder Structure"));
+        
+        // Child Folders input
+        JPanel childFolderPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel childLabel = new JLabel("Child Folders:");
+        JTextField childField = new JTextField(20);
+        childField.setPreferredSize(new Dimension(300, 30));
+        JLabel noteLabel = new JLabel("(Comma separated)");
+        childFolderPanel.add(childLabel);
+        childFolderPanel.add(childField);
+        childFolderPanel.add(noteLabel);
+        folderSection.add(childFolderPanel);
+        folderSection.setVisible(false);
+        mainPanel.add(folderSection);
+        mainPanel.add(Box.createVerticalStrut(15));
+
+        // Planning Section
+        JPanel planningSection = new JPanel();
+        planningSection.setLayout(new BoxLayout(planningSection, BoxLayout.Y_AXIS));
+        planningSection.setBorder(BorderFactory.createTitledBorder("Planning Folder Structure"));
+        
+        JLabel cyclesLabel = new JLabel("Project Cycle's:");
+        planningSection.add(cyclesLabel);
+        
+        String[] cycleNames = {"Load Test", "Endurance Test", "Sanity", "Standalone"};
+        JPanel checkboxPanel = new JPanel(new GridLayout(0, 1, 5, 5));
+        
+        for (int i = 0; i < cycleNames.length; i++) {
+            JCheckBox checkbox = new JCheckBox(cycleNames[i]);
+            final int index = i;
+            checkbox.addActionListener(e -> {
+                if (checkbox.isSelected()) {
+                    String input = JOptionPane.showInputDialog(
+                        createReleasePanel,
+                        "Enter number of phases for " + cycleNames[index] + ":",
+                        "Number of Phases",
+                        JOptionPane.QUESTION_MESSAGE
+                    );
+                    if (input != null) {
+                        try {
+                            int phases = Integer.parseInt(input);
+                            if (phases > 0) {
+                                testCycles[index] = phases;
+                            } else {
+                                checkbox.setSelected(false);
+                                testCycles[index] = -1;
+                            }
+                        } catch (NumberFormatException ex) {
+                            checkbox.setSelected(false);
+                            testCycles[index] = -1;
+                        }
+                    } else {
+                        checkbox.setSelected(false);
+                        testCycles[index] = -1;
+                    }
+                } else {
+                    testCycles[index] = -1;
+                }
+            });
+            checkboxPanel.add(checkbox);
+        }
+        planningSection.add(checkboxPanel);
+        planningSection.setVisible(false);
+        mainPanel.add(planningSection);
+        mainPanel.add(Box.createVerticalStrut(15));
+
+        // Create Release Button
+        JButton createButton = new JButton("Create Release");
+        createButton.setMaximumSize(new Dimension(200, 35));
+        createButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        createButton.setVisible(false);
+        mainPanel.add(createButton);
+        mainPanel.add(Box.createVerticalStrut(15));
+
+        // Back Button
+        JButton backButton = new JButton("Back");
+        backButton.setMaximumSize(new Dimension(200, 35));
+        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        mainPanel.add(backButton);
+
+        // Add scroll pane
+        JScrollPane scrollPane = new JScrollPane(mainPanel);
+        createReleasePanel.add(scrollPane, BorderLayout.CENTER);
+
+        // Add listeners
+        projectDropdown.addActionListener(e -> {
+            if (projectDropdown.getSelectedItem() != null && 
+                projectDropdown.getSelectedIndex() > 0) {
+                namePanel.setVisible(true);
+                startDatePanel.setVisible(true);
+            }
+        });
+
+        startDateChooser.addPropertyChangeListener("date", evt -> {
+            if (startDateChooser.getDate() != null) {
+                endDatePanel.setVisible(true);
+            }
+        });
+
+        endDateChooser.addPropertyChangeListener("date", evt -> {
+            if (endDateChooser.getDate() != null && startDateChooser.getDate() != null) {
+                if (endDateChooser.getDate().before(startDateChooser.getDate())) {
+                    JOptionPane.showMessageDialog(createReleasePanel,
+                        "End date cannot be before start date",
+                        "Invalid Date",
+                        JOptionPane.ERROR_MESSAGE);
+                    endDateChooser.setDate(null);
+                } else {
+                    folderSection.setVisible(true);
+                    planningSection.setVisible(true);
+                    createButton.setVisible(true);
+                }
+            }
+        });
+
+        createButton.addActionListener(e -> {
+            if (validateFields(nameField, startDateChooser, endDateChooser)) {
+                try {
+                    // Get all required values
+                    String zephyrToken = getZephyrToken(currentUserSoeid);
+                    if (zephyrToken == null) {
+                        JOptionPane.showMessageDialog(this,
+                            "Zephyr token not found for user",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    ProjectItem selectedProject = (ProjectItem) projectDropdown.getSelectedItem();
+                    int projectId = selectedProject.getId();
+                    String releaseName = nameField.getText().trim();
+                    
+                    // Get child folders
+                    testFolders = childField.getText().trim().split(",");
+                    for (int i = 0; i < testFolders.length; i++) {
+                        testFolders[i] = testFolders[i].trim();
+                    }
+
+                    // Format dates
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    String startDate = dateFormat.format(startDateChooser.getDate());
+                    String endDate = dateFormat.format(endDateChooser.getDate());
+
+                    // Create command with all parameters
+                    List<String> command = new ArrayList<>();
+                    command.add("java");
+                    command.add("Zephyr");
+                    command.add(currentUserSoeid);
+                    command.add(zephyrToken);
+                    command.add(String.valueOf(projectId));
+                    command.add(releaseName);
+                    command.add(String.join(",", testFolders));
+                    command.add(startDate);
+                    command.add(endDate);
+                    // Add test cycles
+                    for (int cycle : testCycles) {
+                        command.add(String.valueOf(cycle));
+                    }
+
+                    ProcessBuilder processBuilder = new ProcessBuilder(command);
+                    Process process = processBuilder.start();
+                    int exitCode = process.waitFor();
+
+                    if (exitCode == 0) {
+                        JOptionPane.showMessageDialog(this,
+                            "Release created successfully!",
+                            "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                        cardLayout.show(mainPanel, "ZEPHYR");
+                    } else {
+                        try (BufferedReader reader = new BufferedReader(
+                                new InputStreamReader(process.getErrorStream()))) {
+                            String errorMessage = reader.lines().collect(Collectors.joining("\n"));
+                            JOptionPane.showMessageDialog(this,
+                                "Error in Zephyr process: " + errorMessage,
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this,
+                        "Error: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        backButton.addActionListener(e -> cardLayout.show(mainPanel, "ZEPHYR"));
+
+        // Add to main container
+        this.mainPanel.add(createReleasePanel, "CREATE_RELEASE");
+        cardLayout.show(this.mainPanel, "CREATE_RELEASE");
+    }
+
+    private JPanel createLabeledComponent(String labelText, JComponent component) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Arial", Font.PLAIN, 16));
+        panel.add(label);
+        panel.add(component);
+        return panel;
+    }
