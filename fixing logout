@@ -151,3 +151,13 @@ zephyrButton.addActionListener(new ActionListener() {
             }
         }
     });
+
+
+ private Component findComponentByName(Container container, String name) {
+        for (Component comp : container.getComponents()) {
+            if (name.equals(comp.getName())) {
+                return comp;
+            }
+        }
+        return null;
+    }
