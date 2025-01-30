@@ -125,3 +125,51 @@ private String currentUserSoeid;  // Add this as class member
         }
         return "User";  // Default fallback if name cannot be fetched
     }
+
+
+
+
+
+loginButton.addActionListener(e -> {
+        String soeid = soeidField.getText().trim();
+        String password = new String(passwordField.getPassword());
+        
+        if (soeid.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                "Please enter both SOEID and password",
+                "Login Error",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            if (validateLogin(soeid, password)) {
+                currentUserSoeid = soeid;
+                String userName = fetchUserName(soeid);
+                if (userName != null) {
+                    currentUserName = userName;
+                    mainPanel.remove(mainPanel.getComponent(2));
+                    mainPanel.add(createHomeScreen(), "HOME", 2);
+                    cardLayout.show(mainPanel, "HOME");
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                        "Error retrieving user information",
+                        "Login Error",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Invalid SOEID or Password",
+                    "Login Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "An error occurred during login: " + ex.getMessage(),
+                "Login Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    });
+
+
