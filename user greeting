@@ -230,3 +230,27 @@ loginButton.addActionListener(e -> {
         loginPanel.add(contentPanel);
         // Add flexible space that will push everything up
         loginPanel.add(Box.createVerticalGlue());
+
+
+
+private JTextField createStyledTextField() {
+        JTextField field = new JTextField(20);
+        field.setFont(new Font("Arial", Font.PLAIN, 16));
+        field.setPreferredSize(new Dimension(250, 30));
+        return field;
+    }
+
+    // Helper method to create consistent styled password fields
+    private JPasswordField createStyledPasswordField() {
+        JPasswordField field = new JPasswordField(20);
+        field.setFont(new Font("Arial", Font.PLAIN, 16));
+        field.setPreferredSize(new Dimension(250, 30));
+        return field;
+    }
+
+    // Helper method to create consistent styled labels
+    private JLabel createStyledLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Arial", Font.PLAIN, 16));
+        return label;
+    }
