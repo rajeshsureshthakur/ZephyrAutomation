@@ -4,6 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Arrays;
 
+  TestConfiguration config = configureTestCycles();
+            
+            // Now you can use the configuration data
+            Map<String, Integer> testCycles = config.getTestCyclePhasesMap();
+            String[] childFolders = config.getChildFolders();
+
 public class TestCycleConfiguration {
     private Map<String, Integer> testCyclePhasesMap = new HashMap<>();
     private String[] childFolders = new String[0];
