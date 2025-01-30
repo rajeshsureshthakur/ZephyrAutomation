@@ -99,3 +99,29 @@ private String currentUserSoeid;  // Add this as class member
         
         return homePanel;
     }
+
+
+
+  private String fetchUserName(String soeid) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "SELECT USER_NAME FROM USERS WHERE SOEID = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setString(1, soeid);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        if (rs.next()) {
+                            return rs.getString("USER_NAME");
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Error fetching user name: " + e.getMessage(),
+                "Database Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+        return "User";  // Default fallback if name cannot be fetched
+    }
