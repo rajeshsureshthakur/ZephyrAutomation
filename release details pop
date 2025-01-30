@@ -1,0 +1,124 @@
+private String[] childFolders; // Add this as class field
+    
+    private boolean showReleaseDetailsPopup() {
+        final boolean[] result = {false};
+        
+        JDialog dialog = new JDialog(this, "Release Details", true);
+        dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
+        
+        // Folder Structure section
+        JPanel folderSection = new JPanel();
+        folderSection.setLayout(new BoxLayout(folderSection, BoxLayout.Y_AXIS));
+        folderSection.setBorder(BorderFactory.createTitledBorder("Folder Structure"));
+        
+        // Child Folders Panel
+        JPanel childFolderPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel childLabel = new JLabel("Child Folder Names:");
+        childLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        JTextField childField = new JTextField(30);
+        childField.setFont(new Font("Arial", Font.PLAIN, 14));
+        JLabel noteLabel = new JLabel("(Comma separated)");
+        noteLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        
+        childFolderPanel.add(childLabel);
+        childFolderPanel.add(childField);
+        childFolderPanel.add(noteLabel);
+        
+        // OK button
+        JButton okButton = new JButton("OK");
+        okButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        okButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        okButton.addActionListener(e -> {
+            String folderInput = childField.getText().trim();
+            if (folderInput.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog,
+                    "Please enter child folder names",
+                    "Invalid Input",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Split and trim the folder names
+            childFolders = folderInput.split(",");
+            for (int i = 0; i < childFolders.length; i++) {
+                childFolders[i] = childFolders[i].trim();
+            }
+            
+            result[0] = true;
+            dialog.dispose();
+        });
+        
+        // Add components to sections
+        folderSection.add(childFolderPanel);
+        folderSection.add(Box.createVerticalStrut(20));
+        
+        // Add all to dialog
+        dialog.add(Box.createVerticalStrut(20));
+        dialog.add(folderSection);
+        dialog.add(Box.createVerticalStrut(20));
+        dialog.add(okButton);
+        dialog.add(Box.createVerticalStrut(20));
+        
+        // Set dialog properties
+        dialog.setSize(500, 200);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+        
+        return result[0];
+    }
+
+    // Modify the submit button action listener to include child folders
+    submitButton.addActionListener(e -> {
+        if (validateFields(nameField, startDateChooser, endDateChooser)) {
+            try {
+                ProjectItem selectedProject = (ProjectItem) projectDropdown.getSelectedItem();
+                int projectId = selectedProject.getId();
+                String releaseName = nameField.getText().trim();
+                
+                // Format dates for command line arguments
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                String startDate = dateFormat.format(startDateChooser.getDate());
+                String endDate = dateFormat.format(endDateChooser.getDate());
+
+                // Create command with additional parameter for child folders
+                List<String> command = new ArrayList<>();
+                command.add("java");
+                command.add("Zephyr");
+                command.add(releaseName);
+                command.add(String.valueOf(projectId));
+                command.add(startDate);
+                command.add(endDate);
+                
+                // Add child folders as comma-separated string
+                command.add(String.join(",", childFolders));
+
+                ProcessBuilder processBuilder = new ProcessBuilder(command);
+                
+                Process process = processBuilder.start();
+                int exitCode = process.waitFor();
+                
+                if (exitCode == 0) {
+                    JOptionPane.showMessageDialog(this,
+                        "Release created successfully!",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+                    cardLayout.show(mainPanel, "ZEPHYR");
+                } else {
+                    try (BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(process.getErrorStream()))) {
+                        String errorMessage = reader.lines().collect(Collectors.joining("\n"));
+                        JOptionPane.showMessageDialog(this,
+                            "Error in Zephyr process: " + errorMessage,
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                    "Error: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    });
