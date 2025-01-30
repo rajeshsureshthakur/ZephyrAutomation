@@ -1,0 +1,79 @@
+// Add this as a class method
+    private void handleLogout() {
+        // Reset user data
+        currentUserSoeid = null;
+        currentUserName = null;
+        testFolders = null;
+        testCycles = null;
+
+        // Clear any sensitive data
+        if (projectDropdown != null) {
+            projectDropdown.removeAllItems();
+        }
+
+        // Remove and recreate login screen
+        mainPanel.removeAll();
+        mainPanel.add(createLoginScreen(), "LOGIN");
+        mainPanel.add(createHomeScreen(), "HOME");
+        mainPanel.add(createZephyrScreen(), "ZEPHYR");
+        mainPanel.add(createJiraScreen(), "JIRA");
+        
+        // Show login screen
+        cardLayout.show(mainPanel, "LOGIN");
+        mainPanel.revalidate();
+        mainPanel.repaint();
+    }
+
+    // Modify the home screen to include logout button
+    private JPanel createHomeScreen() {
+        // ... existing home screen code ...
+
+        // Add logout button
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        logoutButton.setMaximumSize(new Dimension(200, 35));
+        logoutButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        logoutButton.addActionListener(e -> handleLogout());
+
+        // Add logout button to the panel
+        homePanel.add(Box.createVerticalStrut(20));
+        homePanel.add(logoutButton);
+
+        return homePanel;
+    }
+
+    // Add logout button to Zephyr screen
+    private JPanel createZephyrScreen() {
+        // ... existing Zephyr screen code ...
+
+        // Add logout button
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        logoutButton.setMaximumSize(new Dimension(200, 35));
+        logoutButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        logoutButton.addActionListener(e -> handleLogout());
+
+        // Add logout button to the panel
+        zephyrPanel.add(Box.createVerticalStrut(20));
+        zephyrPanel.add(logoutButton);
+
+        return zephyrPanel;
+    }
+
+    // Add logout button to JIRA screen
+    private JPanel createJiraScreen() {
+        // ... existing JIRA screen code ...
+
+        // Add logout button
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        logoutButton.setMaximumSize(new Dimension(200, 35));
+        logoutButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        logoutButton.addActionListener(e -> handleLogout());
+
+        // Add logout button to the panel
+        jiraPanel.add(Box.createVerticalStrut(20));
+        jiraPanel.add(logoutButton);
+
+        return jiraPanel;
+    }
