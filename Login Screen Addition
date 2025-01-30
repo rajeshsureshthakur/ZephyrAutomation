@@ -1,0 +1,251 @@
+import javax.swing.*;
+import java.awt.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.awt.event.*;
+
+public class TestManagementApp extends JFrame {
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
+    private static final String DB_URL = "jdbc:oracle:thin:@your_database_host:1521:your_sid";
+    private static final String DB_USER = "your_username";
+    private static final String DB_PASSWORD = "your_password";
+    
+    public TestManagementApp() {
+        setTitle("Performance Project Management");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(600, 560);
+        setLocationRelativeTo(null);
+        
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
+        
+        // Add all screens
+        mainPanel.add(createLoginScreen(), "LOGIN");
+        mainPanel.add(createRegistrationScreen(), "REGISTER");
+        mainPanel.add(createHomeScreen(), "HOME");
+        mainPanel.add(createZephyrScreen(), "ZEPHYR");
+        mainPanel.add(createJiraScreen(), "JIRA");
+        
+        add(mainPanel);
+        // Start with login screen
+        cardLayout.show(mainPanel, "LOGIN");
+    }
+    
+    private JPanel createLoginScreen() {
+        JPanel loginPanel = new JPanel();
+        loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.Y_AXIS));
+        
+        // Title
+        JLabel titleLabel = new JLabel("Performance Project Management");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Login section
+        JLabel loginHeading = new JLabel("Already a user? Login");
+        loginHeading.setFont(new Font("Arial", Font.BOLD, 18));
+        loginHeading.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // SOEID field
+        JPanel soeidPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JLabel soeidLabel = new JLabel("SOEID:");
+        JTextField soeidField = new JTextField(20);
+        soeidPanel.add(soeidLabel);
+        soeidPanel.add(soeidField);
+        
+        // Password field
+        JPanel passwordPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JLabel passwordLabel = new JLabel("Password:");
+        JPasswordField passwordField = new JPasswordField(20);
+        passwordPanel.add(passwordLabel);
+        passwordPanel.add(passwordField);
+        
+        // Login button
+        JButton loginButton = new JButton("Login");
+        loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        loginButton.addActionListener(e -> {
+            String soeid = soeidField.getText();
+            String password = new String(passwordField.getPassword());
+            
+            if (validateLogin(soeid, password)) {
+                cardLayout.show(mainPanel, "HOME");
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Invalid SOEID or Password",
+                    "Login Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        
+        // Register link
+        JButton registerLink = new JButton("New user? Register");
+        registerLink.setBorderPainted(false);
+        registerLink.setContentAreaFilled(false);
+        registerLink.setForeground(Color.BLUE);
+        registerLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        registerLink.setAlignmentX(Component.CENTER_ALIGNMENT);
+        registerLink.addActionListener(e -> cardLayout.show(mainPanel, "REGISTER"));
+        
+        // Add components with spacing
+        loginPanel.add(Box.createVerticalStrut(50));
+        loginPanel.add(titleLabel);
+        loginPanel.add(Box.createVerticalStrut(30));
+        loginPanel.add(loginHeading);
+        loginPanel.add(Box.createVerticalStrut(20));
+        loginPanel.add(soeidPanel);
+        loginPanel.add(Box.createVerticalStrut(10));
+        loginPanel.add(passwordPanel);
+        loginPanel.add(Box.createVerticalStrut(20));
+        loginPanel.add(loginButton);
+        loginPanel.add(Box.createVerticalStrut(20));
+        loginPanel.add(registerLink);
+        
+        return loginPanel;
+    }
+    
+    private JPanel createRegistrationScreen() {
+        JPanel registerPanel = new JPanel();
+        registerPanel.setLayout(new BoxLayout(registerPanel, BoxLayout.Y_AXIS));
+        
+        // Title
+        JLabel titleLabel = new JLabel("User Registration");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // SOEID field
+        JPanel soeidPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JLabel soeidLabel = new JLabel("SOEID:");
+        JTextField soeidField = new JTextField(20);
+        soeidPanel.add(soeidLabel);
+        soeidPanel.add(soeidField);
+        
+        // Password field
+        JPanel passwordPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JLabel passwordLabel = new JLabel("Password:");
+        JPasswordField passwordField = new JPasswordField(20);
+        passwordPanel.add(passwordLabel);
+        passwordPanel.add(passwordField);
+        
+        // Confirm Password field
+        JPanel confirmPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JLabel confirmLabel = new JLabel("Confirm Password:");
+        JPasswordField confirmField = new JPasswordField(20);
+        confirmPanel.add(confirmLabel);
+        confirmPanel.add(confirmField);
+        
+        // Register button
+        JButton registerButton = new JButton("Register");
+        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        registerButton.addActionListener(e -> {
+            String soeid = soeidField.getText();
+            String password = new String(passwordField.getPassword());
+            String confirmPassword = new String(confirmField.getPassword());
+            
+            if (!password.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(this,
+                    "Passwords do not match!",
+                    "Registration Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (registerUser(soeid, password)) {
+                JOptionPane.showMessageDialog(this,
+                    "Registration successful! Please login.",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+                cardLayout.show(mainPanel, "LOGIN");
+            }
+        });
+        
+        // Back to login link
+        JButton loginLink = new JButton("Back to Login");
+        loginLink.setBorderPainted(false);
+        loginLink.setContentAreaFilled(false);
+        loginLink.setForeground(Color.BLUE);
+        loginLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        loginLink.setAlignmentX(Component.CENTER_ALIGNMENT);
+        loginLink.addActionListener(e -> cardLayout.show(mainPanel, "LOGIN"));
+        
+        // Add components with spacing
+        registerPanel.add(Box.createVerticalStrut(50));
+        registerPanel.add(titleLabel);
+        registerPanel.add(Box.createVerticalStrut(30));
+        registerPanel.add(soeidPanel);
+        registerPanel.add(Box.createVerticalStrut(10));
+        registerPanel.add(passwordPanel);
+        registerPanel.add(Box.createVerticalStrut(10));
+        registerPanel.add(confirmPanel);
+        registerPanel.add(Box.createVerticalStrut(20));
+        registerPanel.add(registerButton);
+        registerPanel.add(Box.createVerticalStrut(20));
+        registerPanel.add(loginLink);
+        
+        return registerPanel;
+    }
+    
+    private boolean validateLogin(String soeid, String password) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "SELECT * FROM USERS WHERE SOEID = ? AND PASSWORD = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setString(1, soeid);
+                    pstmt.setString(2, password);  // In production, use password hashing
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        return rs.next();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Database error: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
+    
+    private boolean registerUser(String soeid, String password) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                // First check if user already exists
+                String checkSql = "SELECT COUNT(*) FROM USERS WHERE SOEID = ?";
+                try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                    checkStmt.setString(1, soeid);
+                    try (ResultSet rs = checkStmt.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            JOptionPane.showMessageDialog(this,
+                                "SOEID already exists!",
+                                "Registration Error",
+                                JOptionPane.ERROR_MESSAGE);
+                            return false;
+                        }
+                    }
+                }
+                
+                // Insert new user
+                String insertSql = "INSERT INTO USERS (SOEID, PASSWORD) VALUES (?, ?)";
+                try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+                    pstmt.setString(1, soeid);
+                    pstmt.setString(2, password);  // In production, use password hashing
+                    pstmt.executeUpdate();
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Database error: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
+    
+    // ... (rest of the existing code remains the same)
+}
