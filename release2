@@ -1,0 +1,144 @@
+private void showCreateReleaseScreen() {
+        JPanel createReleasePanel = new JPanel();
+        createReleasePanel.setLayout(new BorderLayout());
+
+        // Title Panel at the top
+        JPanel titlePanel = new JPanel();
+        JLabel titleLabel = new JLabel("Create Release");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titlePanel.add(titleLabel);
+        createReleasePanel.add(titlePanel, BorderLayout.NORTH);
+
+        // Main content panel with fixed positions
+        JPanel contentPanel = new JPanel(null);  // Using null layout for fixed positioning
+        contentPanel.setPreferredSize(new Dimension(600, 500));  // Fixed size
+
+        // Project Selection
+        JLabel projectLabel = new JLabel("Select Project: *");
+        projectLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        projectLabel.setBounds(50, 20, 150, 30);
+        
+        projectDropdown = new JComboBox<>();
+        projectDropdown.setFont(new Font("Arial", Font.PLAIN, 16));
+        projectDropdown.setBounds(200, 20, 300, 30);
+        populateProjectDropdown(projectDropdown);
+
+        // Release Name
+        JLabel nameLabel = new JLabel("Release Name: *");
+        nameLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        nameLabel.setBounds(50, 70, 150, 30);
+        nameLabel.setVisible(false);
+        
+        JTextField nameField = new JTextField();
+        nameField.setFont(new Font("Arial", Font.PLAIN, 16));
+        nameField.setBounds(200, 70, 300, 30);
+        nameField.setVisible(false);
+
+        // Start Date
+        JLabel startDateLabel = new JLabel("Start Date: *");
+        startDateLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        startDateLabel.setBounds(50, 120, 150, 30);
+        startDateLabel.setVisible(false);
+        
+        JDateChooser startDateChooser = new JDateChooser();
+        startDateChooser.setFont(new Font("Arial", Font.PLAIN, 16));
+        startDateChooser.setBounds(200, 120, 300, 30);
+        startDateChooser.setVisible(false);
+
+        // End Date
+        JLabel endDateLabel = new JLabel("End Date: *");
+        endDateLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        endDateLabel.setBounds(50, 170, 150, 30);
+        endDateLabel.setVisible(false);
+        
+        JDateChooser endDateChooser = new JDateChooser();
+        endDateChooser.setFont(new Font("Arial", Font.PLAIN, 16));
+        endDateChooser.setBounds(200, 170, 300, 30);
+        endDateChooser.setVisible(false);
+
+        // Release Details Button
+        JButton releaseDetailsButton = new JButton("Release Details");
+        releaseDetailsButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        releaseDetailsButton.setBounds(200, 220, 300, 35);
+        releaseDetailsButton.setVisible(false);
+
+        // Submit Button
+        JButton submitButton = new JButton("Create Release");
+        submitButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        submitButton.setBounds(200, 270, 300, 35);
+        submitButton.setVisible(false);
+
+        // Back Button
+        JButton backButton = new JButton("Back");
+        backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        backButton.setBounds(200, 320, 300, 35);
+
+        // Add all components to content panel
+        contentPanel.add(projectLabel);
+        contentPanel.add(projectDropdown);
+        contentPanel.add(nameLabel);
+        contentPanel.add(nameField);
+        contentPanel.add(startDateLabel);
+        contentPanel.add(startDateChooser);
+        contentPanel.add(endDateLabel);
+        contentPanel.add(endDateChooser);
+        contentPanel.add(releaseDetailsButton);
+        contentPanel.add(submitButton);
+        contentPanel.add(backButton);
+
+        // Add content panel to main panel
+        JPanel centeringPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        centeringPanel.add(contentPanel);
+        createReleasePanel.add(centeringPanel, BorderLayout.CENTER);
+
+        // Listeners remain the same but just update visibility
+        projectDropdown.addActionListener(e -> {
+            if (projectDropdown.getSelectedItem() != null && 
+                projectDropdown.getSelectedIndex() > 0) {
+                nameLabel.setVisible(true);
+                nameField.setVisible(true);
+                startDateLabel.setVisible(true);
+                startDateChooser.setVisible(true);
+            }
+        });
+
+        startDateChooser.addPropertyChangeListener("date", evt -> {
+            if (startDateChooser.getDate() != null) {
+                endDateLabel.setVisible(true);
+                endDateChooser.setVisible(true);
+            }
+        });
+
+        endDateChooser.addPropertyChangeListener("date", evt -> {
+            if (endDateChooser.getDate() != null && startDateChooser.getDate() != null) {
+                if (endDateChooser.getDate().before(startDateChooser.getDate())) {
+                    JOptionPane.showMessageDialog(createReleasePanel,
+                        "End date cannot be before start date",
+                        "Invalid Date",
+                        JOptionPane.ERROR_MESSAGE);
+                    endDateChooser.setDate(null);
+                } else {
+                    releaseDetailsButton.setVisible(true);
+                }
+            }
+        });
+
+        // Rest of the listeners remain the same...
+        releaseDetailsButton.addActionListener(e -> {
+            if (validateFields(nameField, startDateChooser, endDateChooser)) {
+                if (showReleaseDetailsPopup()) {
+                    submitButton.setVisible(true);
+                }
+            }
+        });
+
+        submitButton.addActionListener(e -> {
+            // ... existing submit code ...
+        });
+
+        backButton.addActionListener(e -> cardLayout.show(mainPanel, "ZEPHYR"));
+
+        // Add to main container
+        mainPanel.add(createReleasePanel, "CREATE_RELEASE");
+        cardLayout.show(mainPanel, "CREATE_RELEASE");
+    }
