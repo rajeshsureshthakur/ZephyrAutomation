@@ -1,151 +1,61 @@
-// First, create required tables in database:
-    /*
-    CREATE TABLE PROJECTS (
-        PROJECT_ID NUMBER PRIMARY KEY,
-        PROJECT_NAME VARCHAR2(100) NOT NULL
-    );
-
-    CREATE TABLE RELEASES (
-        RELEASE_ID NUMBER PRIMARY KEY,
-        PROJECT_ID NUMBER,
-        RELEASE_NAME VARCHAR2(100) NOT NULL,
-        FOREIGN KEY (PROJECT_ID) REFERENCES PROJECTS(PROJECT_ID)
-    );
-    */
-
-    private void showCreateReleaseScreen() {
-        JPanel createReleasePanel = new JPanel();
-        createReleasePanel.setLayout(new BoxLayout(createReleasePanel, BoxLayout.Y_AXIS));
+// First, create a custom searchable combobox
+    private class SearchableComboBox extends JComboBox<ReleaseItem> {
+        private List<ReleaseItem> allReleases = new ArrayList<>();
+        private JTextField searchField;
         
-        // Title
-        JLabel titleLabel = new JLabel("Create Release");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        public SearchableComboBox() {
+            setEditable(true);
+            searchField = (JTextField) getEditor().getEditorComponent();
+            searchField.setFont(new Font("Arial", Font.PLAIN, 16));
+            
+            // Add document listener to handle search
+            searchField.getDocument().addDocumentListener(new DocumentListener() {
+                public void insertUpdate(DocumentEvent e) { filterReleases(); }
+                public void removeUpdate(DocumentEvent e) { filterReleases(); }
+                public void changedUpdate(DocumentEvent e) { filterReleases(); }
+            });
 
-        // Project Dropdown
-        JPanel projectPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JLabel projectLabel = new JLabel("Select Project:");
-        projectLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        JComboBox<ProjectItem> projectDropdown = new JComboBox<>();
-        projectDropdown.setFont(new Font("Arial", Font.PLAIN, 16));
-        projectDropdown.setPreferredSize(new Dimension(300, 30));
-        populateProjectDropdown(projectDropdown);
-        projectPanel.add(projectLabel);
-        projectPanel.add(projectDropdown);
-
-        // Release Dropdown (initially invisible)
-        JPanel releasePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JLabel releaseLabel = new JLabel("Select Release:");
-        releaseLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        JComboBox<ReleaseItem> releaseDropdown = new JComboBox<>();
-        releaseDropdown.setFont(new Font("Arial", Font.PLAIN, 16));
-        releaseDropdown.setPreferredSize(new Dimension(300, 30));
-        releasePanel.add(releaseLabel);
-        releasePanel.add(releaseDropdown);
-        releasePanel.setVisible(false);
-
-        // Release details fields (initially invisible)
-        JPanel detailsPanel = new JPanel();
-        detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
-        detailsPanel.setVisible(false);
-
-        // Add listeners
-        projectDropdown.addActionListener(e -> {
-            if (projectDropdown.getSelectedItem() != null) {
-                ProjectItem selectedProject = (ProjectItem) projectDropdown.getSelectedItem();
-                populateReleaseDropdown(releaseDropdown, selectedProject.getId());
-                releasePanel.setVisible(true);
-                detailsPanel.setVisible(false);
-                createReleasePanel.revalidate();
-                createReleasePanel.repaint();
-            }
-        });
-
-        releaseDropdown.addActionListener(e -> {
-            if (releaseDropdown.getSelectedItem() != null) {
-                detailsPanel.setVisible(true);
-                createReleasePanel.revalidate();
-                createReleasePanel.repaint();
-            }
-        });
-
-        // Add components
-        createReleasePanel.add(Box.createVerticalStrut(20));
-        createReleasePanel.add(titleLabel);
-        createReleasePanel.add(Box.createVerticalStrut(30));
-        createReleasePanel.add(projectPanel);
-        createReleasePanel.add(Box.createVerticalStrut(20));
-        createReleasePanel.add(releasePanel);
-        createReleasePanel.add(Box.createVerticalStrut(20));
-        createReleasePanel.add(detailsPanel);
-
-        // Add to main panel
-        mainPanel.add(createReleasePanel, "CREATE_RELEASE");
-        cardLayout.show(mainPanel, "CREATE_RELEASE");
-    }
-
-    // Helper classes for dropdowns
-    private class ProjectItem {
-        private int id;
-        private String name;
-
-        public ProjectItem(int id, String name) {
-            this.id = id;
-            this.name = name;
-        }
-
-        public int getId() { return id; }
-        public String getName() { return name; }
-
-        @Override
-        public String toString() { return name; }
-    }
-
-    private class ReleaseItem {
-        private int id;
-        private String name;
-
-        public ReleaseItem(int id, String name) {
-            this.id = id;
-            this.name = name;
-        }
-
-        public int getId() { return id; }
-        public String getName() { return name; }
-
-        @Override
-        public String toString() { return name; }
-    }
-
-    // Methods to populate dropdowns from database
-    private void populateProjectDropdown(JComboBox<ProjectItem> dropdown) {
-        try {
-            Class.forName("oracle.jdbc.driver.OracleDriver");
-            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-                String sql = "SELECT PROJECT_ID, PROJECT_NAME FROM PROJECTS ORDER BY PROJECT_NAME";
-                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                    try (ResultSet rs = pstmt.executeQuery()) {
-                        dropdown.removeAllItems();
-                        dropdown.addItem(new ProjectItem(0, "Select Project"));
-                        while (rs.next()) {
-                            dropdown.addItem(new ProjectItem(
-                                rs.getInt("PROJECT_ID"),
-                                rs.getString("PROJECT_NAME")
-                            ));
-                        }
+            // Add focus listener to show initial items when focused
+            searchField.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    if (searchField.getText().isEmpty()) {
+                        showInitialItems();
                     }
                 }
+            });
+        }
+
+        private void showInitialItems() {
+            removeAllItems();
+            // Show only first 5 items initially
+            for (int i = 0; i < Math.min(5, allReleases.size()); i++) {
+                addItem(allReleases.get(i));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this,
-                "Error loading projects: " + e.getMessage(),
-                "Database Error",
-                JOptionPane.ERROR_MESSAGE);
+            setPopupVisible(true);
+        }
+
+        private void filterReleases() {
+            String searchText = searchField.getText().toLowerCase();
+            removeAllItems();
+            
+            // Filter and add matching items
+            allReleases.stream()
+                .filter(release -> release.getName().toLowerCase().contains(searchText))
+                .limit(5) // Show only top 5 matching results
+                .forEach(this::addItem);
+            
+            setPopupVisible(!searchText.isEmpty());
+        }
+
+        public void setAllReleases(List<ReleaseItem> releases) {
+            this.allReleases = new ArrayList<>(releases);
+            showInitialItems();
         }
     }
 
-    private void populateReleaseDropdown(JComboBox<ReleaseItem> dropdown, int projectId) {
+    // Modify the release dropdown population method
+    private void populateReleaseDropdown(SearchableComboBox dropdown, int projectId) {
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
@@ -153,14 +63,14 @@
                 try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                     pstmt.setInt(1, projectId);
                     try (ResultSet rs = pstmt.executeQuery()) {
-                        dropdown.removeAllItems();
-                        dropdown.addItem(new ReleaseItem(0, "Select Release"));
+                        List<ReleaseItem> releases = new ArrayList<>();
                         while (rs.next()) {
-                            dropdown.addItem(new ReleaseItem(
+                            releases.add(new ReleaseItem(
                                 rs.getInt("RELEASE_ID"),
                                 rs.getString("RELEASE_NAME")
                             ));
                         }
+                        dropdown.setAllReleases(releases);
                     }
                 }
             }
@@ -171,4 +81,249 @@
                 "Database Error",
                 JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+
+private void showCreateReleaseScreen() {
+        JPanel createReleasePanel = new JPanel();
+        createReleasePanel.setLayout(new BoxLayout(createReleasePanel, BoxLayout.Y_AXIS));
+        
+        // Title
+        JLabel titleLabel = new JLabel("Create Release");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Main content panel
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Project Selection Section
+        JPanel projectPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel projectLabel = new JLabel("Select Project:");
+        projectLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        JLabel projectMandatory = new JLabel("*");
+        projectMandatory.setForeground(Color.RED);
+        JComboBox<ProjectItem> projectDropdown = new JComboBox<>();
+        projectDropdown.setFont(new Font("Arial", Font.PLAIN, 16));
+        projectDropdown.setPreferredSize(new Dimension(300, 30));
+        populateProjectDropdown(projectDropdown);
+        projectPanel.add(projectLabel);
+        projectPanel.add(projectMandatory);
+        projectPanel.add(projectDropdown);
+
+        // Release Selection Section (initially invisible)
+        JPanel releasePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel releaseLabel = new JLabel("Select/Search Release:");
+        releaseLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        SearchableComboBox releaseDropdown = new SearchableComboBox();
+        releaseDropdown.setPreferredSize(new Dimension(300, 30));
+        releasePanel.add(releaseLabel);
+        releasePanel.add(releaseDropdown);
+        releasePanel.setVisible(false);
+
+        // Release Details Panel (initially invisible)
+        JPanel detailsPanel = new JPanel();
+        detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
+        detailsPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        detailsPanel.setVisible(false);
+
+        // Release Name
+        JPanel namePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel nameLabel = new JLabel("Release Name:");
+        nameLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        JLabel nameMandatory = new JLabel("*");
+        nameMandatory.setForeground(Color.RED);
+        JTextField nameField = new JTextField(20);
+        nameField.setFont(new Font("Arial", Font.PLAIN, 16));
+        nameField.setPreferredSize(new Dimension(300, 30));
+        namePanel.add(nameLabel);
+        namePanel.add(nameMandatory);
+        namePanel.add(nameField);
+
+        // Start Date with Calendar
+        JPanel startDatePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel startDateLabel = new JLabel("Start Date:");
+        startDateLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        JLabel startDateMandatory = new JLabel("*");
+        startDateMandatory.setForeground(Color.RED);
+        JDateChooser startDateChooser = new JDateChooser();
+        startDateChooser.setFont(new Font("Arial", Font.PLAIN, 16));
+        startDateChooser.setPreferredSize(new Dimension(300, 30));
+        startDatePanel.add(startDateLabel);
+        startDatePanel.add(startDateMandatory);
+        startDatePanel.add(startDateChooser);
+
+        // End Date with Calendar
+        JPanel endDatePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel endDateLabel = new JLabel("End Date:");
+        endDateLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        JLabel endDateMandatory = new JLabel("*");
+        endDateMandatory.setForeground(Color.RED);
+        JDateChooser endDateChooser = new JDateChooser();
+        endDateChooser.setFont(new Font("Arial", Font.PLAIN, 16));
+        endDateChooser.setPreferredSize(new Dimension(300, 30));
+        endDatePanel.add(endDateLabel);
+        endDatePanel.add(endDateMandatory);
+        endDatePanel.add(endDateChooser);
+
+        // Date change listeners for validation
+        endDateChooser.addPropertyChangeListener("date", evt -> {
+            if (startDateChooser.getDate() != null && endDateChooser.getDate() != null) {
+                if (endDateChooser.getDate().before(startDateChooser.getDate())) {
+                    JOptionPane.showMessageDialog(this,
+                        "End date cannot be before start date",
+                        "Invalid Date",
+                        JOptionPane.ERROR_MESSAGE);
+                    endDateChooser.setDate(null);
+                }
+            }
+        });
+
+        startDateChooser.addPropertyChangeListener("date", evt -> {
+            if (startDateChooser.getDate() != null && endDateChooser.getDate() != null) {
+                if (endDateChooser.getDate().before(startDateChooser.getDate())) {
+                    JOptionPane.showMessageDialog(this,
+                        "Start date cannot be after end date",
+                        "Invalid Date",
+                        JOptionPane.ERROR_MESSAGE);
+                    startDateChooser.setDate(null);
+                }
+            }
+        });
+
+        // Release Details Button
+        JButton releaseDetailsButton = new JButton("Release Details");
+        releaseDetailsButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        releaseDetailsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        releaseDetailsButton.setPreferredSize(new Dimension(200, 35));
+        releaseDetailsButton.setMaximumSize(new Dimension(200, 35));
+
+        // Submit Button
+        JButton submitButton = new JButton("Submit and Create");
+        submitButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        submitButton.setPreferredSize(new Dimension(200, 35));
+        submitButton.setMaximumSize(new Dimension(200, 35));
+        submitButton.setVisible(false);
+
+        // Back Button
+        JButton backButton = new JButton("Back");
+        backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backButton.setPreferredSize(new Dimension(200, 35));
+        backButton.setMaximumSize(new Dimension(200, 35));
+
+        // Add all components to details panel
+        detailsPanel.add(namePanel);
+        detailsPanel.add(Box.createVerticalStrut(10));
+        detailsPanel.add(startDatePanel);
+        detailsPanel.add(Box.createVerticalStrut(10));
+        detailsPanel.add(endDatePanel);
+        detailsPanel.add(Box.createVerticalStrut(20));
+        detailsPanel.add(releaseDetailsButton);
+        detailsPanel.add(Box.createVerticalStrut(10));
+        detailsPanel.add(submitButton);
+
+        // Add listeners
+        projectDropdown.addActionListener(e -> {
+            if (projectDropdown.getSelectedItem() != null && 
+                projectDropdown.getSelectedIndex() > 0) {
+                ProjectItem selectedProject = (ProjectItem) projectDropdown.getSelectedItem();
+                populateReleaseDropdown(releaseDropdown, selectedProject.getId());
+                releasePanel.setVisible(true);
+                detailsPanel.setVisible(false);
+                submitButton.setVisible(false);
+                createReleasePanel.revalidate();
+                createReleasePanel.repaint();
+            }
+        });
+
+        releaseDropdown.addActionListener(e -> {
+            if (releaseDropdown.getSelectedItem() instanceof ReleaseItem) {
+                detailsPanel.setVisible(true);
+                createReleasePanel.revalidate();
+                createReleasePanel.repaint();
+            }
+        });
+
+        releaseDetailsButton.addActionListener(e -> {
+            if (validateFields(nameField, startDateChooser, endDateChooser)) {
+                showReleaseDetailsPopup();
+                submitButton.setVisible(true);
+                createReleasePanel.revalidate();
+                createReleasePanel.repaint();
+            }
+        });
+
+        submitButton.addActionListener(e -> {
+            if (validateFields(nameField, startDateChooser, endDateChooser)) {
+                if (saveRelease(nameField.getText(), 
+                              startDateChooser.getDate(), 
+                              endDateChooser.getDate())) {
+                    JOptionPane.showMessageDialog(this,
+                        "Release created successfully!",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+                    cardLayout.show(mainPanel, "ZEPHYR");
+                }
+            }
+        });
+
+        backButton.addActionListener(e -> cardLayout.show(mainPanel, "ZEPHYR"));
+
+        // Add all panels to content panel
+        contentPanel.add(projectPanel);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(releasePanel);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(detailsPanel);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(backButton);
+
+        // Add title and content to main panel
+        createReleasePanel.add(Box.createVerticalStrut(20));
+        createReleasePanel.add(titleLabel);
+        createReleasePanel.add(Box.createVerticalStrut(20));
+        createReleasePanel.add(contentPanel);
+
+        // Add to main container
+        mainPanel.add(createReleasePanel, "CREATE_RELEASE");
+        cardLayout.show(mainPanel, "CREATE_RELEASE");
+    }
+
+    private boolean validateFields(JTextField nameField, JDateChooser startDate, JDateChooser endDate) {
+        if (nameField.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                "Please enter a release name",
+                "Validation Error",
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        if (startDate.getDate() == null) {
+            JOptionPane.showMessageDialog(this,
+                "Please select a start date",
+                "Validation Error",
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        if (endDate.getDate() == null) {
+            JOptionPane.showMessageDialog(this,
+                "Please select an end date",
+                "Validation Error",
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        if (endDate.getDate().before(startDate.getDate())) {
+            JOptionPane.showMessageDialog(this,
+                "End date cannot be before start date",
+                "Validation Error",
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        return true;
     }
