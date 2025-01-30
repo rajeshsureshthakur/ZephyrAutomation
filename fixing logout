@@ -77,3 +77,38 @@
 
         return jiraPanel;
     }
+
+
+
+
+zephyrButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Remove old Zephyr screen and create new one
+                String zephyrKey = "ZEPHYR";
+                Component zephyrComp = findComponentByName(mainPanel, zephyrKey);
+                if (zephyrComp != null) {
+                    mainPanel.remove(zephyrComp);
+                }
+                mainPanel.add(createZephyrScreen(), zephyrKey);
+                cardLayout.show(mainPanel, zephyrKey);
+                mainPanel.revalidate();
+                mainPanel.repaint();
+            }
+        });
+        
+        jiraButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Remove old JIRA screen and create new one
+                String jiraKey = "JIRA";
+                Component jiraComp = findComponentByName(mainPanel, jiraKey);
+                if (jiraComp != null) {
+                    mainPanel.remove(jiraComp);
+                }
+                mainPanel.add(createJiraScreen(), jiraKey);
+                cardLayout.show(mainPanel, jiraKey);
+                mainPanel.revalidate();
+                mainPanel.repaint();
+            }
+        });
