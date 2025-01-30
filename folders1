@@ -1,0 +1,159 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Arrays;
+
+public class TestCycleConfiguration {
+    private Map<String, Integer> testCyclePhasesMap = new HashMap<>();
+    private String[] childFolders = new String[0];
+    private JDialog dialog;
+    private JTextField childField;
+
+    public class TestConfiguration {
+        private Map<String, Integer> testCyclePhasesMap;
+        private String[] childFolders;
+
+        public TestConfiguration(Map<String, Integer> testCyclePhasesMap, String[] childFolders) {
+            this.testCyclePhasesMap = testCyclePhasesMap;
+            this.childFolders = childFolders;
+        }
+
+        public Map<String, Integer> getTestCyclePhasesMap() {
+            return testCyclePhasesMap;
+        }
+
+        public String[] getChildFolders() {
+            return childFolders;
+        }
+    }
+
+    public TestConfiguration configureTestCycles() {
+        // Reset the map and child folders before configuration
+        testCyclePhasesMap.clear();
+        childFolders = new String[0];
+
+        // Create the dialog
+        dialog = new JDialog();
+        dialog.setTitle("Test Configuration");
+        dialog.setModal(true);
+        dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
+
+        // Array of test cycle types
+        String[] cycleTypes = {"Load Test", "Endurance Test", "Sanity", "Standalone"};
+
+        // Create checkboxes with action listeners
+        for (String cycleType : cycleTypes) {
+            JCheckBox checkbox = new JCheckBox(cycleType);
+            checkbox.setFont(new Font("Arial", Font.PLAIN, 14));
+            
+            checkbox.addActionListener(e -> {
+                if (checkbox.isSelected()) {
+                    String input = JOptionPane.showInputDialog(
+                        dialog, 
+                        "Enter number of phases for " + cycleType + ":", 
+                        "Number of Phases", 
+                        JOptionPane.QUESTION_MESSAGE
+                    );
+                    
+                    if (input != null) {
+                        try {
+                            int phases = Integer.parseInt(input);
+                            if (phases > 0) {
+                                // Store the number of phases in the map
+                                testCyclePhasesMap.put(cycleType, phases);
+                            } else {
+                                checkbox.setSelected(false);
+                                testCyclePhasesMap.remove(cycleType);
+                            }
+                        } catch (NumberFormatException ex) {
+                            checkbox.setSelected(false);
+                            testCyclePhasesMap.remove(cycleType);
+                            JOptionPane.showMessageDialog(
+                                dialog, 
+                                "Please enter a valid number of phases.", 
+                                "Invalid Input", 
+                                JOptionPane.ERROR_MESSAGE
+                            );
+                        }
+                    } else {
+                        checkbox.setSelected(false);
+                        testCyclePhasesMap.remove(cycleType);
+                    }
+                } else {
+                    // Remove the cycle type if unchecked
+                    testCyclePhasesMap.remove(cycleType);
+                }
+            });
+
+            dialog.add(checkbox);
+        }
+
+        // Child Folders panel
+        JPanel childPanel = new JPanel();
+        childPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        childPanel.setMaximumSize(new Dimension(550, 40));  // Fixed height
+        
+        JLabel childLabel = new JLabel("Child Folders:");
+        childLabel.setPreferredSize(new Dimension(100, 25));
+        childLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        
+        childField = new JTextField();
+        childField.setPreferredSize(new Dimension(300, 25));
+        childField.setFont(new Font("Arial", Font.PLAIN, 14));
+        
+        JLabel childNote = new JLabel("(Comma separated)");
+        childNote.setFont(new Font("Arial", Font.ITALIC, 12));
+        
+        childPanel.add(childLabel);
+        childPanel.add(childField);
+        childPanel.add(childNote);
+        
+        dialog.add(childPanel);
+
+        // Add a confirm button
+        JButton confirmButton = new JButton("Confirm");
+        confirmButton.addActionListener(e -> {
+            // Process child folders
+            String childFolderInput = childField.getText().trim();
+            if (!childFolderInput.isEmpty()) {
+                childFolders = Arrays.stream(childFolderInput.split(","))
+                                     .map(String::trim)
+                                     .filter(s -> !s.isEmpty())
+                                     .toArray(String[]::new);
+            }
+            dialog.dispose();
+        });
+        dialog.add(confirmButton);
+
+        // Pack and center the dialog
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+        dialog.setVisible(true);
+
+        // Return the configuration object
+        return new TestConfiguration(testCyclePhasesMap, childFolders);
+    }
+
+    // Example method to demonstrate usage
+    public void demonstrateConfiguration() {
+        TestConfiguration config = configureTestCycles();
+        
+        // Print test cycles
+        System.out.println("Test Cycles:");
+        for (Map.Entry<String, Integer> entry : config.getTestCyclePhasesMap().entrySet()) {
+            System.out.println(entry.getKey() + ": " + entry.getValue() + " phases");
+        }
+        
+        // Print child folders
+        System.out.println("\nChild Folders:");
+        for (String folder : config.getChildFolders()) {
+            System.out.println(folder);
+        }
+    }
+
+    public static void main(String[] args) {
+        TestCycleConfiguration config = new TestCycleConfiguration();
+        config.demonstrateConfiguration();
+    }
+}
