@@ -1,0 +1,157 @@
+private void showCreateReleaseScreen() {
+        JPanel createReleasePanel = new JPanel();
+        createReleasePanel.setLayout(new BoxLayout(createReleasePanel, BoxLayout.Y_AXIS));
+        
+        // Title
+        JLabel titleLabel = new JLabel("Create Release");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Main content panel
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Project Selection Section
+        JPanel projectPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel projectLabel = new JLabel("Select Project:");
+        projectLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        JLabel projectMandatory = new JLabel("*");
+        projectMandatory.setForeground(Color.RED);
+        projectDropdown = new JComboBox<>();
+        projectDropdown.setFont(new Font("Arial", Font.PLAIN, 16));
+        projectDropdown.setPreferredSize(new Dimension(300, 30));
+        populateProjectDropdown(projectDropdown);
+        projectPanel.add(projectLabel);
+        projectPanel.add(projectMandatory);
+        projectPanel.add(projectDropdown);
+
+        // Create Release Name field (initially invisible)
+        JPanel namePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel nameLabel = new JLabel("Release Name:");
+        nameLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        JLabel nameMandatory = new JLabel("*");
+        nameMandatory.setForeground(Color.RED);
+        JTextField nameField = new JTextField(20);
+        nameField.setFont(new Font("Arial", Font.PLAIN, 16));
+        nameField.setPreferredSize(new Dimension(300, 30));
+        namePanel.add(nameLabel);
+        namePanel.add(nameMandatory);
+        namePanel.add(nameField);
+        namePanel.setVisible(false);
+
+        // Start Date section (initially invisible)
+        JPanel startDatePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel startDateLabel = new JLabel("Start Date:");
+        startDateLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        JLabel startDateMandatory = new JLabel("*");
+        startDateMandatory.setForeground(Color.RED);
+        JDateChooser startDateChooser = new JDateChooser();
+        startDateChooser.setFont(new Font("Arial", Font.PLAIN, 16));
+        startDateChooser.setPreferredSize(new Dimension(300, 30));
+        startDatePanel.add(startDateLabel);
+        startDatePanel.add(startDateMandatory);
+        startDatePanel.add(startDateChooser);
+        startDatePanel.setVisible(false);
+
+        // End Date section (initially invisible)
+        JPanel endDatePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel endDateLabel = new JLabel("End Date:");
+        endDateLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        JLabel endDateMandatory = new JLabel("*");
+        endDateMandatory.setForeground(Color.RED);
+        JDateChooser endDateChooser = new JDateChooser();
+        endDateChooser.setFont(new Font("Arial", Font.PLAIN, 16));
+        endDateChooser.setPreferredSize(new Dimension(300, 30));
+        endDatePanel.add(endDateLabel);
+        endDatePanel.add(endDateMandatory);
+        endDatePanel.add(endDateChooser);
+        endDatePanel.setVisible(false);
+
+        // Submit Button (initially invisible)
+        JButton submitButton = new JButton("Submit and Create");
+        submitButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        submitButton.setPreferredSize(new Dimension(200, 35));
+        submitButton.setMaximumSize(new Dimension(200, 35));
+        submitButton.setVisible(false);
+
+        // Back Button
+        JButton backButton = new JButton("Back");
+        backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backButton.setPreferredSize(new Dimension(200, 35));
+        backButton.setMaximumSize(new Dimension(200, 35));
+
+        // Add listeners
+        projectDropdown.addActionListener(e -> {
+            if (projectDropdown.getSelectedItem() != null && 
+                projectDropdown.getSelectedIndex() > 0) {
+                namePanel.setVisible(true);
+                startDatePanel.setVisible(true);
+                createReleasePanel.revalidate();
+                createReleasePanel.repaint();
+            }
+        });
+
+        startDateChooser.addPropertyChangeListener("date", evt -> {
+            if (startDateChooser.getDate() != null) {
+                endDatePanel.setVisible(true);
+                createReleasePanel.revalidate();
+                createReleasePanel.repaint();
+            }
+        });
+
+        endDateChooser.addPropertyChangeListener("date", evt -> {
+            if (endDateChooser.getDate() != null && startDateChooser.getDate() != null) {
+                if (endDateChooser.getDate().before(startDateChooser.getDate())) {
+                    JOptionPane.showMessageDialog(createReleasePanel,
+                        "End date cannot be before start date",
+                        "Invalid Date",
+                        JOptionPane.ERROR_MESSAGE);
+                    endDateChooser.setDate(null);
+                } else {
+                    submitButton.setVisible(true);
+                }
+            }
+        });
+
+        submitButton.addActionListener(e -> {
+            if (validateFields(nameField, startDateChooser, endDateChooser)) {
+                if (saveRelease(nameField.getText(), 
+                              startDateChooser.getDate(), 
+                              endDateChooser.getDate())) {
+                    JOptionPane.showMessageDialog(this,
+                        "Release created successfully!",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+                    cardLayout.show(mainPanel, "ZEPHYR");
+                }
+            }
+        });
+
+        backButton.addActionListener(e -> cardLayout.show(mainPanel, "ZEPHYR"));
+
+        // Add components to content panel
+        contentPanel.add(projectPanel);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(namePanel);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(startDatePanel);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(endDatePanel);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(submitButton);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(backButton);
+
+        // Add title and content to main panel
+        createReleasePanel.add(Box.createVerticalStrut(20));
+        createReleasePanel.add(titleLabel);
+        createReleasePanel.add(Box.createVerticalStrut(20));
+        createReleasePanel.add(contentPanel);
+
+        // Add to main container
+        mainPanel.add(createReleasePanel, "CREATE_RELEASE");
+        cardLayout.show(mainPanel, "CREATE_RELEASE");
+    }
