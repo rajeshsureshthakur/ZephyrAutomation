@@ -1,0 +1,74 @@
+// In the create button action listener, replace the ProcessBuilder code with:
+    createButton.addActionListener(e -> {
+        if (validateFields(nameField, startDateChooser, endDateChooser)) {
+            try {
+                // Get all required values
+                String zephyrToken = getZephyrToken(currentUserSoeid);
+                if (zephyrToken == null) {
+                    JOptionPane.showMessageDialog(this,
+                        "Zephyr token not found for user",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                ProjectItem selectedProject = (ProjectItem) projectDropdown.getSelectedItem();
+                int projectId = selectedProject.getId();
+                String releaseName = nameField.getText().trim();
+                
+                // Get child folders as comma-separated string
+                String foldersString = childField.getText().trim();
+
+                // Format dates
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                String startDate = dateFormat.format(startDateChooser.getDate());
+                String endDate = dateFormat.format(endDateChooser.getDate());
+
+                // Create command as array
+                ProcessBuilder processBuilder = new ProcessBuilder(
+                    "java",
+                    "Zephyr",
+                    currentUserSoeid,
+                    zephyrToken,
+                    String.valueOf(projectId),
+                    releaseName,
+                    foldersString,
+                    startDate,
+                    endDate,
+                    String.valueOf(testCycles[0]),
+                    String.valueOf(testCycles[1]),
+                    String.valueOf(testCycles[2]),
+                    String.valueOf(testCycles[3])
+                );
+
+                // For debugging - print the command
+                System.out.println("Executing command: " + String.join(" ", processBuilder.command()));
+
+                Process process = processBuilder.start();
+                int exitCode = process.waitFor();
+
+                if (exitCode == 0) {
+                    JOptionPane.showMessageDialog(this,
+                        "Release created successfully!",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+                    cardLayout.show(mainPanel, "ZEPHYR");
+                } else {
+                    try (BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(process.getErrorStream()))) {
+                        String errorMessage = reader.lines().collect(Collectors.joining("\n"));
+                        JOptionPane.showMessageDialog(this,
+                            "Error in Zephyr process: " + errorMessage,
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                    "Error: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    });
