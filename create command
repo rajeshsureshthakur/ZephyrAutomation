@@ -90,3 +90,34 @@ createButton.addActionListener(e -> {
             }
         }
     });
+
+
+
+
+
+// In the SwingWorker's done() method, modify how we navigate back:
+    @Override
+    protected void done() {
+        processingDialog.dispose();
+        try {
+            get(); // Will throw exception if one occurred during execution
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(TestManagementApp.this,
+                    "Release created successfully!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+                // Use the correct parent panel for CardLayout
+                cardLayout.show(TestManagementApp.this.mainPanel, "ZEPHYR");
+            });
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(TestManagementApp.this,
+                    "Error: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            });
+        } finally {
+            createButton.setEnabled(true);
+        }
+    }
