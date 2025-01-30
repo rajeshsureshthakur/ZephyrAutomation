@@ -1,0 +1,145 @@
+private boolean showReleaseDetailsPopup() {
+        final boolean[] result = {false};
+        
+        JDialog dialog = new JDialog(this, "Release Details", true);
+        dialog.setSize(600, 400);
+
+        // Main content panel using BoxLayout for vertical arrangement
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Zephyr Folder Structure section
+        JPanel folderSection = new JPanel();
+        folderSection.setLayout(new BoxLayout(folderSection, BoxLayout.Y_AXIS));
+        folderSection.setBorder(BorderFactory.createTitledBorder("Zephyr Folder Structure"));
+
+        // Parent Folders with fixed size panel
+        JPanel parentPanel = new JPanel();
+        parentPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        parentPanel.setMaximumSize(new Dimension(550, 40));  // Fixed height
+        
+        JLabel parentLabel = new JLabel("Parent Folders:");
+        parentLabel.setPreferredSize(new Dimension(100, 25));
+        parentLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        
+        JTextField parentField = new JTextField();
+        parentField.setPreferredSize(new Dimension(300, 25));
+        parentField.setFont(new Font("Arial", Font.PLAIN, 14));
+        
+        JLabel parentNote = new JLabel("(Comma separated)");
+        parentNote.setFont(new Font("Arial", Font.ITALIC, 12));
+        
+        parentPanel.add(parentLabel);
+        parentPanel.add(parentField);
+        parentPanel.add(parentNote);
+
+        // Child Folders with fixed size panel
+        JPanel childPanel = new JPanel();
+        childPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        childPanel.setMaximumSize(new Dimension(550, 40));  // Fixed height
+        
+        JLabel childLabel = new JLabel("Child Folders:");
+        childLabel.setPreferredSize(new Dimension(100, 25));
+        childLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        
+        JTextField childField = new JTextField();
+        childField.setPreferredSize(new Dimension(300, 25));
+        childField.setFont(new Font("Arial", Font.PLAIN, 14));
+        
+        JLabel childNote = new JLabel("(Comma separated)");
+        childNote.setFont(new Font("Arial", Font.ITALIC, 12));
+        
+        childPanel.add(childLabel);
+        childPanel.add(childField);
+        childPanel.add(childNote);
+
+        // Add folder panels to section
+        folderSection.add(Box.createVerticalStrut(10));
+        folderSection.add(parentPanel);
+        folderSection.add(Box.createVerticalStrut(10));
+        folderSection.add(childPanel);
+        folderSection.add(Box.createVerticalStrut(10));
+
+        // Planning section
+        JPanel planningSection = new JPanel();
+        planningSection.setLayout(new BoxLayout(planningSection, BoxLayout.Y_AXIS));
+        planningSection.setBorder(BorderFactory.createTitledBorder("Planning Folder Structure"));
+
+        JLabel cyclesLabel = new JLabel("Project Cycle's:");
+        cyclesLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cyclesLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+
+        // Checkbox panel with fixed size
+        JPanel checkboxPanel = new JPanel();
+        checkboxPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 5));
+        checkboxPanel.setMaximumSize(new Dimension(550, 40));
+
+        String[] cycleTypes = {"Load Test", "Endurance Test", "Sanity", "Standalone"};
+        for (String cycleType : cycleTypes) {
+            JCheckBox checkbox = new JCheckBox(cycleType);
+            checkbox.setFont(new Font("Arial", Font.PLAIN, 14));
+            
+            checkbox.addActionListener(e -> {
+                if (checkbox.isSelected()) {
+                    String input = JOptionPane.showInputDialog(dialog,
+                        "Enter number of phases for " + cycleType + ":",
+                        "Number of Phases",
+                        JOptionPane.QUESTION_MESSAGE);
+                    if (input != null) {
+                        try {
+                            int phases = Integer.parseInt(input);
+                            if (phases <= 0) {
+                                checkbox.setSelected(false);
+                            }
+                        } catch (NumberFormatException ex) {
+                            checkbox.setSelected(false);
+                        }
+                    } else {
+                        checkbox.setSelected(false);
+                    }
+                }
+            });
+            
+            checkboxPanel.add(checkbox);
+        }
+
+        // Add components to planning section
+        planningSection.add(Box.createVerticalStrut(10));
+        planningSection.add(cyclesLabel);
+        planningSection.add(Box.createVerticalStrut(10));
+        planningSection.add(checkboxPanel);
+        planningSection.add(Box.createVerticalStrut(10));
+
+        // OK button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setMaximumSize(new Dimension(550, 40));
+        
+        JButton okButton = new JButton("OK");
+        okButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        okButton.setPreferredSize(new Dimension(100, 30));
+        
+        okButton.addActionListener(e -> {
+            result[0] = true;
+            dialog.dispose();
+        });
+        
+        buttonPanel.add(okButton);
+
+        // Add all sections to content panel with fixed spacing
+        contentPanel.add(folderSection);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(planningSection);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(buttonPanel);
+
+        // Add scrolling capability
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        scrollPane.setBorder(null);
+        dialog.add(scrollPane);
+
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+        
+        return result[0];
+    }
