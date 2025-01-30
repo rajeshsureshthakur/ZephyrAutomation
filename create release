@@ -1,0 +1,174 @@
+// First, create required tables in database:
+    /*
+    CREATE TABLE PROJECTS (
+        PROJECT_ID NUMBER PRIMARY KEY,
+        PROJECT_NAME VARCHAR2(100) NOT NULL
+    );
+
+    CREATE TABLE RELEASES (
+        RELEASE_ID NUMBER PRIMARY KEY,
+        PROJECT_ID NUMBER,
+        RELEASE_NAME VARCHAR2(100) NOT NULL,
+        FOREIGN KEY (PROJECT_ID) REFERENCES PROJECTS(PROJECT_ID)
+    );
+    */
+
+    private void showCreateReleaseScreen() {
+        JPanel createReleasePanel = new JPanel();
+        createReleasePanel.setLayout(new BoxLayout(createReleasePanel, BoxLayout.Y_AXIS));
+        
+        // Title
+        JLabel titleLabel = new JLabel("Create Release");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Project Dropdown
+        JPanel projectPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JLabel projectLabel = new JLabel("Select Project:");
+        projectLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        JComboBox<ProjectItem> projectDropdown = new JComboBox<>();
+        projectDropdown.setFont(new Font("Arial", Font.PLAIN, 16));
+        projectDropdown.setPreferredSize(new Dimension(300, 30));
+        populateProjectDropdown(projectDropdown);
+        projectPanel.add(projectLabel);
+        projectPanel.add(projectDropdown);
+
+        // Release Dropdown (initially invisible)
+        JPanel releasePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JLabel releaseLabel = new JLabel("Select Release:");
+        releaseLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        JComboBox<ReleaseItem> releaseDropdown = new JComboBox<>();
+        releaseDropdown.setFont(new Font("Arial", Font.PLAIN, 16));
+        releaseDropdown.setPreferredSize(new Dimension(300, 30));
+        releasePanel.add(releaseLabel);
+        releasePanel.add(releaseDropdown);
+        releasePanel.setVisible(false);
+
+        // Release details fields (initially invisible)
+        JPanel detailsPanel = new JPanel();
+        detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
+        detailsPanel.setVisible(false);
+
+        // Add listeners
+        projectDropdown.addActionListener(e -> {
+            if (projectDropdown.getSelectedItem() != null) {
+                ProjectItem selectedProject = (ProjectItem) projectDropdown.getSelectedItem();
+                populateReleaseDropdown(releaseDropdown, selectedProject.getId());
+                releasePanel.setVisible(true);
+                detailsPanel.setVisible(false);
+                createReleasePanel.revalidate();
+                createReleasePanel.repaint();
+            }
+        });
+
+        releaseDropdown.addActionListener(e -> {
+            if (releaseDropdown.getSelectedItem() != null) {
+                detailsPanel.setVisible(true);
+                createReleasePanel.revalidate();
+                createReleasePanel.repaint();
+            }
+        });
+
+        // Add components
+        createReleasePanel.add(Box.createVerticalStrut(20));
+        createReleasePanel.add(titleLabel);
+        createReleasePanel.add(Box.createVerticalStrut(30));
+        createReleasePanel.add(projectPanel);
+        createReleasePanel.add(Box.createVerticalStrut(20));
+        createReleasePanel.add(releasePanel);
+        createReleasePanel.add(Box.createVerticalStrut(20));
+        createReleasePanel.add(detailsPanel);
+
+        // Add to main panel
+        mainPanel.add(createReleasePanel, "CREATE_RELEASE");
+        cardLayout.show(mainPanel, "CREATE_RELEASE");
+    }
+
+    // Helper classes for dropdowns
+    private class ProjectItem {
+        private int id;
+        private String name;
+
+        public ProjectItem(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int getId() { return id; }
+        public String getName() { return name; }
+
+        @Override
+        public String toString() { return name; }
+    }
+
+    private class ReleaseItem {
+        private int id;
+        private String name;
+
+        public ReleaseItem(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int getId() { return id; }
+        public String getName() { return name; }
+
+        @Override
+        public String toString() { return name; }
+    }
+
+    // Methods to populate dropdowns from database
+    private void populateProjectDropdown(JComboBox<ProjectItem> dropdown) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "SELECT PROJECT_ID, PROJECT_NAME FROM PROJECTS ORDER BY PROJECT_NAME";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        dropdown.removeAllItems();
+                        dropdown.addItem(new ProjectItem(0, "Select Project"));
+                        while (rs.next()) {
+                            dropdown.addItem(new ProjectItem(
+                                rs.getInt("PROJECT_ID"),
+                                rs.getString("PROJECT_NAME")
+                            ));
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Error loading projects: " + e.getMessage(),
+                "Database Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void populateReleaseDropdown(JComboBox<ReleaseItem> dropdown, int projectId) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "SELECT RELEASE_ID, RELEASE_NAME FROM RELEASES WHERE PROJECT_ID = ? ORDER BY RELEASE_NAME";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setInt(1, projectId);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        dropdown.removeAllItems();
+                        dropdown.addItem(new ReleaseItem(0, "Select Release"));
+                        while (rs.next()) {
+                            dropdown.addItem(new ReleaseItem(
+                                rs.getInt("RELEASE_ID"),
+                                rs.getString("RELEASE_NAME")
+                            ));
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Error loading releases: " + e.getMessage(),
+                "Database Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
