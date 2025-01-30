@@ -1,0 +1,45 @@
+for (String cycleType : cycleTypes) {
+            JCheckBox checkbox = new JCheckBox(cycleType);
+            checkbox.setFont(new Font("Arial", Font.PLAIN, 14));
+            
+            checkbox.addActionListener(e -> {
+                if (checkbox.isSelected()) {
+                    String input = JOptionPane.showInputDialog(
+                        dialog, 
+                        "Enter number of phases for " + cycleType + ":", 
+                        "Number of Phases", 
+                        JOptionPane.QUESTION_MESSAGE
+                    );
+                    
+                    if (input != null) {
+                        try {
+                            int phases = Integer.parseInt(input);
+                            if (phases > 0) {
+                                // Store the number of phases in the map
+                                testCyclePhasesMap.put(cycleType, phases);
+                            } else {
+                                checkbox.setSelected(false);
+                                testCyclePhasesMap.remove(cycleType);
+                            }
+                        } catch (NumberFormatException ex) {
+                            checkbox.setSelected(false);
+                            testCyclePhasesMap.remove(cycleType);
+                            JOptionPane.showMessageDialog(
+                                dialog, 
+                                "Please enter a valid number of phases.", 
+                                "Invalid Input", 
+                                JOptionPane.ERROR_MESSAGE
+                            );
+                        }
+                    } else {
+                        checkbox.setSelected(false);
+                        testCyclePhasesMap.remove(cycleType);
+                    }
+                } else {
+                    // Remove the cycle type if unchecked
+                    testCyclePhasesMap.remove(cycleType);
+                }
+            });
+
+            dialog.add(checkbox);
+        }
