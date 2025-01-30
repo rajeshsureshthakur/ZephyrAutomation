@@ -164,14 +164,19 @@ zephyrButton.addActionListener(new ActionListener() {
 
 
 backButton.addActionListener(e -> {
-        // Remove old screen and create new one
         String zephyrKey = "ZEPHYR";
-        Component zephyrComp = findComponentByName(mainPanel, zephyrKey);
-        if (zephyrComp != null) {
-            mainPanel.remove(zephyrComp);
-        }
+        // First remove the CREATE_RELEASE panel
+        mainPanel.remove(createReleasePanel);
+        // Then add fresh Zephyr screen
         mainPanel.add(createZephyrScreen(), zephyrKey);
         cardLayout.show(mainPanel, zephyrKey);
         mainPanel.revalidate();
         mainPanel.repaint();
+    });
+
+    // OR alternatively, try this simpler version if above doesn't work:
+    backButton.addActionListener(e -> {
+        SwingUtilities.invokeLater(() -> {
+            cardLayout.show(mainPanel, "ZEPHYR");
+        });
     });
