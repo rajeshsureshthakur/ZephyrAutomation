@@ -1,3 +1,97 @@
+ // Helper classes for dropdowns
+    private class ProjectItem {
+        private int id;
+        private String name;
+
+        public ProjectItem(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int getId() { return id; }
+        public String getName() { return name; }
+
+        @Override
+        public String toString() { return name; }
+    }
+
+    private class ReleaseItem {
+        private int id;
+        private String name;
+
+        public ReleaseItem(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int getId() { return id; }
+        public String getName() { return name; }
+
+        @Override
+        public String toString() { return name; }
+    }
+
+    // Methods to populate dropdowns from database
+    private void populateProjectDropdown(JComboBox<ProjectItem> dropdown) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "SELECT PROJECT_ID, PROJECT_NAME FROM PROJECTS ORDER BY PROJECT_NAME";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        dropdown.removeAllItems();
+                        dropdown.addItem(new ProjectItem(0, "Select Project"));
+                        while (rs.next()) {
+                            dropdown.addItem(new ProjectItem(
+                                rs.getInt("PROJECT_ID"),
+                                rs.getString("PROJECT_NAME")
+                            ));
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Error loading projects: " + e.getMessage(),
+                "Database Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void populateReleaseDropdown(JComboBox<ReleaseItem> dropdown, int projectId) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "SELECT RELEASE_ID, RELEASE_NAME FROM RELEASES WHERE PROJECT_ID = ? ORDER BY RELEASE_NAME";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setInt(1, projectId);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        dropdown.removeAllItems();
+                        dropdown.addItem(new ReleaseItem(0, "Select Release"));
+                        while (rs.next()) {
+                            dropdown.addItem(new ReleaseItem(
+                                rs.getInt("RELEASE_ID"),
+                                rs.getString("RELEASE_NAME")
+                            ));
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Error loading releases: " + e.getMessage(),
+                "Database Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+
+
+
+
 // First, create a custom searchable combobox
     private class SearchableComboBox extends JComboBox<ReleaseItem> {
         private List<ReleaseItem> allReleases = new ArrayList<>();
