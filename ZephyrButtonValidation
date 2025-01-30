@@ -1,0 +1,127 @@
+// First, alter the database table to add ZEPHYR_TOKEN column
+    // ALTER TABLE USERS ADD ZEPHYR_TOKEN VARCHAR2(200);
+
+    // Add method to check if Zephyr token exists
+    private boolean hasZephyrToken(String soeid) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "SELECT ZEPHYR_TOKEN FROM USERS WHERE SOEID = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setString(1, soeid);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        if (rs.next()) {
+                            String token = rs.getString("ZEPHYR_TOKEN");
+                            return token != null && !token.trim().isEmpty();
+                        }
+                        return false;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Database error: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
+
+    // Add method to save Zephyr token
+    private boolean saveZephyrToken(String soeid, String token) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "UPDATE USERS SET ZEPHYR_TOKEN = ? WHERE SOEID = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setString(1, token);
+                    pstmt.setString(2, soeid);
+                    int updated = pstmt.executeUpdate();
+                    return updated > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Database error: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
+
+    // Add method to show token input dialog
+    private String showTokenInputDialog() {
+        JDialog dialog = new JDialog(this, "Zephyr API Token Required", true);
+        dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
+        
+        // Create components
+        JLabel messageLabel = new JLabel("Please enter your Zephyr API token:");
+        messageLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        JTextField tokenField = new JTextField(30);
+        tokenField.setMaximumSize(new Dimension(300, 30));
+        tokenField.setFont(new Font("Arial", Font.PLAIN, 14));
+        tokenField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        JButton submitButton = new JButton("Submit");
+        submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        final String[] result = {null};
+        
+        submitButton.addActionListener(e -> {
+            String token = tokenField.getText().trim();
+            if (token.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog,
+                    "Please enter a valid token",
+                    "Invalid Input",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            result[0] = token;
+            dialog.dispose();
+        });
+        
+        // Add components to dialog
+        dialog.add(Box.createVerticalStrut(20));
+        dialog.add(messageLabel);
+        dialog.add(Box.createVerticalStrut(10));
+        dialog.add(tokenField);
+        dialog.add(Box.createVerticalStrut(20));
+        dialog.add(submitButton);
+        dialog.add(Box.createVerticalStrut(20));
+        
+        // Set dialog properties
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setSize(400, 200);
+        dialog.setVisible(true);
+        
+        return result[0];
+    }
+
+    // Modify the Zephyr button action listener in createHomeScreen
+    JButton zephyrButton = new JButton("Zephyr");
+    zephyrButton.setMaximumSize(buttonSize);
+    zephyrButton.setPreferredSize(buttonSize);
+    zephyrButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+    zephyrButton.setFont(new Font("Arial", Font.PLAIN, 14));
+    zephyrButton.addActionListener(e -> {
+        if (!hasZephyrToken(currentUserSoeid)) {
+            String token = showTokenInputDialog();
+            if (token != null) {
+                if (saveZephyrToken(currentUserSoeid, token)) {
+                    cardLayout.show(mainPanel, "ZEPHYR");
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                        "Failed to save Zephyr token. Please try again.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } else {
+            cardLayout.show(mainPanel, "ZEPHYR");
+        }
+    });
