@@ -1,5 +1,43 @@
  // Helper classes for dropdowns
 
+private boolean saveRelease(String releaseName, Date startDate, Date endDate) {
+        try {
+            if (projectDropdown.getSelectedItem() == null || 
+                !(projectDropdown.getSelectedItem() instanceof ProjectItem)) {
+                JOptionPane.showMessageDialog(this,
+                    "Please select a valid project",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "INSERT INTO RELEASES (RELEASE_ID, PROJECT_ID, RELEASE_NAME, START_DATE, END_DATE) " +
+                           "VALUES (RELEASE_SEQ.NEXTVAL, ?, ?, ?, ?)";
+                
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    ProjectItem selectedProject = (ProjectItem) projectDropdown.getSelectedItem();
+                    
+                    pstmt.setInt(1, selectedProject.getId());
+                    pstmt.setString(2, releaseName);
+                    pstmt.setDate(3, new java.sql.Date(startDate.getTime()));
+                    pstmt.setDate(4, new java.sql.Date(endDate.getTime()));
+                    
+                    int rowsAffected = pstmt.executeUpdate();
+                    return rowsAffected > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Error saving release: " + e.getMessage(),
+                "Database Error",
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
+
 // Add this method in your class with other helper methods
     private boolean saveRelease(String releaseName, Date startDate, Date endDate) {
         try {
