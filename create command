@@ -1,6 +1,8 @@
-// In the create button action listener, replace the ProcessBuilder code with:
-    createButton.addActionListener(e -> {
+createButton.addActionListener(e -> {
         if (validateFields(nameField, startDateChooser, endDateChooser)) {
+            // Disable the button while processing
+            createButton.setEnabled(false);
+            
             try {
                 // Get all required values
                 String zephyrToken = getZephyrToken(currentUserSoeid);
@@ -15,55 +17,71 @@
                 ProjectItem selectedProject = (ProjectItem) projectDropdown.getSelectedItem();
                 int projectId = selectedProject.getId();
                 String releaseName = nameField.getText().trim();
-                
-                // Get child folders as comma-separated string
                 String foldersString = childField.getText().trim();
-
+                
                 // Format dates
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                 String startDate = dateFormat.format(startDateChooser.getDate());
                 String endDate = dateFormat.format(endDateChooser.getDate());
 
-                // Create command as array
-                ProcessBuilder processBuilder = new ProcessBuilder(
-                    "java",
-                    "Zephyr",
-                    currentUserSoeid,
-                    zephyrToken,
-                    String.valueOf(projectId),
-                    releaseName,
-                    foldersString,
-                    startDate,
-                    endDate,
-                    String.valueOf(testCycles[0]),
-                    String.valueOf(testCycles[1]),
-                    String.valueOf(testCycles[2]),
-                    String.valueOf(testCycles[3])
-                );
+                // Show processing message
+                JDialog processingDialog = new JDialog(this, "Processing", true);
+                JPanel panel = new JPanel();
+                panel.add(new JLabel("Creating release... Please wait"));
+                processingDialog.add(panel);
+                processingDialog.setSize(300, 100);
+                processingDialog.setLocationRelativeTo(this);
 
-                // For debugging - print the command
-                System.out.println("Executing command: " + String.join(" ", processBuilder.command()));
+                // Create and run in separate thread
+                SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        ReleaseCreation fetcher = new ReleaseCreation(
+                            currentUserSoeid,
+                            zephyrToken,
+                            projectId,
+                            releaseName,
+                            foldersString,
+                            startDate,
+                            endDate,
+                            testCycles[0],
+                            testCycles[1],
+                            testCycles[2],
+                            testCycles[3]
+                        );
 
-                Process process = processBuilder.start();
-                int exitCode = process.waitFor();
-
-                if (exitCode == 0) {
-                    JOptionPane.showMessageDialog(this,
-                        "Release created successfully!",
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
-                    cardLayout.show(mainPanel, "ZEPHYR");
-                } else {
-                    try (BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(process.getErrorStream()))) {
-                        String errorMessage = reader.lines().collect(Collectors.joining("\n"));
-                        JOptionPane.showMessageDialog(this,
-                            "Error in Zephyr process: " + errorMessage,
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
+                        fetcher.run();
+                        return null;
                     }
-                }
+
+                    @Override
+                    protected void done() {
+                        processingDialog.dispose();
+                        try {
+                            get(); // Will throw exception if one occurred during execution
+                            JOptionPane.showMessageDialog(null,
+                                "Release created successfully!",
+                                "Success",
+                                JOptionPane.INFORMATION_MESSAGE);
+                            cardLayout.show(mainPanel, "ZEPHYR");
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                            JOptionPane.showMessageDialog(null,
+                                "Error: " + ex.getMessage(),
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                        } finally {
+                            createButton.setEnabled(true);
+                        }
+                    }
+                };
+
+                // Start the worker and show processing dialog
+                worker.execute();
+                processingDialog.setVisible(true);
+
             } catch (Exception ex) {
+                createButton.setEnabled(true);
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                     "Error: " + ex.getMessage(),
