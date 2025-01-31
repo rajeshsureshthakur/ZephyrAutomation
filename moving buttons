@@ -1,0 +1,54 @@
+private JButton submitButton;
+private JButton backButton;
+
+Then modify the updatePanelLayout method:
+
+javaCopyprivate void updatePanelLayout(JPanel folderPanel, JPanel planningPanel,
+                             JPanel folderContainer, JPanel contentPanel,
+                             List<JPanel> folderPanelList) {
+    
+    // Calculate folder panel height based on number of rows
+    int folderHeight = Math.max(150, 80 + (folderPanelList.size() * 40));
+    folderPanel.setSize(500, folderHeight);
+    
+    // Update planning panel position - place it below folder panel
+    planningPanel.setBounds(50, 220 + folderHeight + 20, 500, 150);
+    
+    // Update button positions
+    int buttonY = planningPanel.getY() + planningPanel.getHeight() + 20;
+    if (submitButton != null) {
+        submitButton.setBounds(200, buttonY, 200, 35);
+    }
+    if (backButton != null) {
+        backButton.setBounds(200, buttonY + 50, 200, 35);
+    }
+    
+    // Update content panel size to accommodate all components
+    int totalHeight = buttonY + 100; // Extra space after buttons
+    contentPanel.setPreferredSize(new Dimension(600, totalHeight));
+    
+    // Refresh all panels
+    folderContainer.revalidate();
+    folderContainer.repaint();
+    folderPanel.revalidate();
+    folderPanel.repaint();
+    planningPanel.revalidate();
+    planningPanel.repaint();
+    contentPanel.revalidate();
+    contentPanel.repaint();
+}
+
+When creating the buttons in showCreateReleaseScreen:
+
+javaCopy// Create buttons
+submitButton = new JButton("Create Release");  // Use class field
+submitButton.setFont(new Font("Arial", Font.PLAIN, 14));
+submitButton.setVisible(false);
+
+backButton = new JButton("Back");  // Use class field
+backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+
+// Initial position
+int buttonY = planningPanel.getY() + planningPanel.getHeight() + 20;
+submitButton.setBounds(200, buttonY, 200, 35);
+backButton.setBounds(200, buttonY + 50, 200, 35);
