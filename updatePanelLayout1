@@ -1,0 +1,48 @@
+private void updatePanelLayout(JPanel folderPanel, JPanel planningPanel,
+                                 JPanel folderContainer, JPanel contentPanel,
+                                 List<JPanel> folderPanelList) {
+        
+        // Calculate folder panel height based on number of rows
+        int folderHeight = Math.max(150, 80 + (folderPanelList.size() * 40));
+        folderPanel.setSize(500, folderHeight);
+        
+        // Update planning panel position - place it below folder panel
+        planningPanel.setBounds(50, 220 + folderHeight + 20, 500, 150);
+        
+        // Update content panel size to accommodate all components
+        int totalHeight = planningPanel.getY() + planningPanel.getHeight() + 150; // Extra space for buttons
+        contentPanel.setPreferredSize(new Dimension(600, totalHeight));
+        
+        // Refresh all panels
+        folderContainer.revalidate();
+        folderContainer.repaint();
+        folderPanel.revalidate();
+        folderPanel.repaint();
+        planningPanel.revalidate();
+        planningPanel.repaint();
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+
+
+
+
+/ Create buttons first
+JButton submitButton = new JButton("Create Release");
+submitButton.setFont(new Font("Arial", Font.PLAIN, 14));
+submitButton.setVisible(false);
+
+JButton backButton = new JButton("Back");
+backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+
+// Set their positions based on planning panel
+int buttonY = planningPanel.getY() + planningPanel.getHeight() + 20;
+submitButton.setBounds(200, buttonY, 200, 35);
+backButton.setBounds(200, buttonY + 50, 200, 35);
+And modify the removeButton action listener to use the simpler version:
+javaCopyremoveButton.addActionListener(evt -> {
+    folderContainer.remove(rowPanel);
+    folderPanelList.remove(rowPanel);
+    updatePanelLayout(folderPanel, planningPanel, 
+                     folderContainer, contentPanel, folderPanelList);
+});
