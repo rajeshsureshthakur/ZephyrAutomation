@@ -1,216 +1,191 @@
-checkbox.addActionListener(e -> {
-        if (checkbox.isSelected()) {
+private void showCreateReleaseScreen() {
+        JPanel createReleasePanel = new JPanel();
+        createReleasePanel.setLayout(new BorderLayout());
+
+        // Title at the top
+        JPanel titlePanel = new JPanel();
+        JLabel titleLabel = new JLabel("Create Release");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titlePanel.add(titleLabel);
+        createReleasePanel.add(titlePanel, BorderLayout.NORTH);
+
+        // Main content panel with null layout for absolute positioning
+        JPanel contentPanel = new JPanel(null);  // Using null layout
+        contentPanel.setPreferredSize(new Dimension(600, 600));  // Fixed size
+
+        // Project Selection - Always visible
+        JLabel projectLabel = new JLabel("Select Project: *");
+        projectLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        projectLabel.setBounds(50, 20, 150, 30);
+        
+        projectDropdown = new JComboBox<>();
+        projectDropdown.setFont(new Font("Arial", Font.PLAIN, 16));
+        projectDropdown.setBounds(200, 20, 300, 30);
+        populateProjectDropdown(projectDropdown);
+
+        // Release Name - Initially invisible
+        JLabel nameLabel = new JLabel("Release Name: *");
+        nameLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        nameLabel.setBounds(50, 70, 150, 30);
+        nameLabel.setVisible(false);
+        
+        JTextField nameField = new JTextField();
+        nameField.setFont(new Font("Arial", Font.PLAIN, 16));
+        nameField.setBounds(200, 70, 300, 30);
+        nameField.setVisible(false);
+
+        // Start Date - Initially invisible
+        JLabel startDateLabel = new JLabel("Start Date: *");
+        startDateLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        startDateLabel.setBounds(50, 120, 150, 30);
+        startDateLabel.setVisible(false);
+        
+        JDateChooser startDateChooser = new JDateChooser();
+        startDateChooser.setFont(new Font("Arial", Font.PLAIN, 16));
+        startDateChooser.setBounds(200, 120, 300, 30);
+        startDateChooser.setVisible(false);
+
+        // End Date - Initially invisible
+        JLabel endDateLabel = new JLabel("End Date: *");
+        endDateLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        endDateLabel.setBounds(50, 170, 150, 30);
+        endDateLabel.setVisible(false);
+        
+        JDateChooser endDateChooser = new JDateChooser();
+        endDateChooser.setFont(new Font("Arial", Font.PLAIN, 16));
+        endDateChooser.setBounds(200, 170, 300, 30);
+        endDateChooser.setVisible(false);
+
+        // Child Folders - Initially invisible
+        JPanel folderPanel = new JPanel(null);
+        folderPanel.setBorder(BorderFactory.createTitledBorder("Folder Structure"));
+        folderPanel.setBounds(50, 220, 500, 100);
+        folderPanel.setVisible(false);
+
+        JLabel childLabel = new JLabel("Child Folders:");
+        childLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        childLabel.setBounds(20, 30, 100, 30);
+        
+        JTextField childField = new JTextField();
+        childField.setFont(new Font("Arial", Font.PLAIN, 16));
+        childField.setBounds(120, 30, 250, 30);
+        
+        JLabel noteLabel = new JLabel("(Comma separated)");
+        noteLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        noteLabel.setBounds(380, 30, 120, 30);
+
+        folderPanel.add(childLabel);
+        folderPanel.add(childField);
+        folderPanel.add(noteLabel);
+
+        // Planning Section - Initially invisible
+        JPanel planningPanel = new JPanel(null);
+        planningPanel.setBorder(BorderFactory.createTitledBorder("Planning Folder Structure"));
+        planningPanel.setBounds(50, 340, 500, 150);
+        planningPanel.setVisible(false);
+
+        JLabel cyclesLabel = new JLabel("Project Cycle's:");
+        cyclesLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        cyclesLabel.setBounds(20, 30, 100, 30);
+
+        testCycles = new int[]{0, 0, 0, 0};
+        String[] cycleNames = {"Load Test", "Endurance Test", "Sanity", "Standalone"};
+        JCheckBox[] checkboxes = new JCheckBox[cycleNames.length];
+
+        // Position checkboxes horizontally
+        int xOffset = 20;
+        for (int i = 0; i < cycleNames.length; i++) {
+            checkboxes[i] = new JCheckBox(cycleNames[i]);
+            checkboxes[i].setFont(new Font("Arial", Font.PLAIN, 14));
+            checkboxes[i].setBounds(xOffset, 70, 120, 30);
+            final int index = i;
+            
+            checkboxes[i].addActionListener(e -> {
+        if (checkboxes[index].isSelected()) {
             String input = JOptionPane.showInputDialog(
-                createReleasePanel,  // parent component
+                createReleasePanel,
                 "Enter number of phases for " + cycleNames[index] + ":",
-                "Number of Phases",  // title
-                JOptionPane.QUESTION_MESSAGE);
-                
+                "Number of Phases",
+                JOptionPane.QUESTION_MESSAGE
+            );
             if (input != null) {
                 try {
                     int phases = Integer.parseInt(input);
                     if (phases > 0) {
                         testCycles[index] = phases;
                     } else {
-                        checkbox.setSelected(false);
-                        testCycles[index] = -1;
+                        checkboxes[index].setSelected(false);
+                        testCycles[index] = 0;  // Reset to 0 instead of -1
                         JOptionPane.showMessageDialog(createReleasePanel,
                             "Please enter a positive number",
                             "Invalid Input",
                             JOptionPane.ERROR_MESSAGE);
                     }
                 } catch (NumberFormatException ex) {
-                    checkbox.setSelected(false);
-                    testCycles[index] = -1;
+                    checkboxes[index].setSelected(false);
+                    testCycles[index] = 0;  // Reset to 0 instead of -1
                     JOptionPane.showMessageDialog(createReleasePanel,
                         "Please enter a valid number",
                         "Invalid Input",
                         JOptionPane.ERROR_MESSAGE);
                 }
             } else {
-                checkbox.setSelected(false);
-                testCycles[index] = -1;
+                checkboxes[index].setSelected(false);
+                testCycles[index] = 0;  // Reset to 0 instead of -1
             }
         } else {
-            testCycles[index] = -1;
+            testCycles[index] = 0;  // Reset to 0 when unchecked
         }
     });
 
-private void showCreateReleaseScreen() {
-        JPanel createReleasePanel = new JPanel();
-        createReleasePanel.setLayout(new BoxLayout(createReleasePanel, BoxLayout.Y_AXIS));
-
-        // Title
-        JLabel titleLabel = new JLabel("Create Release");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        // Main content panel
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        // Project Selection
-        JPanel projectPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JLabel projectLabel = new JLabel("Select Project: *");
-        projectLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        projectDropdown = new JComboBox<>();
-        projectDropdown.setFont(new Font("Arial", Font.PLAIN, 16));
-        projectDropdown.setPreferredSize(new Dimension(300, 30));
-        populateProjectDropdown(projectDropdown);
-        projectPanel.add(projectLabel);
-        projectPanel.add(projectDropdown);
-
-        // Release Name Panel (initially invisible)
-        JPanel namePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JLabel nameLabel = new JLabel("Release Name: *");
-        nameLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        JTextField nameField = new JTextField();
-        nameField.setFont(new Font("Arial", Font.PLAIN, 16));
-        nameField.setPreferredSize(new Dimension(300, 30));
-        namePanel.add(nameLabel);
-        namePanel.add(nameField);
-        namePanel.setVisible(false);
-
-        // Start Date Panel (initially invisible)
-        JPanel startDatePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JLabel startDateLabel = new JLabel("Start Date: *");
-        startDateLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        JDateChooser startDateChooser = new JDateChooser();
-        startDateChooser.setFont(new Font("Arial", Font.PLAIN, 16));
-        startDateChooser.setPreferredSize(new Dimension(300, 30));
-        startDatePanel.add(startDateLabel);
-        startDatePanel.add(startDateChooser);
-        startDatePanel.setVisible(false);
-
-        // End Date Panel (initially invisible)
-        JPanel endDatePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JLabel endDateLabel = new JLabel("End Date: *");
-        endDateLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        JDateChooser endDateChooser = new JDateChooser();
-        endDateChooser.setFont(new Font("Arial", Font.PLAIN, 16));
-        endDateChooser.setPreferredSize(new Dimension(300, 30));
-        endDatePanel.add(endDateLabel);
-        endDatePanel.add(endDateChooser);
-        endDatePanel.setVisible(false);
-
-        // Child Folders Panel (initially invisible)
-        JPanel childFolderPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        childFolderPanel.setBorder(BorderFactory.createTitledBorder("Folder Structure"));
-        JLabel childLabel = new JLabel("Child Folders:");
-        childLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        JTextField childField = new JTextField(20);
-        childField.setPreferredSize(new Dimension(300, 30));
-        JLabel noteLabel = new JLabel("(Comma separated)");
-        childFolderPanel.add(childLabel);
-        childFolderPanel.add(childField);
-        childFolderPanel.add(noteLabel);
-        childFolderPanel.setVisible(false);
-
-        // Planning Section (initially invisible)
-        JPanel planningSection = new JPanel();
-        planningSection.setLayout(new BoxLayout(planningSection, BoxLayout.Y_AXIS));
-        planningSection.setBorder(BorderFactory.createTitledBorder("Planning Folder Structure"));
-        JLabel cyclesLabel = new JLabel("Project Cycle's:");
-        cyclesLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        JPanel checkboxPanel = new JPanel(new GridLayout(0, 1, 5, 5));
-        String[] cycleNames = {"Load Test", "Endurance Test", "Sanity", "Standalone"};
-        testCycles = new int[]{-1, -1, -1, -1};
-        
-        for (int i = 0; i < cycleNames.length; i++) {
-            JCheckBox checkbox = new JCheckBox(cycleNames[i]);
-            final int index = i;
-            checkbox.addActionListener(e -> {
-                if (checkbox.isSelected()) {
-                    String input = JOptionPane.showInputDialog(
-                        "Enter number of phases for " + cycleNames[index] + ":",
-                        "Number of Phases",
-                        JOptionPane.QUESTION_MESSAGE
-                    );
-                    if (input != null) {
-                        try {
-                            int phases = Integer.parseInt(input);
-                            if (phases > 0) {
-                                testCycles[index] = phases;
-                            } else {
-                                checkbox.setSelected(false);
-                                testCycles[index] = -1;
-                            }
-                        } catch (NumberFormatException ex) {
-                            checkbox.setSelected(false);
-                            testCycles[index] = -1;
-                        }
-                    } else {
-                        checkbox.setSelected(false);
-                        testCycles[index] = -1;
-                    }
-                } else {
-                    testCycles[index] = -1;
-                }
-            });
-            checkboxPanel.add(checkbox);
+            planningPanel.add(checkboxes[i]);
+            xOffset += 130;
         }
-        planningSection.add(cyclesLabel);
-        planningSection.add(checkboxPanel);
-        planningSection.setVisible(false);
+        planningPanel.add(cyclesLabel);
 
-        // Submit Button (initially invisible)
+        // Buttons - Fixed positions
         JButton submitButton = new JButton("Create Release");
         submitButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        submitButton.setMaximumSize(new Dimension(200, 35));
-        submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        submitButton.setBounds(200, 510, 200, 35);
         submitButton.setVisible(false);
 
-        // Back Button
         JButton backButton = new JButton("Back");
         backButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        backButton.setMaximumSize(new Dimension(200, 35));
-        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backButton.setBounds(200, 550, 200, 35);
 
         // Add components to content panel
-        contentPanel.add(projectPanel);
-        contentPanel.add(Box.createVerticalStrut(20));
-        contentPanel.add(namePanel);
-        contentPanel.add(Box.createVerticalStrut(20));
-        contentPanel.add(startDatePanel);
-        contentPanel.add(Box.createVerticalStrut(20));
-        contentPanel.add(endDatePanel);
-        contentPanel.add(Box.createVerticalStrut(20));
-        contentPanel.add(childFolderPanel);
-        contentPanel.add(Box.createVerticalStrut(20));
-        contentPanel.add(planningSection);
-        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(projectLabel);
+        contentPanel.add(projectDropdown);
+        contentPanel.add(nameLabel);
+        contentPanel.add(nameField);
+        contentPanel.add(startDateLabel);
+        contentPanel.add(startDateChooser);
+        contentPanel.add(endDateLabel);
+        contentPanel.add(endDateChooser);
+        contentPanel.add(folderPanel);
+        contentPanel.add(planningPanel);
         contentPanel.add(submitButton);
-        contentPanel.add(Box.createVerticalStrut(20));
         contentPanel.add(backButton);
 
-        // Add title and content to main panel
-        createReleasePanel.add(Box.createVerticalStrut(20));
-        createReleasePanel.add(titleLabel);
-        createReleasePanel.add(Box.createVerticalStrut(20));
-        createReleasePanel.add(contentPanel);
+        // Add content panel to a scroll pane
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        createReleasePanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Add listeners
+        // Add listeners (keep existing listener code)
         projectDropdown.addActionListener(e -> {
             if (projectDropdown.getSelectedItem() != null && 
                 projectDropdown.getSelectedIndex() > 0) {
-                namePanel.setVisible(true);
-                startDatePanel.setVisible(true);
-                SwingUtilities.invokeLater(() -> {
-                    contentPanel.revalidate();
-                    contentPanel.repaint();
-                });
+                nameLabel.setVisible(true);
+                nameField.setVisible(true);
+                startDateLabel.setVisible(true);
+                startDateChooser.setVisible(true);
             }
         });
 
         startDateChooser.addPropertyChangeListener("date", evt -> {
             if (startDateChooser.getDate() != null) {
-                endDatePanel.setVisible(true);
-                SwingUtilities.invokeLater(() -> {
-                    contentPanel.revalidate();
-                    contentPanel.repaint();
-                });
+                endDateLabel.setVisible(true);
+                endDateChooser.setVisible(true);
             }
         });
 
@@ -223,81 +198,14 @@ private void showCreateReleaseScreen() {
                         JOptionPane.ERROR_MESSAGE);
                     endDateChooser.setDate(null);
                 } else {
-                    childFolderPanel.setVisible(true);
-                    planningSection.setVisible(true);
+                    folderPanel.setVisible(true);
+                    planningPanel.setVisible(true);
                     submitButton.setVisible(true);
-                    SwingUtilities.invokeLater(() -> {
-                        contentPanel.revalidate();
-                        contentPanel.repaint();
-                    });
                 }
             }
         });
 
-        submitButton.addActionListener(e -> {
-            if (validateFields(nameField, startDateChooser, endDateChooser)) {
-                submitButton.setEnabled(false);
-                try {
-                    // Get all required values and call ReleaseCreation
-                    String[] folderArray = childField.getText().trim().split(",");
-                    for (int i = 0; i < folderArray.length; i++) {
-                        folderArray[i] = folderArray[i].trim();
-                    }
-
-                    ProjectItem selectedProject = (ProjectItem) projectDropdown.getSelectedItem();
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
-                    ReleaseCreation fetcher = new ReleaseCreation(
-                        currentUserSoeid,
-                        zephyrToken,
-                        selectedProject.getId(),
-                        nameField.getText().trim(),
-                        folderArray,
-                        dateFormat.format(startDateChooser.getDate()),
-                        dateFormat.format(endDateChooser.getDate()),
-                        testCycles
-                    );
-
-                    fetcher.run();
-                    JOptionPane.showMessageDialog(this,
-                        "Release created successfully!",
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
-                    
-                    // Navigate back to Zephyr screen
-                    String zephyrKey = "ZEPHYR";
-                    Component zephyrComp = findComponentByName(mainPanel, zephyrKey);
-                    if (zephyrComp != null) {
-                        mainPanel.remove(zephyrComp);
-                    }
-                    mainPanel.add(createZephyrScreen(), zephyrKey);
-                    cardLayout.show(mainPanel, zephyrKey);
-                    mainPanel.revalidate();
-                    mainPanel.repaint();
-
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(this,
-                        "Error: " + ex.getMessage(),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                } finally {
-                    submitButton.setEnabled(true);
-                }
-            }
-        });
-
-        backButton.addActionListener(e -> {
-            String zephyrKey = "ZEPHYR";
-            Component zephyrComp = findComponentByName(mainPanel, zephyrKey);
-            if (zephyrComp != null) {
-                mainPanel.remove(zephyrComp);
-            }
-            mainPanel.add(createZephyrScreen(), zephyrKey);
-            cardLayout.show(mainPanel, zephyrKey);
-            mainPanel.revalidate();
-            mainPanel.repaint();
-        });
+        // Keep existing button listeners...
 
         // Add to main container
         mainPanel.add(createReleasePanel, "CREATE_RELEASE");
