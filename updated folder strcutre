@@ -1,0 +1,148 @@
+// Initialize lists for folder management
+        folderNames = new ArrayList<>();
+        folderJQLs = new ArrayList<>();
+        folderPanelList = new ArrayList<>();
+
+        // Folder Structure Section
+        JPanel folderPanel = new JPanel(new BorderLayout());
+        folderPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10), 
+            "Folder Structure", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, 
+            new Font("Arial", Font.BOLD, 12)));
+        folderPanel.setBounds(50, 220, 500, 150);  // Initial height
+        folderPanel.setVisible(false);
+
+        // Header Panel for labels and add button
+        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        
+        JButton addButton = new JButton("+");
+        addButton.setFont(new Font("Arial", Font.BOLD, 14));
+        addButton.setPreferredSize(new Dimension(45, 25));
+        
+        JLabel folderLabel = new JLabel("Folder Name");
+        folderLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        folderLabel.setPreferredSize(new Dimension(150, 25));
+        
+        JLabel jqlLabel = new JLabel("JQL");
+        jqlLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        jqlLabel.setPreferredSize(new Dimension(150, 25));
+
+        headerPanel.add(addButton);
+        headerPanel.add(folderLabel);
+        headerPanel.add(jqlLabel);
+
+        // Container for folder-JQL pairs
+        JPanel folderContainer = new JPanel();
+        folderContainer.setLayout(new BoxLayout(folderContainer, BoxLayout.Y_AXIS));
+        JScrollPane scrollPane = new JScrollPane(folderContainer);
+        scrollPane.setBorder(null);
+        
+        folderPanel.add(headerPanel, BorderLayout.NORTH);
+        folderPanel.add(scrollPane, BorderLayout.CENTER);
+
+        // Planning Section
+        JPanel planningPanel = new JPanel(null);
+        planningPanel.setBorder(BorderFactory.createTitledBorder("Planning Folder Structure"));
+        planningPanel.setBounds(50, 390, 500, 150);  // Initial position below folder section
+        planningPanel.setVisible(false);
+
+        JLabel cyclesLabel = new JLabel("Project Cycle's:");
+        cyclesLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        cyclesLabel.setBounds(20, 30, 100, 30);
+
+        // Initialize test cycles array with 0s
+        testCycles = new int[]{0, 0, 0, 0};
+        String[] cycleNames = {"Load Test", "Endurance Test", "Sanity", "Standalone"};
+        JCheckBox[] checkboxes = new JCheckBox[cycleNames.length];
+
+        // Position checkboxes horizontally
+        int xOffset = 20;
+        for (int i = 0; i < cycleNames.length; i++) {
+            checkboxes[i] = new JCheckBox(cycleNames[i]);
+            checkboxes[i].setFont(new Font("Arial", Font.PLAIN, 14));
+            checkboxes[i].setBounds(xOffset, 70, 120, 30);
+            final int index = i;
+            
+            checkboxes[i].addActionListener(e -> {
+                if (checkboxes[index].isSelected()) {
+                    String input = JOptionPane.showInputDialog(
+                        createReleasePanel,
+                        "Enter number of phases for " + cycleNames[index] + ":",
+                        "Number of Phases",
+                        JOptionPane.QUESTION_MESSAGE
+                    );
+                    if (input != null) {
+                        try {
+                            int phases = Integer.parseInt(input);
+                            if (phases > 0) {
+                                testCycles[index] = phases;
+                            } else {
+                                checkboxes[index].setSelected(false);
+                                testCycles[index] = 0;
+                                JOptionPane.showMessageDialog(createReleasePanel,
+                                    "Please enter a positive number",
+                                    "Invalid Input",
+                                    JOptionPane.ERROR_MESSAGE);
+                            }
+                        } catch (NumberFormatException ex) {
+                            checkboxes[index].setSelected(false);
+                            testCycles[index] = 0;
+                            JOptionPane.showMessageDialog(createReleasePanel,
+                                "Please enter a valid number",
+                                "Invalid Input",
+                                JOptionPane.ERROR_MESSAGE);
+                        }
+                    } else {
+                        checkboxes[index].setSelected(false);
+                        testCycles[index] = 0;
+                    }
+                } else {
+                    testCycles[index] = 0;
+                }
+            });
+            planningPanel.add(checkboxes[i]);
+            xOffset += 130;
+        }
+        planningPanel.add(cyclesLabel);
+
+        // Method to create new folder-JQL row
+        ActionListener createNewFolderRow = e -> {
+            JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+            
+            JTextField folderField = new JTextField(15);
+            folderField.setFont(new Font("Arial", Font.PLAIN, 14));
+            folderField.setPreferredSize(new Dimension(150, 25));
+            
+            JTextField jqlField = new JTextField(20);
+            jqlField.setFont(new Font("Arial", Font.PLAIN, 14));
+            jqlField.setPreferredSize(new Dimension(200, 25));
+            
+            JButton removeButton = new JButton("×");
+            removeButton.setFont(new Font("Arial", Font.BOLD, 14));
+            removeButton.setPreferredSize(new Dimension(45, 25));
+            
+            rowPanel.add(folderField);
+            rowPanel.add(jqlField);
+            rowPanel.add(removeButton);
+            
+            removeButton.addActionListener(evt -> {
+                folderContainer.remove(rowPanel);
+                folderPanelList.remove(rowPanel);
+                updatePanelLayout(folderPanel, planningPanel, submitButton, backButton, 
+                                folderContainer, contentPanel, folderPanelList);
+            });
+            
+            folderPanelList.add(rowPanel);
+            folderContainer.add(rowPanel);
+            updatePanelLayout(folderPanel, planningPanel, submitButton, backButton, 
+                            folderContainer, contentPanel, folderPanelList);
+        };
+
+        // Add action listener to add button
+        addButton.addActionListener(createNewFolderRow);
+
+        // Create initial row
+        createNewFolderRow.actionPerformed(null);
+
+        // Add panels to content panel
+        contentPanel.add(folderPanel);
+        contentPanel.add(planningPanel);
