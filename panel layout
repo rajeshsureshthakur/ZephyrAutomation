@@ -1,0 +1,30 @@
+private void updatePanelLayout(JPanel folderPanel, JPanel planningPanel, 
+                                 JButton submitButton, JButton backButton,
+                                 JPanel folderContainer, JPanel contentPanel,
+                                 List<JPanel> folderPanelList) {
+        
+        // Calculate folder panel height based on number of rows
+        int folderHeight = Math.max(150, 80 + (folderPanelList.size() * 40));
+        folderPanel.setSize(500, folderHeight);
+        
+        // Update planning panel position - place it below folder panel
+        planningPanel.setBounds(50, 220 + folderHeight + 20, 500, 150);
+        
+        // Update submit and back button positions - place them below planning panel
+        submitButton.setBounds(200, 220 + folderHeight + 190, 200, 35);
+        backButton.setBounds(200, 220 + folderHeight + 240, 200, 35);
+        
+        // Update content panel size to accommodate all components
+        int contentHeight = 220 + folderHeight + 300;  // Extra space for other components
+        contentPanel.setPreferredSize(new Dimension(600, contentHeight));
+        
+        // Refresh all panels
+        folderContainer.revalidate();
+        folderContainer.repaint();
+        folderPanel.revalidate();
+        folderPanel.repaint();
+        planningPanel.revalidate();
+        planningPanel.repaint();
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
