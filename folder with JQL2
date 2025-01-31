@@ -1,0 +1,108 @@
+// Update the folder panel and planning panel sections:
+
+    // Folder Structure Panel
+    JPanel folderPanel = new JPanel(new BorderLayout());
+    folderPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10), 
+        "Folder Structure", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, 
+        new Font("Arial", Font.BOLD, 12)));
+    folderPanel.setBounds(50, 220, 500, 150);  // Initial height
+    folderPanel.setVisible(false);
+
+    // Header Panel for labels and add button
+    JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+    
+    JButton addButton = new JButton("+");
+    addButton.setFont(new Font("Arial", Font.BOLD, 14));
+    addButton.setPreferredSize(new Dimension(45, 25));
+    
+    JLabel folderLabel = new JLabel("Folder Name");
+    folderLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+    folderLabel.setPreferredSize(new Dimension(150, 25));
+    
+    JLabel jqlLabel = new JLabel("JQL");
+    jqlLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+    jqlLabel.setPreferredSize(new Dimension(150, 25));
+
+    headerPanel.add(addButton);
+    headerPanel.add(folderLabel);
+    headerPanel.add(jqlLabel);
+
+    // Container for folder-JQL pairs
+    JPanel folderContainer = new JPanel();
+    folderContainer.setLayout(new BoxLayout(folderContainer, BoxLayout.Y_AXIS));
+    JScrollPane scrollPane = new JScrollPane(folderContainer);
+    scrollPane.setBorder(null);
+    
+    // Add header and scroll pane to folder panel
+    folderPanel.add(headerPanel, BorderLayout.NORTH);
+    folderPanel.add(scrollPane, BorderLayout.CENTER);
+
+    // Planning Section Panel
+    JPanel planningPanel = new JPanel(null);
+    planningPanel.setBorder(BorderFactory.createTitledBorder("Planning Folder Structure"));
+    planningPanel.setBounds(50, 390, 500, 150);  // Initial position below folder section
+    planningPanel.setVisible(false);
+
+    // Method to create new folder-JQL row with updated layout
+    ActionListener createNewFolderRow = e -> {
+        JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        
+        JTextField folderField = new JTextField(15);
+        folderField.setFont(new Font("Arial", Font.PLAIN, 14));
+        folderField.setPreferredSize(new Dimension(150, 25));
+        
+        JTextField jqlField = new JTextField(20);
+        jqlField.setFont(new Font("Arial", Font.PLAIN, 14));
+        jqlField.setPreferredSize(new Dimension(200, 25));
+        
+        JButton removeButton = new JButton("×");
+        removeButton.setFont(new Font("Arial", Font.BOLD, 14));
+        removeButton.setPreferredSize(new Dimension(45, 25));
+        
+        rowPanel.add(folderField);
+        rowPanel.add(jqlField);
+        rowPanel.add(removeButton);
+        
+        removeButton.addActionListener(evt -> {
+            folderContainer.remove(rowPanel);
+            folderPanelList.remove(rowPanel);
+            updatePanelLayout();
+        });
+        
+        folderPanelList.add(rowPanel);
+        folderContainer.add(rowPanel);
+        updatePanelLayout();
+    };
+
+    // Method to update panel layout when rows are added/removed
+    private void updatePanelLayout() {
+        int folderHeight = Math.max(150, 80 + (folderPanelList.size() * 40));
+        folderPanel.setSize(500, folderHeight);
+        
+        // Update planning panel position
+        planningPanel.setBounds(50, 220 + folderHeight + 20, 500, 150);
+        
+        // Update submit and back button positions
+        submitButton.setBounds(200, 220 + folderHeight + 190, 200, 35);
+        backButton.setBounds(200, 220 + folderHeight + 240, 200, 35);
+        
+        // Update content panel preferred size if needed
+        int contentHeight = 220 + folderHeight + 300;  // Additional space for other components
+        contentPanel.setPreferredSize(new Dimension(600, contentHeight));
+        
+        // Refresh all panels
+        folderContainer.revalidate();
+        folderContainer.repaint();
+        folderPanel.revalidate();
+        folderPanel.repaint();
+        planningPanel.revalidate();
+        planningPanel.repaint();
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+
+    // Add button action listener
+    addButton.addActionListener(createNewFolderRow);
+
+    // Initial row creation
+    createNewFolderRow.actionPerformed(null);
