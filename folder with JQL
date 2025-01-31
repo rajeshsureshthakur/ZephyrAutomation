@@ -1,0 +1,136 @@
+// Add these as class fields
+    private List<String> folderNames = new ArrayList<>();
+    private List<String> folderJQLs = new ArrayList<>();
+    private List<JPanel> folderPanelList = new ArrayList<>();
+
+    // Modify the folder structure section in showCreateReleaseScreen
+    JPanel folderPanel = new JPanel(null);
+    folderPanel.setBorder(BorderFactory.createTitledBorder("Folder Structure"));
+    folderPanel.setBounds(50, 220, 500, 100);  // Initial height, will be adjusted
+    folderPanel.setVisible(false);
+
+    // Container for folder-JQL pairs
+    JPanel folderContainer = new JPanel();
+    folderContainer.setLayout(new BoxLayout(folderContainer, BoxLayout.Y_AXIS));
+    folderContainer.setBounds(20, 30, 460, 50);  // Initial size
+
+    // Method to create new folder-JQL row
+    JButton addButton = new JButton("+");
+    addButton.setFont(new Font("Arial", Font.BOLD, 14));
+    
+    ActionListener createNewFolderRow = e -> {
+        JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        
+        JTextField folderField = new JTextField(15);
+        folderField.setFont(new Font("Arial", Font.PLAIN, 14));
+        folderField.setPreferredSize(new Dimension(150, 25));
+        
+        JTextField jqlField = new JTextField(20);
+        jqlField.setFont(new Font("Arial", Font.PLAIN, 14));
+        jqlField.setPreferredSize(new Dimension(200, 25));
+        
+        JButton removeButton = new JButton("×");
+        removeButton.setFont(new Font("Arial", Font.BOLD, 14));
+        removeButton.setPreferredSize(new Dimension(45, 25));
+        
+        // Add components to row
+        rowPanel.add(folderField);
+        rowPanel.add(jqlField);
+        rowPanel.add(removeButton);
+        
+        // Remove button action
+        removeButton.addActionListener(evt -> {
+            folderContainer.remove(rowPanel);
+            folderPanelList.remove(rowPanel);
+            // Adjust panel heights
+            int newHeight = 60 + (folderPanelList.size() * 35);
+            folderContainer.setPreferredSize(new Dimension(460, folderPanelList.size() * 35));
+            folderPanel.setSize(500, newHeight);
+            // Refresh panel
+            folderContainer.revalidate();
+            folderContainer.repaint();
+            folderPanel.revalidate();
+            folderPanel.repaint();
+        });
+        
+        // Add to lists
+        folderPanelList.add(rowPanel);
+        
+        // Add row to container
+        folderContainer.add(rowPanel);
+        
+        // Adjust panel heights
+        int newHeight = 60 + (folderPanelList.size() * 35);
+        folderContainer.setPreferredSize(new Dimension(460, folderPanelList.size() * 35));
+        folderPanel.setSize(500, newHeight);
+        
+        // Refresh panel
+        folderContainer.revalidate();
+        folderContainer.repaint();
+        folderPanel.revalidate();
+        folderPanel.repaint();
+    };
+
+    // Add initial row
+    addButton.addActionListener(createNewFolderRow);
+    addButton.setBounds(20, 0, 45, 25);
+    
+    // Labels
+    JLabel folderLabel = new JLabel("Folder Name");
+    folderLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+    folderLabel.setBounds(70, 0, 150, 25);
+    
+    JLabel jqlLabel = new JLabel("JQL");
+    jqlLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+    jqlLabel.setBounds(225, 0, 150, 25);
+
+    // Add components
+    folderPanel.add(addButton);
+    folderPanel.add(folderLabel);
+    folderPanel.add(jqlLabel);
+    folderPanel.add(folderContainer);
+
+    // Modify the submit button action to collect folder and JQL values
+    submitButton.addActionListener(e -> {
+        if (validateFields(nameField, startDateChooser, endDateChooser)) {
+            // Collect folder and JQL values
+            folderNames.clear();
+            folderJQLs.clear();
+            
+            for (JPanel rowPanel : folderPanelList) {
+                Component[] components = rowPanel.getComponents();
+                JTextField folderField = (JTextField) components[0];
+                JTextField jqlField = (JTextField) components[1];
+                
+                String folderName = folderField.getText().trim();
+                String jql = jqlField.getText().trim();
+                
+                if (!folderName.isEmpty()) {  // Only add if folder name is provided
+                    folderNames.add(folderName);
+                    folderJQLs.add(jql);  // Add JQL even if empty
+                }
+            }
+
+            // Convert to arrays for ReleaseCreation
+            String[] folderArray = folderNames.toArray(new String[0]);
+            String[] jqlArray = folderJQLs.toArray(new String[0]);
+
+            try {
+                // Create ReleaseCreation with both arrays
+                ReleaseCreation fetcher = new ReleaseCreation(
+                    currentUserSoeid,
+                    zephyrToken,
+                    selectedProject.getId(),
+                    nameField.getText().trim(),
+                    folderArray,
+                    jqlArray,  // Added JQL array
+                    dateFormat.format(startDateChooser.getDate()),
+                    dateFormat.format(endDateChooser.getDate()),
+                    testCycles
+                );
+                
+                // Rest of the submit button code...
+            }
+            // Rest of the error handling...
+        }
+    });
