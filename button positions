@@ -1,0 +1,38 @@
+// Add this method to your class
+    private void updateButtonPositions(JButton submitButton, JButton backButton, 
+                                     JPanel folderPanel, JPanel planningPanel) {
+        int verticalPosition = planningPanel.getY() + planningPanel.getHeight() + 20;
+        submitButton.setBounds(200, verticalPosition, 200, 35);
+        backButton.setBounds(200, verticalPosition + 50, 200, 35);
+    }
+
+    // Modify the updatePanelLayout method
+    private void updatePanelLayout(JPanel folderPanel, JPanel planningPanel,
+                                 JPanel folderContainer, JPanel contentPanel,
+                                 List<JPanel> folderPanelList,
+                                 JButton submitButton, JButton backButton) {
+        
+        // Calculate folder panel height based on number of rows
+        int folderHeight = Math.max(150, 80 + (folderPanelList.size() * 40));
+        folderPanel.setSize(500, folderHeight);
+        
+        // Update planning panel position - place it below folder panel
+        planningPanel.setBounds(50, 220 + folderHeight + 20, 500, 150);
+        
+        // Update button positions
+        updateButtonPositions(submitButton, backButton, folderPanel, planningPanel);
+        
+        // Update content panel size to accommodate all components
+        int totalHeight = planningPanel.getY() + planningPanel.getHeight() + 150; // Extra space for buttons
+        contentPanel.setPreferredSize(new Dimension(600, totalHeight));
+        
+        // Refresh all panels
+        folderContainer.revalidate();
+        folderContainer.repaint();
+        folderPanel.revalidate();
+        folderPanel.repaint();
+        planningPanel.revalidate();
+        planningPanel.repaint();
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
