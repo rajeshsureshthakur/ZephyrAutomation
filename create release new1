@@ -1,3 +1,41 @@
+checkbox.addActionListener(e -> {
+        if (checkbox.isSelected()) {
+            String input = JOptionPane.showInputDialog(
+                createReleasePanel,  // parent component
+                "Enter number of phases for " + cycleNames[index] + ":",
+                "Number of Phases",  // title
+                JOptionPane.QUESTION_MESSAGE);
+                
+            if (input != null) {
+                try {
+                    int phases = Integer.parseInt(input);
+                    if (phases > 0) {
+                        testCycles[index] = phases;
+                    } else {
+                        checkbox.setSelected(false);
+                        testCycles[index] = -1;
+                        JOptionPane.showMessageDialog(createReleasePanel,
+                            "Please enter a positive number",
+                            "Invalid Input",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (NumberFormatException ex) {
+                    checkbox.setSelected(false);
+                    testCycles[index] = -1;
+                    JOptionPane.showMessageDialog(createReleasePanel,
+                        "Please enter a valid number",
+                        "Invalid Input",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                checkbox.setSelected(false);
+                testCycles[index] = -1;
+            }
+        } else {
+            testCycles[index] = -1;
+        }
+    });
+
 private void showCreateReleaseScreen() {
         JPanel createReleasePanel = new JPanel();
         createReleasePanel.setLayout(new BoxLayout(createReleasePanel, BoxLayout.Y_AXIS));
