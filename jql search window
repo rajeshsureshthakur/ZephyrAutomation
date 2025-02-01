@@ -77,3 +77,76 @@ private void showJQLSearchWindow() {
                 JOptionPane.ERROR_MESSAGE);
         }
     }
+
+
+
+
+
+
+private void showJQLSearchWindow() {
+        // Create and setup dialog
+        JDialog searchDialog = new JDialog(this, "Search JQL", true);
+        searchDialog.setLayout(new BorderLayout(10, 10));
+        searchDialog.setSize(600, 400);
+        searchDialog.setLocationRelativeTo(this);
+
+        // Top search panel
+        JPanel searchPanel = new JPanel();
+        searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.Y_AXIS));
+        searchPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Search components panel (horizontal)
+        JPanel searchComponentsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        JLabel folderLabel = new JLabel("Folder Name:");
+        folderLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        JTextField searchField = new JTextField(20);
+        searchField.setFont(new Font("Arial", Font.PLAIN, 14));
+        JButton searchButton = new JButton("Search");
+        searchButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        
+        searchComponentsPanel.add(folderLabel);
+        searchComponentsPanel.add(searchField);
+        searchComponentsPanel.add(searchButton);
+
+        // Info text line
+        JLabel infoLabel = new JLabel("Search results will show folder names containing the entered text");
+        infoLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        infoLabel.setForeground(Color.GRAY);
+        JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        infoPanel.add(infoLabel);
+
+        // Add to search panel
+        searchPanel.add(searchComponentsPanel);
+        searchPanel.add(Box.createVerticalStrut(5));
+        searchPanel.add(infoPanel);
+
+        // Results table
+        String[] columnNames = {"Folder Name", "JQL"};
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
+        JTable resultTable = new JTable(model);
+        resultTable.setFont(new Font("Arial", Font.PLAIN, 12));
+        resultTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        resultTable.setRowHeight(25);
+        resultTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        
+        // Set column widths
+        resultTable.getColumnModel().getColumn(0).setPreferredWidth(150);
+        resultTable.getColumnModel().getColumn(1).setPreferredWidth(450);
+
+        // Add table to scroll pane
+        JScrollPane scrollPane = new JScrollPane(resultTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+
+        // Add everything to dialog
+        searchDialog.add(searchPanel, BorderLayout.NORTH);
+        searchDialog.add(scrollPane, BorderLayout.CENTER);
+
+        // Make dialog visible
+        searchDialog.setVisible(true);
+    }
