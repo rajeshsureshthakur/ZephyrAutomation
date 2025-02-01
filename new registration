@@ -1,0 +1,199 @@
+private void createRegistrationScreen() {
+        JPanel registerPanel = new JPanel();
+        registerPanel.setLayout(new BoxLayout(registerPanel, BoxLayout.Y_AXIS));
+        registerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Title
+        JLabel titleLabel = new JLabel("User Registration");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Name field
+        JPanel namePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel nameLabel = new JLabel("Name:");
+        nameLabel.setPreferredSize(new Dimension(100, 25));
+        JTextField nameField = new JTextField(20);
+        namePanel.add(nameLabel);
+        namePanel.add(nameField);
+
+        // SOEID field
+        JPanel soeidPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel soeidLabel = new JLabel("SOEID:");
+        soeidLabel.setPreferredSize(new Dimension(100, 25));
+        JTextField soeidField = new JTextField(20);
+        soeidPanel.add(soeidLabel);
+        soeidPanel.add(soeidField);
+
+        // PIN Field with validation
+        JPanel pinPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel pinLabel = new JLabel("PIN:");
+        pinLabel.setPreferredSize(new Dimension(100, 25));
+        JPasswordField pinField = new JPasswordField(4);
+        pinField.setHorizontalAlignment(JTextField.CENTER);
+        pinPanel.add(pinLabel);
+        pinPanel.add(pinField);
+
+        // PIN validation label
+        JLabel pinValidationLabel = new JLabel(" ");
+        pinValidationLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        pinValidationLabel.setForeground(Color.RED);
+        pinValidationLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Project Selection
+        JPanel projectPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel projectLabel = new JLabel("Project:");
+        projectLabel.setPreferredSize(new Dimension(100, 25));
+        JComboBox<ProjectItem> projectDropdown = new JComboBox<>();
+        projectDropdown.setPreferredSize(new Dimension(300, 25));
+        populateProjectDropdown(projectDropdown);
+        projectPanel.add(projectLabel);
+        projectPanel.add(projectDropdown);
+
+        // PIN validation listener
+        pinField.getDocument().addDocumentListener(new DocumentListener() {
+            public void changedUpdate(DocumentEvent e) { validatePin(); }
+            public void insertUpdate(DocumentEvent e) { validatePin(); }
+            public void removeUpdate(DocumentEvent e) { validatePin(); }
+
+            private void validatePin() {
+                String pin = new String(pinField.getPassword());
+                if (pin.length() > 4) {
+                    pinField.setText(pin.substring(0, 4));
+                    return;
+                }
+                
+                if (!pin.matches("\\d*")) {
+                    pinValidationLabel.setText("Only digits are allowed");
+                    pinField.setText(pin.replaceAll("\\D", ""));
+                } else if (pin.length() < 4) {
+                    pinValidationLabel.setText("PIN must be 4 digits");
+                } else if (pin.length() == 4) {
+                    pinValidationLabel.setText(" ");
+                }
+            }
+        });
+
+        // PIN key listener for numeric input only
+        pinField.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c) || 
+                    pinField.getPassword().length >= 4) {
+                    e.consume();
+                }
+            }
+        });
+
+        // Register button
+        JButton registerButton = new JButton("Register");
+        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        registerButton.setMaximumSize(new Dimension(150, 30));
+
+        registerButton.addActionListener(e -> {
+            String name = nameField.getText().trim();
+            String soeid = soeidField.getText().trim();
+            String pin = new String(pinField.getPassword());
+            
+            if (name.isEmpty() || soeid.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                    "Please fill all fields",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (!pin.matches("\\d{4}")) {
+                JOptionPane.showMessageDialog(this,
+                    "Please enter a valid 4-digit PIN",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            ProjectItem selectedProject = (ProjectItem)projectDropdown.getSelectedItem();
+            if (selectedProject == null || selectedProject.getId() == 0) {
+                JOptionPane.showMessageDialog(this,
+                    "Please select a project",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (registerUser(soeid, pin, name, selectedProject.getId())) {
+                JOptionPane.showMessageDialog(this,
+                    "Registration successful! Please login.",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+                cardLayout.show(mainPanel, "LOGIN");
+            }
+        });
+
+        // Back to Login link
+        JButton loginLink = new JButton("Back to Login");
+        loginLink.setBorderPainted(false);
+        loginLink.setContentAreaFilled(false);
+        loginLink.setForeground(Color.BLUE);
+        loginLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        loginLink.setAlignmentX(Component.CENTER_ALIGNMENT);
+        loginLink.addActionListener(e -> cardLayout.show(mainPanel, "LOGIN"));
+
+        // Add components
+        registerPanel.add(titleLabel);
+        registerPanel.add(Box.createVerticalStrut(30));
+        registerPanel.add(namePanel);
+        registerPanel.add(Box.createVerticalStrut(10));
+        registerPanel.add(soeidPanel);
+        registerPanel.add(Box.createVerticalStrut(10));
+        registerPanel.add(pinPanel);
+        registerPanel.add(pinValidationLabel);
+        registerPanel.add(Box.createVerticalStrut(10));
+        registerPanel.add(projectPanel);
+        registerPanel.add(Box.createVerticalStrut(30));
+        registerPanel.add(registerButton);
+        registerPanel.add(Box.createVerticalStrut(20));
+        registerPanel.add(loginLink);
+
+        // Add to main container
+        mainPanel.add(registerPanel, "REGISTER");
+    }
+
+    // Update the registerUser method to include project_id
+    private boolean registerUser(String soeid, String pin, String name, int projectId) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                // First check if user already exists
+                String checkSql = "SELECT COUNT(*) FROM USERS WHERE SOEID = ?";
+                try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                    checkStmt.setString(1, soeid);
+                    try (ResultSet rs = checkStmt.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            JOptionPane.showMessageDialog(this,
+                                "SOEID already exists!",
+                                "Registration Error",
+                                JOptionPane.ERROR_MESSAGE);
+                            return false;
+                        }
+                    }
+                }
+                
+                // Insert new user
+                String insertSql = "INSERT INTO USERS (SOEID, PASSWORD, USER_NAME, PROJECT_ID) VALUES (?, ?, ?, ?)";
+                try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+                    pstmt.setString(1, soeid);
+                    pstmt.setString(2, pin);
+                    pstmt.setString(3, name);
+                    pstmt.setInt(4, projectId);
+                    pstmt.executeUpdate();
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Database error: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
