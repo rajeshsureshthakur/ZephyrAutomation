@@ -68,3 +68,50 @@
     JPanel topPanel = new JPanel(new BorderLayout());
     topPanel.add(accountPanel, BorderLayout.EAST);
     homePanel.add(topPanel, BorderLayout.NORTH);
+
+
+
+
+
+
+// In createHomeScreen, modify the top panel section:
+    
+    // Top Panel with BorderLayout
+    JPanel topPanel = new JPanel(new BorderLayout());
+    topPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 0, 20));  // Add padding
+    
+    // Center Title Panel
+    JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    JLabel titleLabel = new JLabel("Project Management System");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+    titlePanel.add(titleLabel);
+    
+    // Account Panel at right
+    JPanel accountPanel = new JPanel();
+    accountPanel.setLayout(new BoxLayout(accountPanel, BoxLayout.Y_AXIS));
+    
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    
+    // Create round button with icon
+    ImageIcon userIcon = new ImageIcon("images/user.png");
+    Image img = userIcon.getImage().getScaledInstance(35, 35, Image.SCALE_SMOOTH);
+    ImageIcon roundIcon = new ImageIcon(img);
+    JButton accountButton = new RoundButton(roundIcon);
+    buttonPanel.add(accountButton);
+    
+    // SOEID Label
+    JLabel soeidLabel = new JLabel(currentUserSoeid);
+    soeidLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+    soeidLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+    // Add components to account panel
+    accountPanel.add(buttonPanel);
+    accountPanel.add(Box.createVerticalStrut(5));
+    accountPanel.add(soeidLabel);
+    
+    // Add everything to top panel
+    topPanel.add(titlePanel, BorderLayout.CENTER);
+    topPanel.add(accountPanel, BorderLayout.EAST);
+    
+    // Add top panel to home panel
+    homePanel.add(topPanel, BorderLayout.NORTH);
