@@ -1,0 +1,70 @@
+// Add this custom RoundButton class
+    private class RoundButton extends JButton {
+        public RoundButton(ImageIcon icon) {
+            super(icon);
+            setContentAreaFilled(false);
+            setFocusPainted(false);
+            setBorderPainted(false);
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            // Make background circle
+            if (getModel().isPressed()) {
+                g2.setColor(Color.LIGHT_GRAY);
+            } else {
+                g2.setColor(Color.WHITE);
+            }
+            g2.fillOval(0, 0, getWidth() - 1, getHeight() - 1);
+
+            // Draw the image centered
+            ImageIcon icon = (ImageIcon) getIcon();
+            if (icon != null) {
+                Image img = icon.getImage();
+                int imgX = (getWidth() - icon.getIconWidth()) / 2;
+                int imgY = (getHeight() - icon.getIconHeight()) / 2;
+                g2.drawImage(img, imgX, imgY, null);
+            }
+            
+            g2.dispose();
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            return new Dimension(40, 40);  // Fixed size for round button
+        }
+    }
+
+    // Then in createHomeScreen, modify the account button creation:
+    // Account Panel at top-right
+    JPanel accountPanel = new JPanel();
+    accountPanel.setLayout(new BoxLayout(accountPanel, BoxLayout.Y_AXIS));
+    accountPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 20));
+    
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    
+    // Create round button with icon
+    ImageIcon userIcon = new ImageIcon("images/user.png");
+    Image img = userIcon.getImage().getScaledInstance(35, 35, Image.SCALE_SMOOTH);  // Slightly smaller for padding
+    ImageIcon roundIcon = new ImageIcon(img);
+    JButton accountButton = new RoundButton(roundIcon);
+    buttonPanel.add(accountButton);
+    
+    // SOEID Label
+    JLabel soeidLabel = new JLabel(currentUserSoeid);
+    soeidLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+    soeidLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+    // Add components to account panel
+    accountPanel.add(buttonPanel);
+    accountPanel.add(Box.createVerticalStrut(5));
+    accountPanel.add(soeidLabel);
+    
+    // Add account panel to the top-right of home panel
+    JPanel topPanel = new JPanel(new BorderLayout());
+    topPanel.add(accountPanel, BorderLayout.EAST);
+    homePanel.add(topPanel, BorderLayout.NORTH);
