@@ -1,0 +1,56 @@
+// Add this after the login link in createRegistrationScreen:
+    
+    // Info text panel with clickable link
+    JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    infoPanel.setBounds(50, 350, 500, 30);  // Adjust Y position as needed
+    
+    JLabel infoText = new JLabel("If you want to know more about application ");
+    infoText.setFont(new Font("Arial", Font.PLAIN, 12));
+    infoText.setForeground(Color.GRAY);
+    
+    JButton clickHereLink = new JButton("click here");
+    clickHereLink.setBorderPainted(false);
+    clickHereLink.setContentAreaFilled(false);
+    clickHereLink.setForeground(Color.BLUE);
+    clickHereLink.setFont(new Font("Arial", Font.PLAIN, 12));
+    clickHereLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    
+    // Add action listener for the link
+    clickHereLink.addActionListener(e -> showInfoWindow());
+    
+    infoPanel.add(infoText);
+    infoPanel.add(clickHereLink);
+    
+    contentPanel.add(infoPanel);
+
+    // Add this method to your class:
+    private void showInfoWindow() {
+        JDialog infoDialog = new JDialog(this, "About Application", true);
+        infoDialog.setLayout(new BorderLayout(10, 10));
+        infoDialog.setSize(500, 200);
+        infoDialog.setLocationRelativeTo(this);
+
+        JPanel infoPanel = new JPanel();
+        infoPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+
+        JLabel info1 = new JLabel("This application helps in managing test cases and tracking project progress.");
+        JLabel info2 = new JLabel("It provides integration with Zephyr and JIRA for seamless test management.");
+        JLabel info3 = new JLabel("Contact admin team for any queries or support.");
+
+        // Style the labels
+        Font labelFont = new Font("Arial", Font.PLAIN, 14);
+        info1.setFont(labelFont);
+        info2.setFont(labelFont);
+        info3.setFont(labelFont);
+
+        // Add some vertical spacing between lines
+        infoPanel.add(info1);
+        infoPanel.add(Box.createVerticalStrut(10));
+        infoPanel.add(info2);
+        infoPanel.add(Box.createVerticalStrut(10));
+        infoPanel.add(info3);
+
+        infoDialog.add(infoPanel, BorderLayout.CENTER);
+        infoDialog.setVisible(true);
+    }
