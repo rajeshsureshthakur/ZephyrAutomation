@@ -1,0 +1,44 @@
+// Info text panel with two lines
+    JPanel infoPanel = new JPanel();
+    infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+    infoPanel.setBounds(50, 350, 500, 60);  // Increased height for two lines
+    
+    // First line panel
+    JPanel firstLinePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    JLabel infoText1 = new JLabel("If you want to know more about application ");
+    infoText1.setFont(new Font("Arial", Font.PLAIN, 12));
+    infoText1.setForeground(Color.GRAY);
+    
+    JButton clickHereLink1 = new JButton("click here");
+    clickHereLink1.setBorderPainted(false);
+    clickHereLink1.setContentAreaFilled(false);
+    clickHereLink1.setForeground(Color.BLUE);
+    clickHereLink1.setFont(new Font("Arial", Font.PLAIN, 12));
+    clickHereLink1.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    clickHereLink1.addActionListener(e -> showInfoWindow());
+    
+    firstLinePanel.add(infoText1);
+    firstLinePanel.add(clickHereLink1);
+    
+    // Second line panel
+    JPanel secondLinePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    JLabel infoText2 = new JLabel("For application usage guidelines ");  // Your second line text
+    infoText2.setFont(new Font("Arial", Font.PLAIN, 12));
+    infoText2.setForeground(Color.GRAY);
+    
+    JButton clickHereLink2 = new JButton("click here");
+    clickHereLink2.setBorderPainted(false);
+    clickHereLink2.setContentAreaFilled(false);
+    clickHereLink2.setForeground(Color.BLUE);
+    clickHereLink2.setFont(new Font("Arial", Font.PLAIN, 12));
+    clickHereLink2.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    clickHereLink2.addActionListener(e -> showGuidelinesWindow());  // Different action for second link
+    
+    secondLinePanel.add(infoText2);
+    secondLinePanel.add(clickHereLink2);
+    
+    // Add both lines to the info panel
+    infoPanel.add(firstLinePanel);
+    infoPanel.add(secondLinePanel);
+    
+    contentPanel.add(infoPanel);
