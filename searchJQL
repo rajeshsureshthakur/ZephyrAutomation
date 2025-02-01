@@ -1,0 +1,68 @@
+ viewJQLsButton.addActionListener(e -> openJQLSearchWindow()); // Open search window
+
+        mainFrame.add(viewJQLsButton);
+        mainFrame.setVisible(true);
+    }
+
+    public static void openJQLSearchWindow() {
+        JFrame searchFrame = new JFrame("Search JQL Queries");
+        searchFrame.setSize(500, 300);
+        searchFrame.setLayout(new BorderLayout());
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new FlowLayout());
+
+        JLabel teamLabel = new JLabel("Enter Team Name:");
+        JTextField teamField = new JTextField(15);
+        JButton searchButton = new JButton("Search");
+
+        inputPanel.add(teamLabel);
+        inputPanel.add(teamField);
+        inputPanel.add(searchButton);
+
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        JList<String> jqlList = new JList<>(listModel);
+        JScrollPane scrollPane = new JScrollPane(jqlList);
+
+        searchButton.addActionListener(e -> {
+            String teamName = teamField.getText().trim();
+            if (!teamName.isEmpty()) {
+                listModel.clear();
+                ArrayList<String> jqls = fetchJQLQueries(teamName);
+                if (!jqls.isEmpty()) {
+                    for (String jql : jqls) {
+                        listModel.addElement(jql);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(searchFrame, "No queries found for this team!", "No Results", JOptionPane.INFORMATION_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(searchFrame, "Please enter a team name!", "Input Error", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        searchFrame.add(inputPanel, BorderLayout.NORTH);
+        searchFrame.add(scrollPane, BorderLayout.CENTER);
+        searchFrame.setVisible(true);
+    }
+
+    public static ArrayList<String> fetchJQLQueries(String teamName) {
+        ArrayList<String> jqlQueries = new ArrayList<>();
+        String sql = "SELECT JQL FROM user_queries WHERE team_name = ?"; // Change table/column names as per your DB
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, teamName);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                jqlQueries.add(rs.getString("JQL"));
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Database Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return jqlQueries;
+    }
