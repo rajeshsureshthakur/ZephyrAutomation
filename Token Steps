@@ -1,0 +1,15 @@
+Steps to Get Your Jira Token:
+1️⃣ Log in to Jira.
+2️⃣ Click on your profile icon (top right) and select "Account Settings".
+3️⃣ Navigate to "Security" > "API Tokens".
+4️⃣ Click "Create API Token" and provide a label (e.g., "My Tool Access").
+5️⃣ Copy the generated token and store it securely.
+
+🔹 Tip: You can access Jira's API tokens directly at:
+👉 https://id.atlassian.com/manage/api-tokens
+
+🛠 Steps to Get Your Zephyr Token:
+1️⃣ Open Zephyr inside Jira.
+2️⃣ Click on "API Keys" from the settings menu.
+3️⃣ Generate a new API key and copy it.
+4️⃣ Ensure you store this token safely, as it won't be shown again.
