@@ -1,0 +1,257 @@
+private void createHomeScreen() {
+        JPanel homePanel = new JPanel();
+        homePanel.setLayout(new BorderLayout());
+
+        // Account Panel at top-right
+        JPanel accountPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        
+        // Person icon (round)
+        ImageIcon userIcon = new ImageIcon("images/user.png");  // You'll need to add this image
+        Image img = userIcon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+        ImageIcon roundIcon = new ImageIcon(img);
+        JButton accountButton = new JButton(roundIcon);
+        accountButton.setBorderPainted(false);
+        accountButton.setContentAreaFilled(false);
+        accountButton.setFocusPainted(false);
+        accountButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        accountPanel.add(accountButton);
+        homePanel.add(accountPanel, BorderLayout.NORTH);
+
+        // Rest of home screen components in center
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        
+        // ... your existing home screen components ...
+
+        homePanel.add(centerPanel, BorderLayout.CENTER);
+
+        // Account button action
+        accountButton.addActionListener(e -> showAccountManagementScreen());
+    }
+
+    private void showAccountManagementScreen() {
+        JPanel accountPanel = new JPanel();
+        accountPanel.setLayout(new BoxLayout(accountPanel, BoxLayout.Y_AXIS));
+        accountPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JLabel titleLabel = new JLabel("Account Management");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Create buttons with consistent styling
+        JButton changeProjectBtn = createStyledButton("Change Project");
+        JButton changePasswordBtn = createStyledButton("Change Password");
+        JButton updateZephyrTokenBtn = createStyledButton("Update Zephyr Token");
+        JButton updateJiraTokenBtn = createStyledButton("Update JIRA Token");
+        JButton logoutBtn = createStyledButton("Logout");
+        JButton backBtn = createStyledButton("Back");
+
+        // Add button actions
+        changeProjectBtn.addActionListener(e -> showChangeProjectDialog());
+        changePasswordBtn.addActionListener(e -> showChangePasswordDialog());
+        updateZephyrTokenBtn.addActionListener(e -> showUpdateTokenDialog("Zephyr"));
+        updateJiraTokenBtn.addActionListener(e -> showUpdateTokenDialog("JIRA"));
+        logoutBtn.addActionListener(e -> handleLogout());
+        backBtn.addActionListener(e -> cardLayout.show(mainPanel, "HOME"));
+
+        // Add components
+        accountPanel.add(titleLabel);
+        accountPanel.add(Box.createVerticalStrut(30));
+        accountPanel.add(changeProjectBtn);
+        accountPanel.add(Box.createVerticalStrut(15));
+        accountPanel.add(changePasswordBtn);
+        accountPanel.add(Box.createVerticalStrut(15));
+        accountPanel.add(updateZephyrTokenBtn);
+        accountPanel.add(Box.createVerticalStrut(15));
+        accountPanel.add(updateJiraTokenBtn);
+        accountPanel.add(Box.createVerticalStrut(15));
+        accountPanel.add(logoutBtn);
+        accountPanel.add(Box.createVerticalStrut(30));
+        accountPanel.add(backBtn);
+
+        mainPanel.add(accountPanel, "ACCOUNT");
+        cardLayout.show(mainPanel, "ACCOUNT");
+    }
+
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.PLAIN, 14));
+        button.setMaximumSize(new Dimension(300, 40));
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        return button;
+    }
+
+    private void showChangeProjectDialog() {
+        JDialog dialog = new JDialog(this, "Change Project", true);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setSize(400, 200);
+        dialog.setLocationRelativeTo(this);
+
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JComboBox<ProjectItem> projectDropdown = new JComboBox<>();
+        projectDropdown.setMaximumSize(new Dimension(300, 30));
+        populateProjectDropdown(projectDropdown);
+
+        JButton okButton = new JButton("OK");
+        okButton.setMaximumSize(new Dimension(100, 30));
+        okButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        okButton.addActionListener(e -> {
+            if (projectDropdown.getSelectedIndex() > 0) {
+                ProjectItem selectedProject = (ProjectItem) projectDropdown.getSelectedItem();
+                updateUserProject(currentUserSoeid, selectedProject.getId());
+                dialog.dispose();
+            }
+        });
+
+        contentPanel.add(projectDropdown);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(okButton);
+
+        dialog.add(contentPanel);
+        dialog.setVisible(true);
+    }
+
+    private void showChangePasswordDialog() {
+        JDialog dialog = new JDialog(this, "Change Password", true);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setSize(400, 200);
+        dialog.setLocationRelativeTo(this);
+
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JPasswordField passwordField = new JPasswordField();
+        passwordField.setMaximumSize(new Dimension(300, 30));
+
+        JButton changeButton = new JButton("Change Password");
+        changeButton.setMaximumSize(new Dimension(150, 30));
+        changeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        changeButton.addActionListener(e -> {
+            String newPassword = new String(passwordField.getPassword());
+            if (updateUserPassword(currentUserSoeid, newPassword)) {
+                JOptionPane.showMessageDialog(dialog,
+                    "Password updated successfully",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+            }
+        });
+
+        contentPanel.add(passwordField);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(changeButton);
+
+        dialog.add(contentPanel);
+        dialog.setVisible(true);
+    }
+
+    private void showUpdateTokenDialog(String tokenType) {
+        JDialog dialog = new JDialog(this, "Update " + tokenType + " Token", true);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setSize(400, 200);
+        dialog.setLocationRelativeTo(this);
+
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JTextField tokenField = new JTextField();
+        tokenField.setMaximumSize(new Dimension(300, 30));
+
+        JButton updateButton = new JButton("Update Token");
+        updateButton.setMaximumSize(new Dimension(150, 30));
+        updateButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        updateButton.addActionListener(e -> {
+            String newToken = tokenField.getText().trim();
+            if (updateUserToken(currentUserSoeid, tokenType, newToken)) {
+                JOptionPane.showMessageDialog(dialog,
+                    tokenType + " token updated successfully",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+            }
+        });
+
+        contentPanel.add(tokenField);
+        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(updateButton);
+
+        dialog.add(contentPanel);
+        dialog.setVisible(true);
+    }
+
+    // Database update methods
+    private boolean updateUserProject(String soeid, int projectId) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "UPDATE USERS SET PROJECT_ID = ? WHERE SOEID = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setInt(1, projectId);
+                    pstmt.setString(2, soeid);
+                    int updated = pstmt.executeUpdate();
+                    return updated > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Error updating project: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
+
+    private boolean updateUserPassword(String soeid, String newPassword) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "UPDATE USERS SET PASSWORD = ? WHERE SOEID = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setString(1, newPassword);
+                    pstmt.setString(2, soeid);
+                    int updated = pstmt.executeUpdate();
+                    return updated > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Error updating password: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
+
+    private boolean updateUserToken(String soeid, String tokenType, String newToken) {
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String columnName = tokenType.equals("JIRA") ? "JIRA_TOKEN" : "ZEPHYR_TOKEN";
+                String sql = "UPDATE USERS SET " + columnName + " = ? WHERE SOEID = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setString(1, newToken);
+                    pstmt.setString(2, soeid);
+                    int updated = pstmt.executeUpdate();
+                    return updated > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Error updating token: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
