@@ -1,55 +1,63 @@
 private void createRegistrationScreen() {
         JPanel registerPanel = new JPanel();
-        registerPanel.setLayout(new BoxLayout(registerPanel, BoxLayout.Y_AXIS));
-        registerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
-        // Title
+        registerPanel.setLayout(new BorderLayout());
+
+        // Title at the top
+        JPanel titlePanel = new JPanel();
         JLabel titleLabel = new JLabel("User Registration");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titlePanel.add(titleLabel);
+        registerPanel.add(titlePanel, BorderLayout.NORTH);
 
-        // Name field
-        JPanel namePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JLabel nameLabel = new JLabel("Name:");
-        nameLabel.setPreferredSize(new Dimension(100, 25));
-        JTextField nameField = new JTextField(20);
-        namePanel.add(nameLabel);
-        namePanel.add(nameField);
+        // Main content panel with null layout for fixed positioning
+        JPanel contentPanel = new JPanel(null);
+        contentPanel.setPreferredSize(new Dimension(600, 500));
 
-        // SOEID field
-        JPanel soeidPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JLabel soeidLabel = new JLabel("SOEID:");
-        soeidLabel.setPreferredSize(new Dimension(100, 25));
-        JTextField soeidField = new JTextField(20);
-        soeidPanel.add(soeidLabel);
-        soeidPanel.add(soeidField);
+        // Name Field
+        JLabel nameLabel = new JLabel("Name: *");
+        nameLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        nameLabel.setBounds(50, 20, 150, 30);
+        
+        JTextField nameField = new JTextField();
+        nameField.setFont(new Font("Arial", Font.PLAIN, 16));
+        nameField.setBounds(200, 20, 300, 30);
 
-        // PIN Field with validation
-        JPanel pinPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JLabel pinLabel = new JLabel("PIN:");
-        pinLabel.setPreferredSize(new Dimension(100, 25));
+        // SOEID Field
+        JLabel soeidLabel = new JLabel("SOEID: *");
+        soeidLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        soeidLabel.setBounds(50, 70, 150, 30);
+        
+        JTextField soeidField = new JTextField();
+        soeidField.setFont(new Font("Arial", Font.PLAIN, 16));
+        soeidField.setBounds(200, 70, 300, 30);
+
+        // PIN Field
+        JLabel pinLabel = new JLabel("PIN: *");
+        pinLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        pinLabel.setBounds(50, 120, 150, 30);
+        
         JPasswordField pinField = new JPasswordField(4);
+        pinField.setFont(new Font("Arial", Font.PLAIN, 16));
         pinField.setHorizontalAlignment(JTextField.CENTER);
-        pinPanel.add(pinLabel);
-        pinPanel.add(pinField);
+        pinField.setBounds(200, 120, 100, 30);
 
         // PIN validation label
-        JLabel pinValidationLabel = new JLabel(" ");
+        JLabel pinValidationLabel = new JLabel("(Enter 4-digit PIN)");
         pinValidationLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-        pinValidationLabel.setForeground(Color.RED);
-        pinValidationLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        pinValidationLabel.setForeground(Color.GRAY);
+        pinValidationLabel.setBounds(310, 120, 200, 30);
 
         // Project Selection
-        JPanel projectPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JLabel projectLabel = new JLabel("Project:");
-        projectLabel.setPreferredSize(new Dimension(100, 25));
+        JLabel projectLabel = new JLabel("Project: *");
+        projectLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        projectLabel.setBounds(50, 170, 150, 30);
+        
         JComboBox<ProjectItem> projectDropdown = new JComboBox<>();
-        projectDropdown.setPreferredSize(new Dimension(300, 25));
+        projectDropdown.setFont(new Font("Arial", Font.PLAIN, 16));
+        projectDropdown.setBounds(200, 170, 300, 30);
         populateProjectDropdown(projectDropdown);
-        projectPanel.add(projectLabel);
-        projectPanel.add(projectDropdown);
 
-        // PIN validation listener
+        // PIN validation
         pinField.getDocument().addDocumentListener(new DocumentListener() {
             public void changedUpdate(DocumentEvent e) { validatePin(); }
             public void insertUpdate(DocumentEvent e) { validatePin(); }
@@ -63,17 +71,19 @@ private void createRegistrationScreen() {
                 }
                 
                 if (!pin.matches("\\d*")) {
-                    pinValidationLabel.setText("Only digits are allowed");
+                    pinValidationLabel.setText("Only digits allowed");
+                    pinValidationLabel.setForeground(Color.RED);
                     pinField.setText(pin.replaceAll("\\D", ""));
                 } else if (pin.length() < 4) {
                     pinValidationLabel.setText("PIN must be 4 digits");
+                    pinValidationLabel.setForeground(Color.RED);
                 } else if (pin.length() == 4) {
-                    pinValidationLabel.setText(" ");
+                    pinValidationLabel.setText("(Valid PIN)");
+                    pinValidationLabel.setForeground(Color.GREEN);
                 }
             }
         });
 
-        // PIN key listener for numeric input only
         pinField.addKeyListener(new KeyAdapter() {
             public void keyTyped(KeyEvent e) {
                 char c = e.getKeyChar();
@@ -84,11 +94,21 @@ private void createRegistrationScreen() {
             }
         });
 
-        // Register button
+        // Register Button
         JButton registerButton = new JButton("Register");
-        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        registerButton.setMaximumSize(new Dimension(150, 30));
+        registerButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        registerButton.setBounds(200, 250, 200, 35);
 
+        // Back to Login link
+        JButton loginLink = new JButton("Back to Login");
+        loginLink.setFont(new Font("Arial", Font.PLAIN, 14));
+        loginLink.setBounds(200, 300, 200, 35);
+        loginLink.setBorderPainted(false);
+        loginLink.setContentAreaFilled(false);
+        loginLink.setForeground(Color.BLUE);
+        loginLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Add action listeners
         registerButton.addActionListener(e -> {
             String name = nameField.getText().trim();
             String soeid = soeidField.getText().trim();
@@ -96,7 +116,7 @@ private void createRegistrationScreen() {
             
             if (name.isEmpty() || soeid.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
-                    "Please fill all fields",
+                    "Please fill all required fields",
                     "Validation Error",
                     JOptionPane.ERROR_MESSAGE);
                 return;
@@ -128,30 +148,24 @@ private void createRegistrationScreen() {
             }
         });
 
-        // Back to Login link
-        JButton loginLink = new JButton("Back to Login");
-        loginLink.setBorderPainted(false);
-        loginLink.setContentAreaFilled(false);
-        loginLink.setForeground(Color.BLUE);
-        loginLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        loginLink.setAlignmentX(Component.CENTER_ALIGNMENT);
         loginLink.addActionListener(e -> cardLayout.show(mainPanel, "LOGIN"));
 
-        // Add components
-        registerPanel.add(titleLabel);
-        registerPanel.add(Box.createVerticalStrut(30));
-        registerPanel.add(namePanel);
-        registerPanel.add(Box.createVerticalStrut(10));
-        registerPanel.add(soeidPanel);
-        registerPanel.add(Box.createVerticalStrut(10));
-        registerPanel.add(pinPanel);
-        registerPanel.add(pinValidationLabel);
-        registerPanel.add(Box.createVerticalStrut(10));
-        registerPanel.add(projectPanel);
-        registerPanel.add(Box.createVerticalStrut(30));
-        registerPanel.add(registerButton);
-        registerPanel.add(Box.createVerticalStrut(20));
-        registerPanel.add(loginLink);
+        // Add all components to content panel
+        contentPanel.add(nameLabel);
+        contentPanel.add(nameField);
+        contentPanel.add(soeidLabel);
+        contentPanel.add(soeidField);
+        contentPanel.add(pinLabel);
+        contentPanel.add(pinField);
+        contentPanel.add(pinValidationLabel);
+        contentPanel.add(projectLabel);
+        contentPanel.add(projectDropdown);
+        contentPanel.add(registerButton);
+        contentPanel.add(loginLink);
+
+        // Add scroll capability
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        registerPanel.add(scrollPane, BorderLayout.CENTER);
 
         // Add to main container
         mainPanel.add(registerPanel, "REGISTER");
