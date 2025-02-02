@@ -1,0 +1,81 @@
+// Class level list to store all releases
+private List<ReleaseItem> allReleases = new ArrayList<>();
+
+// Modified showImportRequirementsWindow method:
+private void showImportRequirementsWindow() {
+    JDialog dialog = new JDialog(this, "Import Requirements", true);
+    dialog.setLayout(new BorderLayout(10, 10));
+    dialog.setSize(600, 300);
+    dialog.setLocationRelativeTo(this);
+
+    // Load all releases once
+    loadAllReleases();
+
+    JPanel releasePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JLabel releaseLabel = new JLabel("Select Release:");
+    releaseLabel.setPreferredSize(new Dimension(100, 25));
+
+    DefaultComboBoxModel<ReleaseItem> model = new DefaultComboBoxModel<>();
+    JComboBox<ReleaseItem> releaseDropdown = new JComboBox<>(model);
+    releaseDropdown.setPreferredSize(new Dimension(300, 25));
+    releaseDropdown.setEditable(true);
+
+    // Show initial 5 items
+    for (int i = 0; i < Math.min(5, allReleases.size()); i++) {
+        model.addElement(allReleases.get(i));
+    }
+
+    // Add search functionality
+    JTextField textField = (JTextField) releaseDropdown.getEditor().getEditorComponent();
+    textField.getDocument().addDocumentListener(new DocumentListener() {
+        public void changedUpdate(DocumentEvent e) { filterReleases(); }
+        public void insertUpdate(DocumentEvent e) { filterReleases(); }
+        public void removeUpdate(DocumentEvent e) { filterReleases(); }
+
+        private void filterReleases() {
+            String searchText = textField.getText().toLowerCase().trim();
+            SwingUtilities.invokeLater(() -> {
+                model.removeAllElements();
+                if (searchText.length() < 2) {
+                    // Show first 5 when search text is too short
+                    for (int i = 0; i < Math.min(5, allReleases.size()); i++) {
+                        model.addElement(allReleases.get(i));
+                    }
+                } else {
+                    // Filter and show matching items (limit to 5)
+                    allReleases.stream()
+                        .filter(item -> item.getName().toLowerCase().contains(searchText))
+                        .limit(5)
+                        .forEach(model::addElement);
+                }
+            });
+        }
+    });
+
+    // Rest of your code...
+}
+
+// Method to load all releases into memory
+private void loadAllReleases() {
+    allReleases.clear();
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT RELEASE_ID, RELEASE_NAME FROM RELEASES " +
+                        "WHERE PROJECT_ID = ? ORDER BY RELEASE_NAME";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, getUserProjectId());
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        allReleases.add(new ReleaseItem(
+                            rs.getInt("RELEASE_ID"),
+                            rs.getString("RELEASE_NAME")
+                        ));
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
