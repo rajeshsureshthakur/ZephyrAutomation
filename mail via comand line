@@ -1,0 +1,39 @@
+private void sendViaOutlook(String soeid, String password) {
+    try {
+        // Create a temporary VBS script
+        String vbScript = 
+            "Set outlook = CreateObject(\"Outlook.Application\")\n" +
+            "Set mail = outlook.CreateItem(0)\n" +
+            "mail.To = \"" + soeid + "@mail.com\"\n" +
+            "mail.Subject = \"Password Recovery\"\n" +
+            "mail.Body = \"Your PIN is: " + password + "\"\n" +
+            "mail.Send\n" +
+            "Set mail = Nothing\n" +
+            "Set outlook = Nothing";
+
+        // Write script to temp file
+        String tempFile = "send_mail.vbs";
+        FileWriter fw = new FileWriter(tempFile);
+        fw.write(vbScript);
+        fw.close();
+
+        // Execute the script
+        Process p = Runtime.getRuntime().exec("cscript //NoLogo " + tempFile);
+        p.waitFor();
+
+        // Delete temp file
+        new File(tempFile).delete();
+
+        JOptionPane.showMessageDialog(null,
+            "Password has been sent to your email.",
+            "Success",
+            JOptionPane.INFORMATION_MESSAGE);
+            
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null,
+            "Error sending email: " + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE);
+    }
+}
