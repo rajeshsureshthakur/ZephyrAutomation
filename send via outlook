@@ -1,0 +1,48 @@
+private void sendViaOutlook(String soeid, String password) {
+        try {
+            // Create mailto URL with all email details
+            String mailtoUrl = String.format("mailto:%s@mail.com?subject=%s&body=%s",
+                soeid,
+                "Password Recovery",
+                "Your PIN is: " + password);
+            
+            // URL encode the string
+            mailtoUrl = mailtoUrl.replace(" ", "%20");
+            
+            // Open default mail client (Outlook)
+            Desktop.getDesktop().mail(new URI(mailtoUrl));
+            
+            JOptionPane.showMessageDialog(null,
+                "Outlook has been opened with the password recovery email.\nPlease send the email.",
+                "Email Ready",
+                JOptionPane.INFORMATION_MESSAGE);
+                
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                "Error opening Outlook: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Update handleForgotPassword to use this method
+    private void handleForgotPassword(String soeid, JDialog dialog) {
+        try {
+            String password = getPasswordFromDB(soeid);
+            if (password != null) {
+                sendViaOutlook(soeid, password);
+                dialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(dialog,
+                    "SOEID not found",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(dialog,
+                "Error processing request: " + ex.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
