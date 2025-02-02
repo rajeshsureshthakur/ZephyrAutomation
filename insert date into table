@@ -1,0 +1,40 @@
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
+public class InsertRelease {
+    public static void main(String[] args) {
+        String startDateStr = "2025-02-01";
+        String endDateStr = "2025-02-10";
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            java.util.Date parsedStartDate = sdf.parse(startDateStr);
+            java.util.Date parsedEndDate = sdf.parse(endDateStr);
+
+            // Convert to java.sql.Date
+            Date sqlStartDate = new Date(parsedStartDate.getTime());
+            Date sqlEndDate = new Date(parsedEndDate.getTime());
+
+            // Insert into DB
+            insertRelease(sqlStartDate, sqlEndDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void insertRelease(Date startDate, Date endDate) {
+        String query = "INSERT INTO releases (start_date, end_date) VALUES (?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection(); 
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setDate(1, startDate);
+            pstmt.setDate(2, endDate);
+            pstmt.executeUpdate();
+            System.out.println("Inserted successfully!");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
