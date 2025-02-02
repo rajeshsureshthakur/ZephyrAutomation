@@ -1,0 +1,25 @@
+private void sendViaOutlook(String soeid, String password) {
+    try {
+        String[] command = {
+            "outlook.exe", 
+            "/c", 
+            "ipm.note", 
+            "/m", 
+            soeid + "@mail.com?subject=Password Recovery&body=Your PIN is: " + password
+        };
+        
+        Runtime.getRuntime().exec(command);
+        
+        JOptionPane.showMessageDialog(null,
+            "Password has been sent to your email.",
+            "Success",
+            JOptionPane.INFORMATION_MESSAGE);
+            
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null,
+            "Error sending email: " + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE);
+    }
+}
