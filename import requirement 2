@@ -1,0 +1,268 @@
+```java
+private void showImportRequirementsWindow() {
+    JDialog dialog = new JDialog(this, "Import Requirements", true);
+    dialog.setLayout(new BorderLayout(10, 10));
+    dialog.setSize(600, 300);
+    dialog.setLocationRelativeTo(this);
+
+    JPanel contentPanel = new JPanel();
+    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+    contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+    // Release Dropdown with Search
+    JPanel releasePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JLabel releaseLabel = new JLabel("Select Release:");
+    releaseLabel.setPreferredSize(new Dimension(100, 25));
+
+    // Searchable combobox
+    JComboBox<ReleaseItem> releaseDropdown = new JComboBox<>();
+    releaseDropdown.setPreferredSize(new Dimension(300, 25));
+    releaseDropdown.setEditable(true);
+    populateReleaseDropdown(releaseDropdown);
+
+    // Add search functionality
+    JTextField textField = (JTextField) releaseDropdown.getEditor().getEditorComponent();
+    textField.getDocument().addDocumentListener(new DocumentListener() {
+        public void changedUpdate(DocumentEvent e) { filterReleases(); }
+        public void insertUpdate(DocumentEvent e) { filterReleases(); }
+        public void removeUpdate(DocumentEvent e) { filterReleases(); }
+
+        private void filterReleases() {
+            String text = textField.getText().toLowerCase();
+            ReleaseItem selectedItem = (ReleaseItem) releaseDropdown.getSelectedItem();
+            releaseDropdown.removeAllItems();
+            
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                    String sql = "SELECT RELEASE_ID, RELEASE_NAME FROM RELEASES " +
+                               "WHERE PROJECT_ID = ? AND LOWER(RELEASE_NAME) LIKE ? " +
+                               "ORDER BY RELEASE_NAME";
+                    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                        pstmt.setInt(1, getUserProjectId());
+                        pstmt.setString(2, "%" + text + "%");
+                        try (ResultSet rs = pstmt.executeQuery()) {
+                            while (rs.next()) {
+                                releaseDropdown.addItem(new ReleaseItem(
+                                    rs.getInt("RELEASE_ID"),
+                                    rs.getString("RELEASE_NAME")
+                                ));
+                            }
+                        }
+                    }
+                }
+                
+                if (selectedItem != null) {
+                    releaseDropdown.setSelectedItem(selectedItem);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    });
+
+    releasePanel.add(releaseLabel);
+    releasePanel.add(releaseDropdown);
+
+    // JQL Update Checkbox
+    JPanel checkboxPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JCheckBox updateJqlCheckbox = new JCheckBox("I want to update JQL's");
+    updateJqlCheckbox.addActionListener(e -> {
+        if (updateJqlCheckbox.isSelected()) {
+            ReleaseItem selectedRelease = (ReleaseItem) releaseDropdown.getSelectedItem();
+            if (selectedRelease != null) {
+                showJqlUpdateDialog(selectedRelease.getId());
+            } else {
+                JOptionPane.showMessageDialog(dialog,
+                    "Please select a release first",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+                updateJqlCheckbox.setSelected(false);
+            }
+        }
+    });
+    checkboxPanel.add(updateJqlCheckbox);
+
+    // Import Button
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    JButton importButton = new JButton("Import");
+    importButton.addActionListener(e -> {
+        ReleaseItem selectedRelease = (ReleaseItem) releaseDropdown.getSelectedItem();
+        if (selectedRelease != null) {
+            handleImport(selectedRelease.getId());
+            dialog.dispose();
+        } else {
+            JOptionPane.showMessageDialog(dialog,
+                "Please select a release first",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    });
+    buttonPanel.add(importButton);
+
+    // Add components
+    contentPanel.add(releasePanel);
+    contentPanel.add(Box.createVerticalStrut(20));
+    contentPanel.add(checkboxPanel);
+    contentPanel.add(Box.createVerticalStrut(20));
+    contentPanel.add(buttonPanel);
+
+    dialog.add(contentPanel);
+    dialog.setVisible(true);
+}
+
+private void showJqlUpdateDialog(int releaseId) {
+    JDialog jqlDialog = new JDialog(this, "Update JQL", true);
+    jqlDialog.setLayout(new BorderLayout(10, 10));
+    jqlDialog.setSize(500, 200);
+    jqlDialog.setLocationRelativeTo(this);
+
+    JPanel jqlPanel = new JPanel(new GridBagLayout());
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(5, 5, 5, 5);
+
+    JLabel folderLabel = new JLabel("Folder Name:");
+    JTextField folderField = new JTextField(20);
+    JLabel jqlLabel = new JLabel("JQL:");
+    JTextField jqlField = new JTextField(30);
+    JButton updateButton = new JButton("Update");
+
+    gbc.gridx = 0; gbc.gridy = 0;
+    jqlPanel.add(folderLabel, gbc);
+    gbc.gridx = 1;
+    jqlPanel.add(folderField, gbc);
+    gbc.gridx = 0; gbc.gridy = 1;
+    jqlPanel.add(jqlLabel, gbc);
+    gbc.gridx = 1;
+    jqlPanel.add(jqlField, gbc);
+    gbc.gridx = 1; gbc.gridy = 2;
+    jqlPanel.add(updateButton, gbc);
+
+    updateButton.addActionListener(e -> {
+        if (folderField.getText().trim().isEmpty() || jqlField.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(jqlDialog,
+                "Please fill both fields",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        updateJql(releaseId, folderField.getText().trim(), jqlField.getText().trim());
+        jqlDialog.dispose();
+    });
+
+    jqlDialog.add(jqlPanel);
+    jqlDialog.setVisible(true);
+}
+
+private void updateJql(int releaseId, String folderName, String jql) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "UPDATE FOLDER_JQL_MAPPING SET JQL = ? WHERE RELEASE_ID = ? AND FOLDER_NAME = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, jql);
+                pstmt.setInt(2, releaseId);
+                pstmt.setString(3, folderName);
+                int updated = pstmt.executeUpdate();
+                if (updated > 0) {
+                    JOptionPane.showMessageDialog(this,
+                        "JQL updated successfully",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                        "No matching folder found",
+                        "Warning",
+                        JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Error updating JQL: " + e.getMessage(),
+            "Database Error",
+            JOptionPane.ERROR_MESSAGE);
+    }
+}
+
+private void handleImport(int releaseId) {
+    try {
+        // Fetch folders and JQLs from database
+        List<String> folders = new ArrayList<>();
+        List<String> jqls = new ArrayList<>();
+        
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT FOLDER_NAME, JQL FROM FOLDER_JQL_MAPPING WHERE RELEASE_ID = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, releaseId);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        folders.add(rs.getString("FOLDER_NAME"));
+                        jqls.add(rs.getString("JQL"));
+                    }
+                }
+            }
+        }
+
+        // Call ImportRequirements java file
+        String[] command = {
+            "java",
+            "ImportRequirements",
+            String.valueOf(releaseId),
+            String.join(",", folders),
+            String.join(",", jqls)
+        };
+        
+        Process process = Runtime.getRuntime().exec(command);
+        process.waitFor();
+
+        JOptionPane.showMessageDialog(this,
+            "Import process completed",
+            "Success",
+            JOptionPane.INFORMATION_MESSAGE);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Error during import: " + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE);
+    }
+}
+
+private class ReleaseItem {
+    private int id;
+    private String name;
+
+    public ReleaseItem(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public int getId() { return id; }
+    public String getName() { return name; }
+
+    @Override
+    public String toString() { return name; }
+}
+```
+
+Required imports:
+```java
+import javax.swing.*;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.DocumentEvent;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+```
+
+Would you like me to:
+1. Add more validation?
+2. Modify any layouts?
+3. Change any functionality?
+4. Make any other adjustments?
