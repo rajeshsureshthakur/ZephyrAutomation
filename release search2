@@ -1,0 +1,77 @@
+// In showImportRequirementsWindow method:
+
+// Release Dropdown Panel
+JPanel releasePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+JLabel releaseLabel = new JLabel("Select Release:");
+releaseLabel.setPreferredSize(new Dimension(100, 25));
+
+// Create ComboBox with initial limited items
+JComboBox<ReleaseItem> releaseDropdown = new JComboBox<>();
+releaseDropdown.setPreferredSize(new Dimension(300, 25));
+releaseDropdown.setEditable(true);
+
+// Populate initial items (limited to 5)
+try {
+    Class.forName("oracle.jdbc.driver.OracleDriver");
+    try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+        String sql = "SELECT RELEASE_ID, RELEASE_NAME FROM " +
+                    "(SELECT * FROM RELEASES WHERE PROJECT_ID = ? ORDER BY RELEASE_NAME) " +
+                    "WHERE ROWNUM <= 5";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, getUserProjectId());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                releaseDropdown.addItem(new ReleaseItem(0, "Search Release..."));
+                while (rs.next()) {
+                    releaseDropdown.addItem(new ReleaseItem(
+                        rs.getInt("RELEASE_ID"),
+                        rs.getString("RELEASE_NAME")
+                    ));
+                }
+            }
+        }
+    }
+} catch (Exception e) {
+    e.printStackTrace();
+}
+
+// Add search functionality
+JTextField textField = (JTextField) releaseDropdown.getEditor().getEditorComponent();
+textField.getDocument().addDocumentListener(new DocumentListener() {
+    public void changedUpdate(DocumentEvent e) { filterReleases(); }
+    public void insertUpdate(DocumentEvent e) { filterReleases(); }
+    public void removeUpdate(DocumentEvent e) { filterReleases(); }
+
+    private void filterReleases() {
+        String searchText = textField.getText().toLowerCase().trim();
+        if (searchText.length() < 3) return;  // Only search if at least 3 characters
+
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "SELECT RELEASE_ID, RELEASE_NAME FROM RELEASES " +
+                           "WHERE PROJECT_ID = ? AND LOWER(RELEASE_NAME) LIKE ? " +
+                           "AND ROWNUM <= 5 ORDER BY RELEASE_NAME";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setInt(1, getUserProjectId());
+                    pstmt.setString(2, "%" + searchText + "%");
+                    
+                    DefaultComboBoxModel<ReleaseItem> model = (DefaultComboBoxModel<ReleaseItem>) releaseDropdown.getModel();
+                    model.removeAllElements();
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        while (rs.next()) {
+                            model.addElement(new ReleaseItem(
+                                rs.getInt("RELEASE_ID"),
+                                rs.getString("RELEASE_NAME")
+                            ));
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+});
+
+releasePanel.add(releaseLabel);
+releasePanel.add(releaseDropdown);
