@@ -1,0 +1,74 @@
+```java
+private void populateReleaseDropdown(JComboBox<ReleaseItem> dropdown) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT RELEASE_ID, RELEASE_NAME FROM RELEASES WHERE PROJECT_ID = ? ORDER BY RELEASE_NAME";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, getUserProjectId());
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    dropdown.removeAllItems();
+                    // Add a default selection item
+                    dropdown.addItem(new ReleaseItem(0, "Select Release"));
+                    while (rs.next()) {
+                        dropdown.addItem(new ReleaseItem(
+                            rs.getInt("RELEASE_ID"),
+                            rs.getString("RELEASE_NAME")
+                        ));
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Error loading releases: " + e.getMessage(),
+            "Database Error",
+            JOptionPane.ERROR_MESSAGE);
+    }
+}
+
+private int getUserProjectId() {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT PROJECT_ID FROM USERS WHERE SOEID = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, currentUserSoeid);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt("PROJECT_ID");
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Error getting user project: " + e.getMessage(),
+            "Database Error",
+            JOptionPane.ERROR_MESSAGE);
+    }
+    return -1;  // Return -1 if project ID not found
+}
+```
+
+These functions:
+
+1. populateReleaseDropdown:
+   - Gets user's project ID
+   - Fetches all releases for that project
+   - Adds them to dropdown
+   - Includes default "Select Release" option
+   - Handles errors with messages
+
+2. getUserProjectId:
+   - Uses currentUserSoeid to get project ID from USERS table
+   - Returns -1 if not found
+   - Handles database errors
+
+Would you like me to:
+1. Add more error handling?
+2. Modify the SQL queries?
+3. Change how the data is loaded?
+4. Make any other adjustments?
