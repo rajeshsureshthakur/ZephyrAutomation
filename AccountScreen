@@ -1,4 +1,9 @@
-
+JTable resultTable = new JTable(model);
+resultTable.setFont(new Font("Arial", Font.PLAIN, 12));
+resultTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+resultTable.setRowHeight(25);
+resultTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);  // Single selection
+resultTable.setCellSelectionEnabled(true);  // Enable cell selection
 
         // Account button action
         accountButton.addActionListener(e -> showAccountManagementScreen());
