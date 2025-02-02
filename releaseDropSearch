@@ -1,0 +1,110 @@
+// In the showImportRequirementsWindow method:
+
+// Create custom renderer for highlighting search matches
+DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
+    @Override
+    public Component getListCellRendererComponent(JList<?> list, Object value, 
+            int index, boolean isSelected, boolean cellHasFocus) {
+        
+        JLabel label = (JLabel) super.getListCellRendererComponent(
+            list, value, index, isSelected, cellHasFocus);
+            
+        if (value instanceof ReleaseItem) {
+            label.setText(((ReleaseItem) value).getName());
+        }
+        return label;
+    }
+};
+
+JComboBox<ReleaseItem> releaseDropdown = new JComboBox<>();
+releaseDropdown.setRenderer(renderer);
+releaseDropdown.setEditable(true);
+releaseDropdown.setPreferredSize(new Dimension(300, 25));
+
+// Add search functionality
+JTextField textField = (JTextField) releaseDropdown.getEditor().getEditorComponent();
+textField.getDocument().addDocumentListener(new DocumentListener() {
+    public void changedUpdate(DocumentEvent e) { filterReleases(); }
+    public void insertUpdate(DocumentEvent e) { filterReleases(); }
+    public void removeUpdate(DocumentEvent e) { filterReleases(); }
+
+    private void filterReleases() {
+        SwingUtilities.invokeLater(() -> {
+            String searchText = textField.getText().toLowerCase().trim();
+            DefaultComboBoxModel<ReleaseItem> model = (DefaultComboBoxModel<ReleaseItem>) releaseDropdown.getModel();
+            
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                    // Modified SQL to use LIKE for partial matching
+                    String sql = "SELECT RELEASE_ID, RELEASE_NAME FROM RELEASES " +
+                               "WHERE PROJECT_ID = ? " +
+                               "AND LOWER(RELEASE_NAME) LIKE ? " +
+                               "ORDER BY " +
+                               "CASE WHEN LOWER(RELEASE_NAME) = ? THEN 1 " +
+                               "     WHEN LOWER(RELEASE_NAME) LIKE ? THEN 2 " +
+                               "     ELSE 3 END, " +
+                               "RELEASE_NAME";
+                               
+                    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                        pstmt.setInt(1, getUserProjectId());
+                        pstmt.setString(2, "%" + searchText + "%");
+                        pstmt.setString(3, searchText);
+                        pstmt.setString(4, searchText + "%");
+                        
+                        model.removeAllElements();
+                        try (ResultSet rs = pstmt.executeQuery()) {
+                            while (rs.next()) {
+                                model.addElement(new ReleaseItem(
+                                    rs.getInt("RELEASE_ID"),
+                                    rs.getString("RELEASE_NAME")
+                                ));
+                            }
+                        }
+                    }
+                }
+                
+                // If dropdown is showing, keep it visible
+                if (!searchText.isEmpty() && model.getSize() > 0) {
+                    releaseDropdown.showPopup();
+                }
+                
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+    }
+});
+
+// Add focus listener to show all items when clicking the field
+textField.addFocusListener(new FocusAdapter() {
+    @Override
+    public void focusGained(FocusEvent e) {
+        if (textField.getText().isEmpty()) {
+            SwingUtilities.invokeLater(() -> {
+                populateReleaseDropdown(releaseDropdown);
+                releaseDropdown.showPopup();
+            });
+        }
+    }
+});
+
+// Add key listener for better dropdown control
+textField.addKeyListener(new KeyAdapter() {
+    @Override
+    public void keyPressed(KeyEvent e) {
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_DOWN:
+                if (!releaseDropdown.isPopupVisible()) {
+                    releaseDropdown.showPopup();
+                }
+                break;
+            case KeyEvent.VK_ENTER:
+                if (releaseDropdown.getSelectedItem() != null) {
+                    textField.setText(releaseDropdown.getSelectedItem().toString());
+                    releaseDropdown.hidePopup();
+                }
+                break;
+        }
+    }
+});
