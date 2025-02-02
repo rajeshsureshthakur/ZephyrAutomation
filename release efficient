@@ -1,0 +1,118 @@
+private void showImportRequirementsWindow() {
+    // Show loading dialog
+    JDialog loadingDialog = new JDialog(this, "Loading", true);
+    JLabel loadingLabel = new JLabel("Please wait, fetching release data...");
+    loadingLabel.setHorizontalAlignment(JLabel.CENTER);
+    loadingDialog.add(loadingLabel);
+    loadingDialog.setSize(250, 100);
+    loadingDialog.setLocationRelativeTo(this);
+
+    // Create the main list of releases first (in a separate thread)
+    SwingWorker<List<ReleaseItem>, Void> worker = new SwingWorker<>() {
+        @Override
+        protected List<ReleaseItem> doInBackground() {
+            List<ReleaseItem> releases = new ArrayList<>();
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                    String sql = "SELECT RELEASE_ID, RELEASE_NAME FROM RELEASES WHERE PROJECT_ID = ? ORDER BY RELEASE_NAME";
+                    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                        pstmt.setInt(1, getUserProjectId());
+                        try (ResultSet rs = pstmt.executeQuery()) {
+                            while (rs.next()) {
+                                releases.add(new ReleaseItem(
+                                    rs.getInt("RELEASE_ID"),
+                                    rs.getString("RELEASE_NAME")
+                                ));
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return releases;
+        }
+
+        @Override
+        protected void done() {
+            loadingDialog.dispose();
+            try {
+                List<ReleaseItem> releases = get();
+                showImportScreen(releases);
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, 
+                    "Error loading releases: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    };
+
+    // Start the worker and show loading dialog
+    worker.execute();
+    loadingDialog.setVisible(true);
+}
+
+private void showImportScreen(List<ReleaseItem> allReleases) {
+    JDialog dialog = new JDialog(this, "Import Requirements", true);
+    dialog.setLayout(new BorderLayout(10, 10));
+    dialog.setSize(600, 300);
+    dialog.setLocationRelativeTo(this);
+
+    JPanel contentPanel = new JPanel();
+    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+    contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+    // Release Panel
+    JPanel releasePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JLabel releaseLabel = new JLabel("Select Release:");
+    releaseLabel.setPreferredSize(new Dimension(100, 25));
+
+    // ComboBox
+    DefaultComboBoxModel<ReleaseItem> model = new DefaultComboBoxModel<>();
+    JComboBox<ReleaseItem> releaseDropdown = new JComboBox<>(model);
+    releaseDropdown.setEditable(true);
+    releaseDropdown.setPreferredSize(new Dimension(300, 25));
+
+    // Add initial items
+    for (int i = 0; i < Math.min(5, allReleases.size()); i++) {
+        model.addElement(allReleases.get(i));
+    }
+
+    // Simple search in memory
+    JTextField textField = (JTextField) releaseDropdown.getEditor().getEditorComponent();
+    textField.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyReleased(KeyEvent e) {
+            String searchText = textField.getText().toLowerCase().trim();
+            model.removeAllElements();
+
+            if (searchText.isEmpty()) {
+                for (int i = 0; i < Math.min(5, allReleases.size()); i++) {
+                    model.addElement(allReleases.get(i));
+                }
+                return;
+            }
+
+            int count = 0;
+            for (ReleaseItem item : allReleases) {
+                if (item.getName().toLowerCase().contains(searchText)) {
+                    model.addElement(item);
+                    count++;
+                    if (count >= 5) break;
+                }
+            }
+        }
+    });
+
+    // Rest of your components...
+    JCheckBox updateJqlCheckbox = new JCheckBox("I want to update JQL's");
+    JButton importButton = new JButton("Import");
+
+    // Add action listeners...
+    // Add components to panels...
+
+    dialog.setVisible(true);
+}
