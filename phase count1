@@ -1,0 +1,79 @@
+// In the planning section where checkboxes are created:
+JPanel planningSection = new JPanel(null);
+planningSection.setBorder(BorderFactory.createTitledBorder("Planning Folder Structure"));
+planningSection.setBounds(50, 390, 500, 150);
+planningSection.setVisible(false);
+
+JLabel cyclesLabel = new JLabel("Project Cycle's:");
+cyclesLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+cyclesLabel.setBounds(20, 30, 100, 30);
+
+String[] cycleNames = {"Load Test", "Endurance Test", "Sanity", "Standalone"};
+JCheckBox[] checkboxes = new JCheckBox[cycleNames.length];
+JLabel[] phaseLabels = new JLabel[cycleNames.length];  // Array to store phase count labels
+
+// Position checkboxes horizontally with phase count labels
+int xOffset = 20;
+for (int i = 0; i < cycleNames.length; i++) {
+    JPanel cyclePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+    cyclePanel.setBounds(xOffset, 70, 150, 30);
+    
+    checkboxes[i] = new JCheckBox(cycleNames[i]);
+    checkboxes[i].setFont(new Font("Arial", Font.PLAIN, 14));
+    
+    phaseLabels[i] = new JLabel("(0 phases)");  // Initialize with 0
+    phaseLabels[i].setFont(new Font("Arial", Font.PLAIN, 12));
+    phaseLabels[i].setForeground(Color.GRAY);
+    
+    final int index = i;
+    checkboxes[i].addActionListener(e -> {
+        if (checkboxes[index].isSelected()) {
+            String input = JOptionPane.showInputDialog(
+                createReleasePanel,
+                "Enter number of phases for " + cycleNames[index] + ":",
+                "Number of Phases",
+                JOptionPane.QUESTION_MESSAGE
+            );
+            if (input != null) {
+                try {
+                    int phases = Integer.parseInt(input);
+                    if (phases > 0) {
+                        testCycles[index] = phases;
+                        phaseLabels[index].setText("(" + phases + " phases)");  // Update phase count
+                    } else {
+                        checkboxes[index].setSelected(false);
+                        testCycles[index] = 0;
+                        phaseLabels[index].setText("(0 phases)");  // Reset phase count
+                        JOptionPane.showMessageDialog(createReleasePanel,
+                            "Please enter a positive number",
+                            "Invalid Input",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (NumberFormatException ex) {
+                    checkboxes[index].setSelected(false);
+                    testCycles[index] = 0;
+                    phaseLabels[index].setText("(0 phases)");  // Reset phase count
+                    JOptionPane.showMessageDialog(createReleasePanel,
+                        "Please enter a valid number",
+                        "Invalid Input",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                checkboxes[index].setSelected(false);
+                testCycles[index] = 0;
+                phaseLabels[index].setText("(0 phases)");  // Reset phase count
+            }
+        } else {
+            testCycles[index] = 0;
+            phaseLabels[index].setText("(0 phases)");  // Reset phase count when unchecked
+        }
+    });
+
+    cyclePanel.add(checkboxes[i]);
+    cyclePanel.add(phaseLabels[i]);
+    planningSection.add(cyclePanel);
+    
+    xOffset += 120;  // Increased spacing to accommodate phase count
+}
+
+planningSection.add(cyclesLabel);
