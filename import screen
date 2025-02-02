@@ -1,0 +1,110 @@
+private void showImportScreen(List<ReleaseItem> allReleases) {
+    JDialog dialog = new JDialog(this, "Import Requirements", true);
+    dialog.setLayout(new BorderLayout(10, 10));
+    dialog.setSize(600, 300);
+    dialog.setLocationRelativeTo(this);
+
+    JPanel contentPanel = new JPanel();
+    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+    contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+    // Release Panel
+    JPanel releasePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JLabel releaseLabel = new JLabel("Search Release:");
+    releaseLabel.setPreferredSize(new Dimension(100, 25));
+
+    // Create a JTextField for search instead of ComboBox
+    JTextField searchField = new JTextField();
+    searchField.setPreferredSize(new Dimension(200, 25));
+
+    // Create a JComboBox for showing results
+    DefaultComboBoxModel<ReleaseItem> model = new DefaultComboBoxModel<>();
+    JComboBox<ReleaseItem> releaseDropdown = new JComboBox<>(model);
+    releaseDropdown.setPreferredSize(new Dimension(300, 25));
+
+    // Show initial items
+    for (int i = 0; i < Math.min(5, allReleases.size()); i++) {
+        model.addElement(allReleases.get(i));
+    }
+
+    // Add search functionality
+    searchField.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyReleased(KeyEvent e) {
+            String searchText = searchField.getText().toLowerCase().trim();
+            model.removeAllElements();
+
+            // If empty show first 5
+            if (searchText.isEmpty()) {
+                for (int i = 0; i < Math.min(5, allReleases.size()); i++) {
+                    model.addElement(allReleases.get(i));
+                }
+                return;
+            }
+
+            // Search and show matching items
+            int count = 0;
+            for (ReleaseItem item : allReleases) {
+                if (item.getName().toLowerCase().contains(searchText)) {
+                    model.addElement(item);
+                    count++;
+                    if (count >= 5) break;
+                }
+            }
+        }
+    });
+
+    releasePanel.add(releaseLabel);
+    releasePanel.add(searchField);
+    releasePanel.add(Box.createHorizontalStrut(10));
+    releasePanel.add(releaseDropdown);
+
+    // Rest of your components
+    JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JCheckBox updateJqlCheckbox = new JCheckBox("I want to update JQL's");
+    optionsPanel.add(updateJqlCheckbox);
+
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    JButton importButton = new JButton("Import");
+
+    // Add action listeners for checkbox and import button
+    updateJqlCheckbox.addActionListener(e -> {
+        if (updateJqlCheckbox.isSelected()) {
+            ReleaseItem selectedRelease = (ReleaseItem) releaseDropdown.getSelectedItem();
+            if (selectedRelease != null) {
+                showJqlUpdateDialog(selectedRelease.getId());
+            } else {
+                JOptionPane.showMessageDialog(dialog,
+                    "Please select a release first",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+                updateJqlCheckbox.setSelected(false);
+            }
+        }
+    });
+
+    importButton.addActionListener(e -> {
+        ReleaseItem selectedRelease = (ReleaseItem) releaseDropdown.getSelectedItem();
+        if (selectedRelease != null) {
+            handleImport(selectedRelease.getId());
+            dialog.dispose();
+        } else {
+            JOptionPane.showMessageDialog(dialog,
+                "Please select a release first",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    });
+
+    buttonPanel.add(importButton);
+
+    // Add all panels to content panel
+    contentPanel.add(releasePanel);
+    contentPanel.add(Box.createVerticalStrut(20));
+    contentPanel.add(optionsPanel);
+    contentPanel.add(Box.createVerticalStrut(20));
+    contentPanel.add(buttonPanel);
+
+    dialog.add(contentPanel);
+    dialog.setVisible(true);
+}
