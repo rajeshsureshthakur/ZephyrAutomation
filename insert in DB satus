@@ -1,0 +1,31 @@
+private void writeSummaryLine(FileWriter writer, FolderSummary summary) throws Exception {
+    // First, write to CSV as before
+    writer.write(String.format("%s,%s,%s,%d,%d,%d,%.2f%%\n",
+            summary.type,
+            summary.parentName,
+            summary.folderName,
+            summary.totalItems,
+            summary.itemsWithTests,
+            summary.itemsWithoutTests,
+            summary.coveragePercentage));
+    
+    // Then, insert into database
+    try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+         PreparedStatement pstmt = conn.prepareStatement(
+             "INSERT INTO folder_summary (type, parent_name, folder_name, total_items, " +
+             "items_with_tests, items_without_tests, coverage_percentage) " +
+             "VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+        
+        // Set parameters
+        pstmt.setString(1, summary.type);
+        pstmt.setString(2, summary.parentName);
+        pstmt.setString(3, summary.folderName);
+        pstmt.setInt(4, summary.totalItems);
+        pstmt.setInt(5, summary.itemsWithTests);
+        pstmt.setInt(6, summary.itemsWithoutTests);
+        pstmt.setDouble(7, summary.coveragePercentage);
+        
+        // Execute the insert
+        pstmt.executeUpdate();
+    }
+}
