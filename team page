@@ -1,0 +1,111 @@
+private void addCreateTeamButton(JPanel homePanel) {
+   JButton createTeamButton = new JButton("Create Team");
+   createTeamButton.setMaximumSize(new Dimension(240, 48));
+   createTeamButton.setPreferredSize(new Dimension(240, 48));
+   createTeamButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+   createTeamButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   createTeamButton.addActionListener(e -> showCreateTeamScreen());
+   
+   homePanel.add(Box.createVerticalStrut(30));
+   homePanel.add(createTeamButton);
+}
+
+private void showCreateTeamScreen() {
+   JPanel createTeamPanel = new JPanel();
+   createTeamPanel.setLayout(new BorderLayout());
+
+   JPanel titlePanel = new JPanel();
+   JLabel titleLabel = new JLabel("Create Team");
+   titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+   titlePanel.add(titleLabel);
+
+   JPanel contentPanel = new JPanel(null);
+   contentPanel.setPreferredSize(new Dimension(600, 400));
+
+   // Team Name Field
+   JLabel teamNameLabel = new JLabel("Team Name: *");
+   teamNameLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+   teamNameLabel.setBounds(50, 50, 150, 30);
+   
+   JTextField teamNameField = new JTextField();
+   teamNameField.setFont(new Font("Arial", Font.PLAIN, 16));
+   teamNameField.setBounds(200, 50, 300, 30);
+
+   // Submit Button
+   JButton submitButton = new JButton("Create Team");
+   submitButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   submitButton.setBounds(200, 120, 200, 35);
+
+   submitButton.addActionListener(e -> {
+       if(createTeam(teamNameField.getText().trim())) {
+           cardLayout.show(mainPanel, "HOME");
+       }
+   });
+
+   // Back Button  
+   JButton backButton = new JButton("Back");
+   backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   backButton.setBounds(200, 170, 200, 35);
+   backButton.addActionListener(e -> cardLayout.show(mainPanel, "HOME"));
+
+   contentPanel.add(teamNameLabel);
+   contentPanel.add(teamNameField);
+   contentPanel.add(submitButton);
+   contentPanel.add(backButton);
+
+   createTeamPanel.add(titlePanel, BorderLayout.NORTH);
+   createTeamPanel.add(contentPanel, BorderLayout.CENTER);
+
+   mainPanel.add(createTeamPanel, "CREATE_TEAM");
+   cardLayout.show(mainPanel, "CREATE_TEAM");
+}
+
+private boolean createTeam(String teamName) {
+   if(teamName.isEmpty()) {
+       JOptionPane.showMessageDialog(this,
+           "Please enter team name",
+           "Error", 
+           JOptionPane.ERROR_MESSAGE);
+       return false;
+   }
+
+   try {
+       Class.forName("oracle.jdbc.driver.OracleDriver");
+       try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+           // Get next team ID
+           int nextTeamId = getNextTeamId(conn);
+           
+           String sql = "INSERT INTO TEAMS (TEAM_ID, TEAM_NAME, SOEID, NAME, PROJECT_ID) VALUES (?, ?, ?, ?, ?)";
+           try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+               pstmt.setInt(1, nextTeamId);
+               pstmt.setString(2, teamName);
+               pstmt.setString(3, currentUserSoeid);
+               pstmt.setString(4, currentUserName); 
+               pstmt.setInt(5, getUserProjectId());
+               
+               pstmt.executeUpdate();
+               JOptionPane.showMessageDialog(this, "Team created successfully!");
+               return true;
+           }
+       }
+   } catch (Exception e) {
+       e.printStackTrace();
+       JOptionPane.showMessageDialog(this,
+           "Error creating team: " + e.getMessage(),
+           "Error",
+           JOptionPane.ERROR_MESSAGE);
+   }
+   return false;
+}
+
+private int getNextTeamId(Connection conn) throws SQLException {
+   String sql = "SELECT MAX(TEAM_ID) as last_id FROM TEAMS";
+   try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+       ResultSet rs = pstmt.executeQuery();
+       if (rs.next()) {
+           int lastId = rs.getInt("last_id");
+           return lastId + 1;
+       }
+       return 1;
+   }
+}
