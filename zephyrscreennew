@@ -1,0 +1,169 @@
+private JPanel createZephyrScreen() {
+   JPanel zephyrPanel = new JPanel();
+   zephyrPanel.setLayout(new BoxLayout(zephyrPanel, BoxLayout.Y_AXIS));
+
+   JDialog loadingDialog = new JDialog(this, "Loading", true);
+   JLabel loadingLabel = new JLabel("Please wait, fetching release data...");
+   loadingLabel.setHorizontalAlignment(JLabel.CENTER);
+   loadingDialog.add(loadingLabel);
+   loadingDialog.setSize(250, 100);
+   loadingDialog.setLocationRelativeTo(this);
+
+   SwingWorker<List<ReleaseItem>, Void> worker = new SwingWorker<>() {
+       @Override
+       protected List<ReleaseItem> doInBackground() {
+           List<ReleaseItem> releases = new ArrayList<>();
+           try {
+               Class.forName("oracle.jdbc.driver.OracleDriver");
+               try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                   String sql = "SELECT RELEASE_ID, RELEASE_NAME FROM RELEASES WHERE PROJECT_ID = ? ORDER BY RELEASE_NAME";
+                   try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                       pstmt.setInt(1, getUserProjectId());
+                       try (ResultSet rs = pstmt.executeQuery()) {
+                           while (rs.next()) {
+                               releases.add(new ReleaseItem(
+                                   rs.getInt("RELEASE_ID"),
+                                   rs.getString("RELEASE_NAME")
+                               ));
+                           }
+                       }
+                   }
+               }
+           } catch (Exception e) {
+               e.printStackTrace();
+           }
+           return releases;
+       }
+
+       @Override
+       protected void done() {
+           try {
+               List<ReleaseItem> releases = get();
+               loadingDialog.dispose();
+               
+               // Title
+               JLabel titleLabel = new JLabel("Zephyr Section");
+               titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+               titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+               // Create Release Button
+               JButton createReleaseButton = new JButton("Create Release");
+               createReleaseButton.setMaximumSize(new Dimension(200, 35));
+               createReleaseButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+               createReleaseButton.addActionListener(e -> showCreateReleaseScreen());
+
+               // Release Selection Panel
+               JPanel releasePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+               JLabel releaseLabel = new JLabel("Search Release:");
+               JTextField searchField = new JTextField(20);
+               
+               DefaultComboBoxModel<ReleaseItem> model = new DefaultComboBoxModel<>();
+               JComboBox<ReleaseItem> releaseDropdown = new JComboBox<>(model);
+               releaseDropdown.setPreferredSize(new Dimension(300, 25));
+
+               // Show initial items
+               for (int i = 0; i < Math.min(5, releases.size()); i++) {
+                   model.addElement(releases.get(i));
+               }
+
+               // Add search functionality
+               searchField.addKeyListener(new KeyAdapter() {
+                   @Override
+                   public void keyReleased(KeyEvent e) {
+                       String searchText = searchField.getText().toLowerCase().trim();
+                       model.removeAllElements();
+
+                       if (searchText.isEmpty()) {
+                           for (int i = 0; i < Math.min(5, releases.size()); i++) {
+                               model.addElement(releases.get(i));
+                           }
+                           return;
+                       }
+
+                       int count = 0;
+                       for (ReleaseItem item : releases) {
+                           if (item.getName().toLowerCase().contains(searchText)) {
+                               model.addElement(item);
+                               count++;
+                               if (count >= 5) break;
+                           }
+                       }
+                   }
+               });
+
+               releasePanel.add(releaseLabel);
+               releasePanel.add(searchField);
+               releasePanel.add(releaseDropdown);
+
+               // Action Buttons (initially invisible)
+               JButton importReqButton = new JButton("Import Requirements");
+               JButton updateReleaseButton = new JButton("Update Release Data");
+               JButton updateCentralTestRepoButton = new JButton("Update Central Test Repo");
+               JButton updateConfluenceButton = new JButton("Update Confluence");
+               JButton backButton = new JButton("Back");
+
+               importReqButton.setVisible(false);
+               updateReleaseButton.setVisible(false);
+               updateCentralTestRepoButton.setVisible(false);
+               updateConfluenceButton.setVisible(false);
+
+               // Make buttons appear when release is selected
+               releaseDropdown.addActionListener(e -> {
+                   if (releaseDropdown.getSelectedItem() != null) {
+                       importReqButton.setVisible(true);
+                       updateReleaseButton.setVisible(true);
+                       updateCentralTestRepoButton.setVisible(true);
+                       updateConfluenceButton.setVisible(true);
+                       zephyrPanel.revalidate();
+                       zephyrPanel.repaint();
+                   }
+               });
+
+               // Configure buttons
+               Arrays.asList(importReqButton, updateReleaseButton, updateCentralTestRepoButton, 
+                           updateConfluenceButton, backButton).forEach(button -> {
+                   button.setMaximumSize(new Dimension(200, 35));
+                   button.setAlignmentX(Component.CENTER_ALIGNMENT);
+               });
+
+               // Add action listeners
+               backButton.addActionListener(e -> cardLayout.show(mainPanel, "HOME"));
+               importReqButton.addActionListener(e -> showImportRequirementsWindow());
+               updateReleaseButton.addActionListener(e -> showUpdateReleaseDataScreen());
+
+               // Add components with spacing
+               zephyrPanel.add(Box.createVerticalStrut(20));
+               zephyrPanel.add(titleLabel);
+               zephyrPanel.add(Box.createVerticalStrut(30));
+               zephyrPanel.add(createReleaseButton);
+               zephyrPanel.add(Box.createVerticalStrut(20));
+               zephyrPanel.add(releasePanel);
+               zephyrPanel.add(Box.createVerticalStrut(20));
+               zephyrPanel.add(importReqButton);
+               zephyrPanel.add(Box.createVerticalStrut(10));
+               zephyrPanel.add(updateReleaseButton);
+               zephyrPanel.add(Box.createVerticalStrut(10));
+               zephyrPanel.add(updateCentralTestRepoButton);
+               zephyrPanel.add(Box.createVerticalStrut(10));
+               zephyrPanel.add(updateConfluenceButton);
+               zephyrPanel.add(Box.createVerticalStrut(20));
+               zephyrPanel.add(backButton);
+
+               mainPanel.add(zephyrPanel, "ZEPHYR");
+               cardLayout.show(mainPanel, "ZEPHYR");
+
+           } catch (Exception e) {
+               e.printStackTrace();
+               loadingDialog.dispose();
+               JOptionPane.showMessageDialog(null, 
+                   "Error loading releases: " + e.getMessage(),
+                   "Error",
+                   JOptionPane.ERROR_MESSAGE);
+           }
+       }
+   };
+
+   worker.execute();
+   loadingDialog.setVisible(true);
+   return zephyrPanel;
+}
