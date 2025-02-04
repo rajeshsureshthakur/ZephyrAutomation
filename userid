@@ -1,0 +1,73 @@
+private int getNextUserId(Connection conn) throws SQLException {
+    String sql = "SELECT MAX(USER_ID) as last_id FROM USERS";
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        ResultSet rs = pstmt.executeQuery();
+        if (rs.next()) {
+            int lastId = rs.getInt("last_id");
+            return lastId + 1;
+        }
+        return 1;  // If no users exist yet, start with 1
+    }
+}
+
+private boolean registerUser(String name, String soeid, String pin, String role,
+                           String managerSoeid, int teamId, int projectId) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            
+            // Get next user_id
+            int nextUserId = getNextUserId(conn);
+            
+            // If role is Lead or Tester, get the manager's user_id
+            Integer managerId = null;
+            if (!"Manager".equals(role) && !managerSoeid.isEmpty()) {
+                String managerQuery = "SELECT USER_ID FROM USERS WHERE SOEID = ?";
+                try (PreparedStatement managerStmt = conn.prepareStatement(managerQuery)) {
+                    managerStmt.setString(1, managerSoeid);
+                    ResultSet rs = managerStmt.executeQuery();
+                    if (rs.next()) {
+                        managerId = rs.getInt("USER_ID");
+                    } else {
+                        JOptionPane.showMessageDialog(this,
+                            ("Tester".equals(role) ? "Lead" : "Manager") + " SOEID not found!",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                        return false;
+                    }
+                }
+            }
+
+            // Insert new user with the next user_id
+            String sql = "INSERT INTO USERS (USER_ID, SOEID, PASSWORD, USER_NAME, USER_ROLE, " +
+                        "MANAGER_SOEID, MANAGER_ID, USER_TEAM, PROJECT_ID) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, nextUserId);
+                pstmt.setString(2, soeid);
+                pstmt.setString(3, pin);
+                pstmt.setString(4, name);
+                pstmt.setString(5, role);
+                pstmt.setString(6, "Manager".equals(role) ? null : managerSoeid);
+                if (managerId != null) {
+                    pstmt.setInt(7, managerId);
+                } else {
+                    pstmt.setNull(7, java.sql.Types.INTEGER);
+                }
+                pstmt.setInt(8, teamId);
+                pstmt.setInt(9, projectId);
+                
+                pstmt.executeUpdate();
+                return true;
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Registration error: " + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE);
+        return false;
+    }
+    return false;
+}
