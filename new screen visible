@@ -1,0 +1,126 @@
+private JPanel createZephyrScreen() {
+   JPanel zephyrPanel = new JPanel();
+   zephyrPanel.setLayout(new BorderLayout());
+
+   // Title Panel at the top
+   JPanel titlePanel = new JPanel();
+   JLabel titleLabel = new JLabel("Zephyr Section");
+   titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+   titlePanel.add(titleLabel);
+
+   // Main content panel
+   JPanel contentPanel = new JPanel(null);
+   contentPanel.setPreferredSize(new Dimension(600, 500));
+
+   // Release Selection Panel at top
+   JPanel releasePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+   releasePanel.setBounds(50, 20, 500, 40);
+   
+   JLabel releaseLabel = new JLabel("Search Release:");
+   JTextField searchField = new JTextField(15);
+   searchField.setFont(new Font("Arial", Font.PLAIN, 14));
+   
+   DefaultComboBoxModel<ReleaseItem> model = new DefaultComboBoxModel<>();
+   JComboBox<ReleaseItem> releaseDropdown = new JComboBox<>(model);
+   releaseDropdown.setFont(new Font("Arial", Font.PLAIN, 14));
+   releaseDropdown.setPreferredSize(new Dimension(200, 25));
+
+   // Show initial items
+   for (int i = 0; i < Math.min(5, allReleases.size()); i++) {
+       model.addElement(allReleases.get(i));
+   }
+
+   // Add search functionality
+   searchField.addKeyListener(new KeyAdapter() {
+       @Override
+       public void keyReleased(KeyEvent e) {
+           // ... existing search code ...
+       }
+   });
+
+   releasePanel.add(releaseLabel);
+   releasePanel.add(searchField);
+   releasePanel.add(releaseDropdown);
+
+   // Dynamic content panel for image/buttons
+   JPanel dynamicContentPanel = new JPanel(null);
+   dynamicContentPanel.setBounds(50, 80, 500, 350);  // Increased height for buttons
+
+   // Create image/placeholder
+   JPanel placeholderPanel = new JPanel();
+   placeholderPanel.setBounds(150, 50, 200, 200);
+   placeholderPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+   JLabel placeholderText = new JLabel("Please select a release");
+   placeholderText.setFont(new Font("Arial", Font.BOLD, 16));
+   placeholderPanel.add(placeholderText);
+
+   // Create buttons (initially not added)
+   JButton createReleaseButton = new JButton("Create Release");
+   createReleaseButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   createReleaseButton.setBounds(150, 50, 200, 35);
+   createReleaseButton.addActionListener(e -> showCreateReleaseScreen());
+
+   JButton importReqButton = new JButton("Import Requirements");
+   importReqButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   importReqButton.setBounds(150, 95, 200, 35);
+
+   JButton updateReleaseButton = new JButton("Update Release Data");
+   updateReleaseButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   updateReleaseButton.setBounds(150, 140, 200, 35);
+
+   JButton updateCentralTestRepoButton = new JButton("Update Central Test Repo");
+   updateCentralTestRepoButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   updateCentralTestRepoButton.setBounds(150, 185, 200, 35);
+
+   JButton updateConfluenceButton = new JButton("Update Confluence");
+   updateConfluenceButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   updateConfluenceButton.setBounds(150, 230, 200, 35);
+
+   // Back button (always visible)
+   JButton backButton = new JButton("Back");
+   backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   backButton.setBounds(150, 275, 200, 35);
+   backButton.addActionListener(e -> cardLayout.show(mainPanel, "HOME"));
+
+   // Initial state
+   dynamicContentPanel.add(placeholderPanel);
+   dynamicContentPanel.add(backButton);
+
+   // Modify dropdown listener
+   releaseDropdown.addActionListener(e -> {
+       if (releaseDropdown.getSelectedItem() != null && 
+           !releaseDropdown.getSelectedItem().toString().equals("Select Release")) {
+           selectedRelease = (ReleaseItem) releaseDropdown.getSelectedItem();
+           
+           // Remove placeholder
+           dynamicContentPanel.remove(placeholderPanel);
+           
+           // Add all buttons
+           dynamicContentPanel.add(createReleaseButton);
+           dynamicContentPanel.add(importReqButton);
+           dynamicContentPanel.add(updateReleaseButton);
+           dynamicContentPanel.add(updateCentralTestRepoButton);
+           dynamicContentPanel.add(updateConfluenceButton);
+           
+           dynamicContentPanel.revalidate();
+           dynamicContentPanel.repaint();
+       } else {
+           // Remove all buttons except back
+           dynamicContentPanel.removeAll();
+           dynamicContentPanel.add(placeholderPanel);
+           dynamicContentPanel.add(backButton);
+           dynamicContentPanel.revalidate();
+           dynamicContentPanel.repaint();
+       }
+   });
+
+   // Add panels to content
+   contentPanel.add(releasePanel);
+   contentPanel.add(dynamicContentPanel);
+
+   // Add to main panel
+   zephyrPanel.add(titlePanel, BorderLayout.NORTH);
+   zephyrPanel.add(contentPanel, BorderLayout.CENTER);
+
+   return zephyrPanel;
+}
