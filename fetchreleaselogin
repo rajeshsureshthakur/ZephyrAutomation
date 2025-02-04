@@ -1,0 +1,112 @@
+private List<ReleaseItem> allReleases = new ArrayList<>();
+
+private void loadUserReleases() {
+    // Show loading dialog
+    JDialog loadingDialog = new JDialog(this, "Loading", true);
+    JLabel loadingLabel = new JLabel("Please wait, fetching release data...");
+    loadingLabel.setHorizontalAlignment(JLabel.CENTER);
+    loadingDialog.add(loadingLabel);
+    loadingDialog.setSize(250, 100);
+    loadingDialog.setLocationRelativeTo(this);
+
+    SwingWorker<Void, Void> worker = new SwingWorker<>() {
+        @Override
+        protected Void doInBackground() {
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                    String sql = "SELECT RELEASE_ID, RELEASE_NAME FROM RELEASES WHERE PROJECT_ID = ? ORDER BY RELEASE_NAME";
+                    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                        pstmt.setInt(1, getUserProjectId());
+                        try (ResultSet rs = pstmt.executeQuery()) {
+                            allReleases.clear();  // Clear existing releases
+                            while (rs.next()) {
+                                allReleases.add(new ReleaseItem(
+                                    rs.getInt("RELEASE_ID"),
+                                    rs.getString("RELEASE_NAME")
+                                ));
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void done() {
+            loadingDialog.dispose();
+        }
+    };
+
+    worker.execute();
+    loadingDialog.setVisible(true);
+}
+
+
+
+if (validateLogin(soeid, password)) {
+    currentUserSoeid = soeid;
+    currentUserName = fetchUserName(soeid);
+    loadUserReleases();  // Load releases after successful login
+    mainPanel.remove(mainPanel.getComponent(2));
+    mainPanel.add(createHomeScreen(), "HOME", 2);
+    cardLayout.show(mainPanel, "HOME");
+}
+
+
+
+private JPanel createZephyrScreen() {
+    JPanel zephyrPanel = new JPanel();
+    zephyrPanel.setLayout(new BorderLayout());
+
+    // Title Panel at the top
+    JPanel titlePanel = new JPanel();
+    JLabel titleLabel = new JLabel("Zephyr Section");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+    titlePanel.add(titleLabel);
+
+    // Main content panel
+    JPanel contentPanel = new JPanel(null);
+    contentPanel.setPreferredSize(new Dimension(600, 500));
+
+    // Rest of your code remains same but use allReleases instead of fetching again
+    // ...
+
+    // For the dropdown:
+    DefaultComboBoxModel<ReleaseItem> model = new DefaultComboBoxModel<>();
+    for (int i = 0; i < Math.min(5, allReleases.size()); i++) {
+        model.addElement(allReleases.get(i));
+    }
+
+    // For search:
+    searchField.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyReleased(KeyEvent e) {
+            String searchText = searchField.getText().toLowerCase().trim();
+            model.removeAllElements();
+
+            if (searchText.isEmpty()) {
+                for (int i = 0; i < Math.min(5, allReleases.size()); i++) {
+                    model.addElement(allReleases.get(i));
+                }
+                return;
+            }
+
+            int count = 0;
+            for (ReleaseItem item : allReleases) {
+                if (item.getName().toLowerCase().contains(searchText)) {
+                    model.addElement(item);
+                    count++;
+                    if (count >= 5) break;
+                }
+            }
+        }
+    });
+
+    // ... rest of your code remains same
+}
+
+
