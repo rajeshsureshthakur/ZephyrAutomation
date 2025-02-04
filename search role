@@ -1,0 +1,29 @@
+// In the createHomeScreen method, before adding the Create Team button:
+try {
+   String role = getUserRole(currentUserSoeid);
+   if ("Manager".equals(role)) {
+       addCreateTeamButton(homePanel);
+   }
+} catch (Exception e) {
+   e.printStackTrace();
+}
+
+// Add method to get user role
+private String getUserRole(String soeid) {
+   try {
+       Class.forName("oracle.jdbc.driver.OracleDriver");
+       try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+           String sql = "SELECT USER_ROLE FROM USERS WHERE SOEID = ?";
+           try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+               pstmt.setString(1, soeid);
+               ResultSet rs = pstmt.executeQuery();
+               if (rs.next()) {
+                   return rs.getString("USER_ROLE");
+               }
+           }
+       }
+   } catch (Exception e) {
+       e.printStackTrace();
+   }
+   return "";
+}
