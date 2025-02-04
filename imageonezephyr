@@ -1,0 +1,61 @@
+// In createZephyrScreen, after creating the release dropdown:
+
+// Create a panel for the image and buttons
+JPanel dynamicContentPanel = new JPanel(null);
+dynamicContentPanel.setBounds(50, 135, 500, 300);  // Adjust position as needed
+
+// Create image label
+ImageIcon selectReleaseIcon = new ImageIcon("select_release.png");
+// Scale image if needed
+Image scaledImage = selectReleaseIcon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+ImageIcon scaledIcon = new ImageIcon(scaledImage);
+JLabel imageLabel = new JLabel(scaledIcon);
+imageLabel.setBounds(150, 0, 200, 200);  // Center the image
+dynamicContentPanel.add(imageLabel);
+
+// Create buttons but don't add them yet
+JButton importReqButton = new JButton("Import Requirements");
+importReqButton.setFont(new Font("Arial", Font.PLAIN, 14));
+importReqButton.setBounds(150, 0, 200, 35);
+
+JButton updateReleaseButton = new JButton("Update Release Data");
+updateReleaseButton.setFont(new Font("Arial", Font.PLAIN, 14));
+updateReleaseButton.setBounds(150, 45, 200, 35);
+
+JButton updateCentralTestRepoButton = new JButton("Update Central Test Repo");
+updateCentralTestRepoButton.setFont(new Font("Arial", Font.PLAIN, 14));
+updateCentralTestRepoButton.setBounds(150, 90, 200, 35);
+
+JButton updateConfluenceButton = new JButton("Update Confluence");
+updateConfluenceButton.setFont(new Font("Arial", Font.PLAIN, 14));
+updateConfluenceButton.setBounds(150, 135, 200, 35);
+
+// Modify the dropdown listener
+releaseDropdown.addActionListener(e -> {
+    if (releaseDropdown.getSelectedItem() != null && 
+        !releaseDropdown.getSelectedItem().toString().equals("Select Release")) {
+        selectedRelease = (ReleaseItem) releaseDropdown.getSelectedItem();
+        
+        // Remove image
+        dynamicContentPanel.remove(imageLabel);
+        
+        // Add buttons
+        dynamicContentPanel.add(importReqButton);
+        dynamicContentPanel.add(updateReleaseButton);
+        dynamicContentPanel.add(updateCentralTestRepoButton);
+        dynamicContentPanel.add(updateConfluenceButton);
+        
+        dynamicContentPanel.revalidate();
+        dynamicContentPanel.repaint();
+    } else {
+        // Remove buttons
+        dynamicContentPanel.removeAll();
+        // Add back image
+        dynamicContentPanel.add(imageLabel);
+        dynamicContentPanel.revalidate();
+        dynamicContentPanel.repaint();
+    }
+});
+
+// Add dynamicContentPanel to main content panel
+contentPanel.add(dynamicContentPanel);
