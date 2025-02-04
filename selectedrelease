@@ -1,0 +1,26 @@
+private ReleaseItem selectedRelease; // Add this as class field
+
+releaseDropdown.addActionListener(e -> {
+    if (releaseDropdown.getSelectedItem() != null) {
+        selectedRelease = (ReleaseItem) releaseDropdown.getSelectedItem();  // Store selected item
+        
+        // Show the buttons
+        importReqButton.setVisible(true);
+        updateReleaseButton.setVisible(true);
+        updateCentralTestRepoButton.setVisible(true);
+        updateConfluenceButton.setVisible(true);
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+});
+
+
+// In your button action listeners:
+importReqButton.addActionListener(e -> {
+    if(selectedRelease != null) {
+        // Access release details using:
+        int releaseId = selectedRelease.getId();
+        String releaseName = selectedRelease.getName();
+        // ... rest of your code
+    }
+});
