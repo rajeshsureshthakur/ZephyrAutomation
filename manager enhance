@@ -1,0 +1,186 @@
+// Add these as class fields
+private JTextField managerSoeidField;
+private JLabel managerSoeidLabel;
+
+private void createRegistrationScreen() {
+    // ... existing initial setup code ...
+
+    // After the project dropdown section, add:
+
+    // User Role Dropdown
+    JPanel rolePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JLabel roleLabel = new JLabel("User Role:");
+    roleLabel.setPreferredSize(new Dimension(100, 25));
+    String[] roles = {"Select Role", "Manager", "Lead", "Tester"};
+    JComboBox<String> roleDropdown = new JComboBox<>(roles);
+    roleDropdown.setPreferredSize(new Dimension(300, 25));
+    rolePanel.add(roleLabel);
+    rolePanel.add(roleDropdown);
+
+    // Manager/Lead SOEID Field (initially invisible)
+    JPanel managerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    managerSoeidLabel = new JLabel("Manager SOEID:");
+    managerSoeidLabel.setPreferredSize(new Dimension(100, 25));
+    managerSoeidField = new JTextField(20);
+    managerSoeidField.setPreferredSize(new Dimension(300, 25));
+    managerPanel.add(managerSoeidLabel);
+    managerPanel.add(managerSoeidField);
+    managerPanel.setVisible(false);
+
+    // Team Dropdown
+    JPanel teamPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JLabel teamLabel = new JLabel("Team:");
+    teamLabel.setPreferredSize(new Dimension(100, 25));
+    JComboBox<TeamItem> teamDropdown = new JComboBox<>();
+    teamDropdown.setPreferredSize(new Dimension(300, 25));
+    populateTeamDropdown(teamDropdown);
+    teamPanel.add(teamLabel);
+    teamPanel.add(teamDropdown);
+
+    // Add role change listener
+    roleDropdown.addActionListener(e -> {
+        String selectedRole = (String) roleDropdown.getSelectedItem();
+        if ("Tester".equals(selectedRole)) {
+            managerSoeidLabel.setText("Lead SOEID:");
+            managerPanel.setVisible(true);
+        } else if ("Lead".equals(selectedRole)) {
+            managerSoeidLabel.setText("Manager SOEID:");
+            managerPanel.setVisible(true);
+        } else if ("Manager".equals(selectedRole)) {
+            managerPanel.setVisible(false);
+        }
+        registerPanel.revalidate();
+        registerPanel.repaint();
+    });
+
+    // Modify register button action to include new fields
+    registerButton.addActionListener(e -> {
+        String name = nameField.getText().trim();
+        String soeid = soeidField.getText().trim();
+        String pin = new String(pinField.getPassword());
+        String role = (String) roleDropdown.getSelectedItem();
+        String managerSoeid = managerSoeidField.getText().trim();
+        TeamItem selectedTeam = (TeamItem) teamDropdown.getSelectedItem();
+        ProjectItem selectedProject = (ProjectItem) projectDropdown.getSelectedItem();
+
+        if (validateRegistrationFields(name, soeid, pin, role, managerSoeid, selectedTeam, selectedProject)) {
+            if (registerUser(name, soeid, pin, role, managerSoeid, 
+                           selectedTeam.getId(), selectedProject.getId())) {
+                JOptionPane.showMessageDialog(this,
+                    "Registration successful! Please login.",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+                cardLayout.show(mainPanel, "LOGIN");
+            }
+        }
+    });
+
+    // Add new panels to registration screen
+    // ... after existing fields ...
+    registerPanel.add(Box.createVerticalStrut(10));
+    registerPanel.add(rolePanel);
+    registerPanel.add(Box.createVerticalStrut(10));
+    registerPanel.add(managerPanel);
+    registerPanel.add(Box.createVerticalStrut(10));
+    registerPanel.add(teamPanel);
+    // ... rest of the existing code ...
+}
+
+// Add helper class for Team items
+private class TeamItem {
+    private final int id;
+    private final String name;
+
+    public TeamItem(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public int getId() { return id; }
+    public String getName() { return name; }
+
+    @Override
+    public String toString() { return name; }
+}
+
+// Add method to populate team dropdown
+private void populateTeamDropdown(JComboBox<TeamItem> dropdown) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT TEAM_ID, TEAM_NAME FROM TEAMS ORDER BY TEAM_NAME";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql);
+                 ResultSet rs = pstmt.executeQuery()) {
+                
+                dropdown.addItem(new TeamItem(0, "Select Team"));
+                while (rs.next()) {
+                    dropdown.addItem(new TeamItem(
+                        rs.getInt("TEAM_ID"),
+                        rs.getString("TEAM_NAME")
+                    ));
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Error loading teams: " + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE);
+    }
+}
+
+// Modify the registerUser method to include new fields
+private boolean registerUser(String name, String soeid, String pin, String role,
+                           String managerSoeid, int teamId, int projectId) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "INSERT INTO USERS (SOEID, PASSWORD, USER_NAME, USER_ROLE, " +
+                        "MANAGER_SOEID, USER_TEAM, PROJECT_ID) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, soeid);
+                pstmt.setString(2, pin);
+                pstmt.setString(3, name);
+                pstmt.setString(4, role);
+                pstmt.setString(5, "Manager".equals(role) ? null : managerSoeid);
+                pstmt.setInt(6, teamId);
+                pstmt.setInt(7, projectId);
+                pstmt.executeUpdate();
+                return true;
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Registration error: " + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE);
+        return false;
+    }
+    return false;
+}
+
+// Add validation method for new fields
+private boolean validateRegistrationFields(String name, String soeid, String pin,
+                                         String role, String managerSoeid,
+                                         TeamItem team, ProjectItem project) {
+    if (name.isEmpty() || soeid.isEmpty() || pin.length() != 4 || 
+        "Select Role".equals(role) || team.getId() == 0 || project.getId() == 0) {
+        JOptionPane.showMessageDialog(this,
+            "Please fill all required fields",
+            "Validation Error",
+            JOptionPane.ERROR_MESSAGE);
+        return false;
+    }
+
+    if (!"Manager".equals(role) && managerSoeid.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+            "Please enter " + ("Tester".equals(role) ? "Lead" : "Manager") + " SOEID",
+            "Validation Error",
+            JOptionPane.ERROR_MESSAGE);
+        return false;
+    }
+
+    return true;
+}
