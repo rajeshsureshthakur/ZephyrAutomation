@@ -1,0 +1,179 @@
+private JPanel createZephyrScreen() {
+    JPanel zephyrPanel = new JPanel();
+    zephyrPanel.setLayout(new BorderLayout());
+
+    // Show loading dialog
+    JDialog loadingDialog = new JDialog(this, "Loading", true);
+    JLabel loadingLabel = new JLabel("Please wait, fetching release data...");
+    loadingLabel.setHorizontalAlignment(JLabel.CENTER);
+    loadingDialog.add(loadingLabel);
+    loadingDialog.setSize(250, 100);
+    loadingDialog.setLocationRelativeTo(this);
+
+    SwingWorker<List<ReleaseItem>, Void> worker = new SwingWorker<>() {
+        @Override
+        protected List<ReleaseItem> doInBackground() {
+            List<ReleaseItem> releases = new ArrayList<>();
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                    String sql = "SELECT RELEASE_ID, RELEASE_NAME FROM RELEASES WHERE PROJECT_ID = ? ORDER BY RELEASE_NAME";
+                    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                        pstmt.setInt(1, getUserProjectId());
+                        try (ResultSet rs = pstmt.executeQuery()) {
+                            while (rs.next()) {
+                                releases.add(new ReleaseItem(
+                                    rs.getInt("RELEASE_ID"),
+                                    rs.getString("RELEASE_NAME")
+                                ));
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return releases;
+        }
+
+        @Override
+        protected void done() {
+            try {
+                List<ReleaseItem> releases = get();
+                loadingDialog.dispose();
+                
+                // Title Panel at the top
+                JPanel titlePanel = new JPanel();
+                JLabel titleLabel = new JLabel("Zephyr Section");
+                titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+                titlePanel.add(titleLabel);
+
+                // Main content panel with null layout for fixed positioning
+                JPanel contentPanel = new JPanel(null);
+                contentPanel.setPreferredSize(new Dimension(600, 500));  // Increased height
+
+                // Create Release Button
+                JButton createReleaseButton = new JButton("Create Release");
+                createReleaseButton.setFont(new Font("Arial", Font.PLAIN, 14));
+                createReleaseButton.setBounds(200, 20, 200, 35);
+                createReleaseButton.addActionListener(e -> showCreateReleaseScreen());
+
+                // Release Selection Panel
+                JPanel releasePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+                releasePanel.setBounds(50, 75, 500, 40);
+                
+                JLabel releaseLabel = new JLabel("Search Release:");
+                JTextField searchField = new JTextField(15);
+                searchField.setFont(new Font("Arial", Font.PLAIN, 14));
+                
+                DefaultComboBoxModel<ReleaseItem> model = new DefaultComboBoxModel<>();
+                JComboBox<ReleaseItem> releaseDropdown = new JComboBox<>(model);
+                releaseDropdown.setFont(new Font("Arial", Font.PLAIN, 14));
+                releaseDropdown.setPreferredSize(new Dimension(200, 25));
+
+                // Show initial items
+                for (int i = 0; i < Math.min(5, releases.size()); i++) {
+                    model.addElement(releases.get(i));
+                }
+
+                // Add search functionality
+                searchField.addKeyListener(new KeyAdapter() {
+                    @Override
+                    public void keyReleased(KeyEvent e) {
+                        String searchText = searchField.getText().toLowerCase().trim();
+                        model.removeAllElements();
+
+                        if (searchText.isEmpty()) {
+                            for (int i = 0; i < Math.min(5, releases.size()); i++) {
+                                model.addElement(releases.get(i));
+                            }
+                            return;
+                        }
+
+                        int count = 0;
+                        for (ReleaseItem item : releases) {
+                            if (item.getName().toLowerCase().contains(searchText)) {
+                                model.addElement(item);
+                                count++;
+                                if (count >= 5) break;
+                            }
+                        }
+                    }
+                });
+
+                releasePanel.add(releaseLabel);
+                releasePanel.add(searchField);
+                releasePanel.add(releaseDropdown);
+
+                // Action Buttons (initially invisible)
+                JButton importReqButton = new JButton("Import Requirements");
+                importReqButton.setFont(new Font("Arial", Font.PLAIN, 14));
+                importReqButton.setBounds(200, 135, 200, 35);
+                importReqButton.setVisible(false);
+
+                JButton updateReleaseButton = new JButton("Update Release Data");
+                updateReleaseButton.setFont(new Font("Arial", Font.PLAIN, 14));
+                updateReleaseButton.setBounds(200, 190, 200, 35);
+                updateReleaseButton.setVisible(false);
+
+                JButton updateCentralTestRepoButton = new JButton("Update Central Test Repo");
+                updateCentralTestRepoButton.setFont(new Font("Arial", Font.PLAIN, 14));
+                updateCentralTestRepoButton.setBounds(200, 245, 200, 35);
+                updateCentralTestRepoButton.setVisible(false);
+
+                JButton updateConfluenceButton = new JButton("Update Confluence");
+                updateConfluenceButton.setFont(new Font("Arial", Font.PLAIN, 14));
+                updateConfluenceButton.setBounds(200, 300, 200, 35);
+                updateConfluenceButton.setVisible(false);
+
+                JButton backButton = new JButton("Back");
+                backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+                backButton.setBounds(200, 355, 200, 35);
+
+                // Make buttons appear when release is selected
+                releaseDropdown.addActionListener(e -> {
+                    if (releaseDropdown.getSelectedItem() != null) {
+                        importReqButton.setVisible(true);
+                        updateReleaseButton.setVisible(true);
+                        updateCentralTestRepoButton.setVisible(true);
+                        updateConfluenceButton.setVisible(true);
+                        contentPanel.revalidate();
+                        contentPanel.repaint();
+                    }
+                });
+
+                // Add action listeners
+                backButton.addActionListener(e -> cardLayout.show(mainPanel, "HOME"));
+                importReqButton.addActionListener(e -> showImportRequirementsWindow());
+                updateReleaseButton.addActionListener(e -> showUpdateReleaseDataScreen());
+
+                // Add components to content panel
+                contentPanel.add(createReleaseButton);
+                contentPanel.add(releasePanel);
+                contentPanel.add(importReqButton);
+                contentPanel.add(updateReleaseButton);
+                contentPanel.add(updateCentralTestRepoButton);
+                contentPanel.add(updateConfluenceButton);
+                contentPanel.add(backButton);
+
+                zephyrPanel.add(titlePanel, BorderLayout.NORTH);
+                zephyrPanel.add(contentPanel, BorderLayout.CENTER);
+
+                mainPanel.add(zephyrPanel, "ZEPHYR");
+                cardLayout.show(mainPanel, "ZEPHYR");
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                loadingDialog.dispose();
+                JOptionPane.showMessageDialog(null, 
+                    "Error loading releases: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    };
+
+    worker.execute();
+    loadingDialog.setVisible(true);
+    return zephyrPanel;
+}
