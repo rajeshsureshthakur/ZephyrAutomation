@@ -1,0 +1,141 @@
+private void showUpdateReleaseDataScreen() {
+    // Show loading dialog
+    JDialog loadingDialog = new JDialog(this, "Loading", true);
+    JLabel loadingLabel = new JLabel("Please wait, fetching release data...");
+    loadingLabel.setHorizontalAlignment(JLabel.CENTER);
+    loadingDialog.add(loadingLabel);
+    loadingDialog.setSize(250, 100);
+    loadingDialog.setLocationRelativeTo(this);
+
+    SwingWorker<List<ReleaseItem>, Void> worker = new SwingWorker<>() {
+        @Override
+        protected List<ReleaseItem> doInBackground() {
+            List<ReleaseItem> releases = new ArrayList<>();
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                    String sql = "SELECT RELEASE_ID, RELEASE_NAME FROM RELEASES WHERE PROJECT_ID = ? ORDER BY RELEASE_NAME";
+                    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                        pstmt.setInt(1, getUserProjectId());
+                        try (ResultSet rs = pstmt.executeQuery()) {
+                            while (rs.next()) {
+                                releases.add(new ReleaseItem(
+                                    rs.getInt("RELEASE_ID"),
+                                    rs.getString("RELEASE_NAME")
+                                ));
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return releases;
+        }
+
+        @Override
+        protected void done() {
+            loadingDialog.dispose();
+            try {
+                List<ReleaseItem> releases = get();
+                showUpdateScreen(releases);
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, 
+                    "Error loading releases: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    };
+
+    worker.execute();
+    loadingDialog.setVisible(true);
+}
+
+private void showUpdateScreen(List<ReleaseItem> allReleases) {
+    JPanel updatePanel = new JPanel();
+    updatePanel.setLayout(new BorderLayout());
+
+    JPanel titlePanel = new JPanel();
+    JLabel titleLabel = new JLabel("Update Release Data");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+    titlePanel.add(titleLabel);
+
+    JPanel contentPanel = new JPanel(null);
+    contentPanel.setPreferredSize(new Dimension(600, 400));
+
+    // Release Selection with Search
+    JPanel releasePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    releasePanel.setBounds(50, 20, 500, 40);
+    JLabel releaseLabel = new JLabel("Search Release:");
+    releaseLabel.setPreferredSize(new Dimension(100, 25));
+
+    JTextField searchField = new JTextField();
+    searchField.setPreferredSize(new Dimension(150, 25));
+
+    DefaultComboBoxModel<ReleaseItem> model = new DefaultComboBoxModel<>();
+    JComboBox<ReleaseItem> releaseDropdown = new JComboBox<>(model);
+    releaseDropdown.setPreferredSize(new Dimension(300, 25));
+
+    // Show initial items
+    for (int i = 0; i < Math.min(5, allReleases.size()); i++) {
+        model.addElement(allReleases.get(i));
+    }
+
+    // Add search functionality
+    searchField.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyReleased(KeyEvent e) {
+            String searchText = searchField.getText().toLowerCase().trim();
+            model.removeAllElements();
+
+            if (searchText.isEmpty()) {
+                for (int i = 0; i < Math.min(5, allReleases.size()); i++) {
+                    model.addElement(allReleases.get(i));
+                }
+                return;
+            }
+
+            int count = 0;
+            for (ReleaseItem item : allReleases) {
+                if (item.getName().toLowerCase().contains(searchText)) {
+                    model.addElement(item);
+                    count++;
+                    if (count >= 5) break;
+                }
+            }
+        }
+    });
+
+    releasePanel.add(releaseLabel);
+    releasePanel.add(searchField);
+    releasePanel.add(releaseDropdown);
+
+    // Action Buttons
+    JButton viewBowButton = createActionButton("View My BOW", 100);
+    JButton updateTestcaseButton = createActionButton("Update Testcase", 150);
+    JButton updateReleaseButton = createActionButton("Update Release", 200);
+    JButton backButton = createActionButton("Back", 250);
+
+    backButton.addActionListener(e -> cardLayout.show(mainPanel, "ZEPHYR"));
+
+    contentPanel.add(releasePanel);
+    contentPanel.add(viewBowButton);
+    contentPanel.add(updateTestcaseButton);
+    contentPanel.add(updateReleaseButton);
+    contentPanel.add(backButton);
+
+    updatePanel.add(titlePanel, BorderLayout.NORTH);
+    updatePanel.add(contentPanel, BorderLayout.CENTER);
+
+    mainPanel.add(updatePanel, "UPDATE_RELEASE_DATA");
+    cardLayout.show(mainPanel, "UPDATE_RELEASE_DATA");
+}
+
+private JButton createActionButton(String text, int yPosition) {
+    JButton button = new JButton(text);
+    button.setFont(new Font("Arial", Font.PLAIN, 14));
+    button.setBounds(200, yPosition, 200, 35);
+    return button;
+}
