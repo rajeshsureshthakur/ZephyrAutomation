@@ -1,0 +1,99 @@
+private void showUpdateReleaseDataScreen() {
+   JPanel updatePanel = new JPanel();
+   updatePanel.setLayout(new BorderLayout());
+
+   // Title
+   JPanel titlePanel = new JPanel();
+   JLabel titleLabel = new JLabel("Update Release Data");
+   titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+   titlePanel.add(titleLabel);
+
+   // Content panel with null layout for fixed positioning
+   JPanel contentPanel = new JPanel(null);
+   contentPanel.setPreferredSize(new Dimension(600, 400));
+
+   // Release Selection Button
+   JButton selectReleaseButton = new JButton("Select Release");
+   selectReleaseButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   selectReleaseButton.setBounds(200, 50, 200, 35);
+
+   // Action Buttons (initially invisible)
+   JButton viewBowButton = new JButton("View My BOW");
+   viewBowButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   viewBowButton.setBounds(200, 100, 200, 35);
+   viewBowButton.setVisible(false);
+
+   JButton updateTestcaseButton = new JButton("Update Testcase");
+   updateTestcaseButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   updateTestcaseButton.setBounds(200, 150, 200, 35);
+   updateTestcaseButton.setVisible(false);
+
+   JButton updateReleaseButton = new JButton("Update Release");
+   updateReleaseButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   updateReleaseButton.setBounds(200, 200, 200, 35);
+   updateReleaseButton.setVisible(false);
+
+   JButton backButton = new JButton("Back");
+   backButton.setFont(new Font("Arial", Font.PLAIN, 14));
+   backButton.setBounds(200, 250, 200, 35);
+
+   // Selected Release Label
+   JLabel selectedReleaseLabel = new JLabel("");
+   selectedReleaseLabel.setFont(new Font("Arial", Font.BOLD, 14));
+   selectedReleaseLabel.setBounds(50, 20, 500, 25);
+   selectedReleaseLabel.setHorizontalAlignment(JLabel.CENTER);
+
+   selectReleaseButton.addActionListener(e -> {
+       // Show release selection dialog
+       showReleaseSelectionDialog(dialog -> {
+           ReleaseItem selectedRelease = (ReleaseItem) dialog;
+           if (selectedRelease != null) {
+               selectedReleaseLabel.setText("Selected Release: " + selectedRelease.getName());
+               viewBowButton.setVisible(true);
+               updateTestcaseButton.setVisible(true);
+               updateReleaseButton.setVisible(true);
+               contentPanel.revalidate();
+               contentPanel.repaint();
+           }
+       });
+   });
+
+   // Add action listeners for other buttons
+   viewBowButton.addActionListener(e -> {
+       // Add view BOW functionality
+   });
+
+   updateTestcaseButton.addActionListener(e -> {
+       // Add update testcase functionality
+   });
+
+   updateReleaseButton.addActionListener(e -> {
+       // Add update release functionality
+   });
+
+   backButton.addActionListener(e -> cardLayout.show(mainPanel, "ZEPHYR"));
+
+   // Add components
+   contentPanel.add(selectedReleaseLabel);
+   contentPanel.add(selectReleaseButton);
+   contentPanel.add(viewBowButton);
+   contentPanel.add(updateTestcaseButton);
+   contentPanel.add(updateReleaseButton);
+   contentPanel.add(backButton);
+
+   updatePanel.add(titlePanel, BorderLayout.NORTH);
+   updatePanel.add(contentPanel, BorderLayout.CENTER);
+
+   mainPanel.add(updatePanel, "UPDATE_RELEASE_DATA");
+   cardLayout.show(mainPanel, "UPDATE_RELEASE_DATA");
+}
+
+private void showReleaseSelectionDialog(Consumer<ReleaseItem> callback) {
+   JDialog dialog = new JDialog(this, "Select Release", true);
+   dialog.setLayout(new BorderLayout(10, 10));
+   dialog.setSize(600, 300);
+   dialog.setLocationRelativeTo(this);
+
+   // Use the existing release selection functionality with search
+   // Similar to what we implemented for Import Requirements
+}
