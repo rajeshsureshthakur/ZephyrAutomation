@@ -1,0 +1,25 @@
+private void loadTableData(DefaultTableModel model) {
+    try {
+        // ... your existing connection code ...
+        try (ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                // Add to table model
+                model.addRow(new Object[]{ /* your existing code */ });
+                
+                // Add to modifiedData list
+                TestCaseData data = new TestCaseData();
+                data.id = rs.getInt("ID");  // Make sure to get ID
+                data.testCase = rs.getString("TESTCASE");
+                data.status = rs.getString("STATUS");
+                data.primaryApplication = rs.getString("PRIMARY_APPLICATION");
+                data.capability = rs.getString("CAPABILITY");
+                data.businessArea = rs.getString("BUSINESS_AREA");
+                data.criticality = rs.getString("CRITICALITY");
+                data.scrumTeam = rs.getString("SCRUM_TEAM");
+                data.modified = false;
+                modifiedData.add(data);
+            }
+        }
+    }
+    // ... rest of your code ...
+}
