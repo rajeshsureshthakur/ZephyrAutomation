@@ -1,0 +1,171 @@
+private class TestCaseData {
+    private int id;  // for database record identification
+    private String testCase;
+    private String status;
+    private String primaryApplication;
+    private String capability;
+    private String businessArea;
+    private String criticality;
+    private String scrumTeam;
+    private boolean modified;  // to track if this row was modified
+
+    // Constructor and getters/setters
+}
+
+
+
+private void showUpdateTableScreen() {
+    JPanel updatePanel = new JPanel(new BorderLayout());
+    
+    // Title
+    JLabel titleLabel = new JLabel("Update Test Cases");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+    JPanel titlePanel = new JPanel();
+    titlePanel.add(titleLabel);
+
+    // Create table model
+    DefaultTableModel model = new DefaultTableModel() {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return true;  // Make all cells editable
+        }
+    };
+
+    // Add columns
+    String[] columns = {"Test Case", "Status", "Primary Application", 
+                       "Capability", "Business Area", "Criticality", "Scrum Team"};
+    for (String column : columns) {
+        model.addColumn(column);
+    }
+
+    // Create table
+    JTable table = new JTable(model);
+    table.setFont(new Font("Arial", Font.PLAIN, 12));
+    table.setRowHeight(25);
+    table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+
+    // Add data from database
+    loadTableData(model);
+
+    // Track changes
+    List<TestCaseData> originalData = new ArrayList<>();
+    List<TestCaseData> modifiedData = new ArrayList<>();
+    boolean[] hasChanges = {false};  // Using array to access in listener
+
+    // Add cell change listener
+    table.getModel().addTableModelListener(e -> {
+        if (e.getType() == TableModelEvent.UPDATE) {
+            hasChanges[0] = true;
+            updateButton.setVisible(true);
+            int row = e.getFirstRow();
+            int column = e.getColumn();
+            String newValue = (String)model.getValueAt(row, column);
+            modifiedData.get(row).modified = true;
+            // Update the corresponding field based on column
+            switch(column) {
+                case 0: modifiedData.get(row).testCase = newValue; break;
+                case 1: modifiedData.get(row).status = newValue; break;
+                // ... other cases
+            }
+        }
+    });
+
+    // Create scroll pane for table
+    JScrollPane scrollPane = new JScrollPane(table);
+    scrollPane.setPreferredSize(new Dimension(800, 400));
+
+    // Update button (initially invisible)
+    JButton updateButton = new JButton("Update Changes");
+    updateButton.setVisible(false);
+    updateButton.addActionListener(e -> {
+        updateTableData(modifiedData);
+        hasChanges[0] = false;
+        updateButton.setVisible(false);
+    });
+
+    // Back button
+    JButton backButton = new JButton("Back");
+    backButton.addActionListener(e -> cardLayout.show(mainPanel, "ZEPHYR"));
+
+    // Button panel
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.add(updateButton);
+    buttonPanel.add(backButton);
+
+    // Add components
+    updatePanel.add(titlePanel, BorderLayout.NORTH);
+    updatePanel.add(scrollPane, BorderLayout.CENTER);
+    updatePanel.add(buttonPanel, BorderLayout.SOUTH);
+
+    mainPanel.add(updatePanel, "UPDATE_TABLE");
+    cardLayout.show(mainPanel, "UPDATE_TABLE");
+}
+
+private void loadTableData(DefaultTableModel model) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT * FROM ZEPHYRSTATS WHERE RELEASE_ID = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, selectedRelease.getId());
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        model.addRow(new Object[]{
+                            rs.getString("TESTCASE"),
+                            rs.getString("STATUS"),
+                            rs.getString("PRIMARY_APPLICATION"),
+                            rs.getString("CAPABILITY"),
+                            rs.getString("BUSINESS_AREA"),
+                            rs.getString("CRITICALITY"),
+                            rs.getString("SCRUM_TEAM")
+                        });
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null,
+            "Error loading data: " + e.getMessage(),
+            "Database Error",
+            JOptionPane.ERROR_MESSAGE);
+    }
+}
+
+private void updateTableData(List<TestCaseData> modifiedData) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "UPDATE ZEPHYRSTATS SET TESTCASE=?, STATUS=?, PRIMARY_APPLICATION=?, " +
+                        "CAPABILITY=?, BUSINESS_AREA=?, CRITICALITY=?, SCRUM_TEAM=? " +
+                        "WHERE ID=?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                for (TestCaseData data : modifiedData) {
+                    if (data.modified) {
+                        pstmt.setString(1, data.testCase);
+                        pstmt.setString(2, data.status);
+                        pstmt.setString(3, data.primaryApplication);
+                        pstmt.setString(4, data.capability);
+                        pstmt.setString(5, data.businessArea);
+                        pstmt.setString(6, data.criticality);
+                        pstmt.setString(7, data.scrumTeam);
+                        pstmt.setInt(8, data.id);
+                        pstmt.addBatch();
+                    }
+                }
+                pstmt.executeBatch();
+                JOptionPane.showMessageDialog(null,
+                    "Changes saved successfully!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null,
+            "Error saving changes: " + e.getMessage(),
+            "Database Error",
+            JOptionPane.ERROR_MESSAGE);
+    }
+}
+
