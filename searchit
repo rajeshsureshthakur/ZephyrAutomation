@@ -1,0 +1,43 @@
+// Change keyPressed to keyReleased to update while typing
+searchField.addKeyListener(new KeyAdapter() {
+    @Override
+    public void keyReleased(KeyEvent e) {  // Changed from keyPressed
+        String searchText = searchField.getText().toLowerCase().trim();
+        model.removeAllElements();
+
+        // If search is empty, show initial items
+        if (searchText.isEmpty()) {
+            model.addElement(new ReleaseItem(0, "Select Release"));
+            for (int i = 0; i < Math.min(50, allReleases.size()); i++) {
+                model.addElement(allReleases.get(i));
+            }
+            if (releaseComboBox.isPopupVisible()) {
+                releaseComboBox.hidePopup();
+                releaseComboBox.showPopup();
+            }
+            return;
+        }
+
+        // Add "Select Release" as first item
+        model.addElement(new ReleaseItem(0, "Select Release"));
+
+        // Filter and add matching items (up to 10)
+        int count = 0;
+        for (ReleaseItem item : allReleases) {
+            if (item.getName().toLowerCase().contains(searchText)) {
+                model.addElement(item);
+                count++;
+                if (count >= 10) break;
+            }
+        }
+        
+        // Show dropdown if not visible
+        if (!releaseComboBox.isPopupVisible()) {
+            releaseComboBox.showPopup();
+        } else {
+            // Refresh the popup if already visible
+            releaseComboBox.hidePopup();
+            releaseComboBox.showPopup();
+        }
+    }
+});
