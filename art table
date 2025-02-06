@@ -1,0 +1,36 @@
+private void loadARTValues(JComboBox<String> comboBox) {
+    System.out.println("Loading ART values...");
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            System.out.println("Database connected successfully");
+            // Modified query to see actual case of column
+            String sql = "SELECT * FROM ARTSCRUMS WHERE ROWNUM = 1";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    ResultSetMetaData rsmd = rs.getMetaData();
+                    for (int i = 1; i <= rsmd.getColumnCount(); i++) {
+                        System.out.println("Column " + i + ": " + rsmd.getColumnName(i));
+                    }
+                }
+            }
+            
+            // Then try original query
+            sql = "SELECT DISTINCT ART_NAME FROM ARTSCRUMS ORDER BY ART_NAME";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    comboBox.removeAllItems();
+                    while (rs.next()) {
+                        // Try printing the value and type
+                        Object value = rs.getObject(1);
+                        System.out.println("Value: " + value + ", Type: " + (value != null ? value.getClass() : "null"));
+                        comboBox.addItem(rs.getString(1));
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error loading ART values: " + e.getMessage());
+    }
+}
