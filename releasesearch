@@ -1,0 +1,50 @@
+// ComboItem class if you don't already have it
+class ComboItem {
+    private int id;
+    private String name;
+    
+    public ComboItem(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+    
+    public int getId() { return id; }
+    public String getName() { return name; }
+    
+    @Override
+    public String toString() { return name; }
+}
+
+// Search implementation
+JComboBox<ComboItem> releaseComboBox = new JComboBox<>();
+JTextField searchField = new JTextField(20);
+DefaultComboBoxModel<ComboItem> originalModel = (DefaultComboBoxModel<ComboItem>) releaseComboBox.getModel();
+
+searchField.addKeyListener(new KeyAdapter() {
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+            String searchText = searchField.getText().trim().toLowerCase();
+            
+            // Filter the items
+            DefaultComboBoxModel<ComboItem> filteredModel = new DefaultComboBoxModel<>();
+            for(int i = 0; i < originalModel.getSize(); i++) {
+                ComboItem item = originalModel.getElementAt(i);
+                if(item.getName().toLowerCase().contains(searchText)) {
+                    filteredModel.addElement(item);
+                }
+            }
+            
+            // Set filtered model and show dropdown
+            releaseComboBox.setModel(filteredModel);
+            releaseComboBox.showPopup();
+        }
+    }
+});
+
+// Reset functionality
+JButton resetButton = new JButton("Reset");
+resetButton.addActionListener(e -> {
+    releaseComboBox.setModel(originalModel);
+    searchField.setText("");
+});
