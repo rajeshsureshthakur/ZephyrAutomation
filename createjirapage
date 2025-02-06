@@ -1,0 +1,194 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import javax.swing.border.*;
+
+private void showCreateJiraDefectScreen() {
+    JPanel defectPanel = new JPanel(new BorderLayout());
+    defectPanel.setPreferredSize(new Dimension(1200, 800));
+    
+    // Title
+    JLabel titleLabel = new JLabel("Create JIRA Defect");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+    JPanel titlePanel = new JPanel();
+    titlePanel.add(titleLabel);
+
+    // Form Panel
+    JPanel formPanel = new JPanel(new GridBagLayout());
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(5, 5, 5, 5);
+    gbc.anchor = GridBagConstraints.WEST;
+    
+    // ART Dropdown
+    gbc.gridx = 0; gbc.gridy = 0;
+    formPanel.add(new JLabel("Select ART:"), gbc);
+    JComboBox<String> artComboBox = new JComboBox<>();
+    loadARTValues(artComboBox);
+    gbc.gridx = 1;
+    formPanel.add(artComboBox, gbc);
+
+    // Scrum Dropdown
+    gbc.gridx = 0; gbc.gridy = 1;
+    formPanel.add(new JLabel("Select Scrum:"), gbc);
+    JComboBox<String> scrumComboBox = new JComboBox<>();
+    gbc.gridx = 1;
+    formPanel.add(scrumComboBox, gbc);
+
+    // Release Version Dropdown
+    gbc.gridx = 0; gbc.gridy = 2;
+    formPanel.add(new JLabel("Release Version:"), gbc);
+    JComboBox<String> releaseComboBox = new JComboBox<>();
+    loadReleaseValues(releaseComboBox);
+    gbc.gridx = 1;
+    formPanel.add(releaseComboBox, gbc);
+
+    // Priority Dropdown
+    gbc.gridx = 0; gbc.gridy = 3;
+    formPanel.add(new JLabel("Priority:"), gbc);
+    String[] priorities = {"Highest", "High", "Medium", "Low", "Lowest"};
+    JComboBox<String> priorityComboBox = new JComboBox<>(priorities);
+    gbc.gridx = 1;
+    formPanel.add(priorityComboBox, gbc);
+
+    // Summary
+    gbc.gridx = 0; gbc.gridy = 4;
+    formPanel.add(new JLabel("Summary:"), gbc);
+    JTextField summaryField = new JTextField(40);
+    gbc.gridx = 1;
+    formPanel.add(summaryField, gbc);
+
+    // Impacted APIs
+    gbc.gridx = 0; gbc.gridy = 5;
+    formPanel.add(new JLabel("Impacted APIs:"), gbc);
+    JTextField apisField = new JTextField(40);
+    gbc.gridx = 1;
+    formPanel.add(apisField, gbc);
+
+    // Labels
+    gbc.gridx = 0; gbc.gridy = 6;
+    formPanel.add(new JLabel("Labels:"), gbc);
+    JTextField labelsField = new JTextField(40);
+    gbc.gridx = 1;
+    formPanel.add(labelsField, gbc);
+
+    // Assignee
+    gbc.gridx = 0; gbc.gridy = 7;
+    formPanel.add(new JLabel("Assignee:"), gbc);
+    JTextField assigneeField = new JTextField(40);
+    gbc.gridx = 1;
+    formPanel.add(assigneeField, gbc);
+
+    // Add listener to ART dropdown to update Scrum dropdown
+    artComboBox.addActionListener(e -> {
+        String selectedART = (String) artComboBox.getSelectedItem();
+        loadScrumValues(scrumComboBox, selectedART);
+    });
+
+    // Buttons Panel
+    JPanel buttonPanel = new JPanel();
+    JButton createButton = new JButton("Create Defect");
+    JButton backButton = new JButton("Back");
+
+    createButton.addActionListener(e -> {
+        createJiraDefect(
+            (String) artComboBox.getSelectedItem(),
+            (String) scrumComboBox.getSelectedItem(),
+            (String) releaseComboBox.getSelectedItem(),
+            (String) priorityComboBox.getSelectedItem(),
+            summaryField.getText(),
+            apisField.getText(),
+            labelsField.getText(),
+            assigneeField.getText()
+        );
+    });
+
+    backButton.addActionListener(e -> cardLayout.show(mainPanel, "PREVIOUS_SCREEN"));
+    
+    buttonPanel.add(createButton);
+    buttonPanel.add(backButton);
+
+    // Add components to main panel
+    defectPanel.add(titlePanel, BorderLayout.NORTH);
+    defectPanel.add(formPanel, BorderLayout.CENTER);
+    defectPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+    mainPanel.add(defectPanel, "CREATE_DEFECT");
+    cardLayout.show(mainPanel, "CREATE_DEFECT");
+}
+
+private void loadARTValues(JComboBox<String> comboBox) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT DISTINCT ART_NAME FROM ARTSCRUMS ORDER BY ART_NAME";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    comboBox.removeAllItems();
+                    while (rs.next()) {
+                        comboBox.addItem(rs.getString("ART_NAME"));
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error loading ART values: " + e.getMessage());
+    }
+}
+
+private void loadScrumValues(JComboBox<String> comboBox, String selectedART) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT SCRUM_NAME FROM ARTSCRUMS WHERE ART_NAME = ? ORDER BY SCRUM_NAME";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, selectedART);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    comboBox.removeAllItems();
+                    while (rs.next()) {
+                        comboBox.addItem(rs.getString("SCRUM_NAME"));
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error loading Scrum values: " + e.getMessage());
+    }
+}
+
+private void loadReleaseValues(JComboBox<String> comboBox) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT RELEASE_NAME FROM RELEASES ORDER BY RELEASE_NAME";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    comboBox.removeAllItems();
+                    while (rs.next()) {
+                        comboBox.addItem(rs.getString("RELEASE_NAME"));
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error loading Release values: " + e.getMessage());
+    }
+}
+
+private void createJiraDefect(String art, String scrum, String release, 
+                            String priority, String summary, String apis, 
+                            String labels, String assignee) {
+    try {
+        // Call your JIRA creation java file here
+        // Example:
+        JiraDefectCreator.createDefect(art, scrum, release, priority, 
+                                     summary, apis, labels, assignee);
+        JOptionPane.showMessageDialog(null, "JIRA defect created successfully!");
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error creating JIRA defect: " + e.getMessage());
+    }
+}
