@@ -1,0 +1,34 @@
+WITH total_cases AS (
+    SELECT 
+        user_name, 
+        COUNT(DISTINCT testcase_id) AS total_testcases_assigned
+    FROM 
+        zephyrdata
+    GROUP BY 
+        user_name
+),
+status_counts AS (
+    SELECT 
+        user_name, 
+        status, 
+        COUNT(*) AS status_count
+    FROM 
+        zephyrdata
+    GROUP BY 
+        user_name, 
+        status
+)
+SELECT 
+    tc.user_name,
+    tc.total_testcases_assigned,
+    sc.status,
+    sc.status_count
+FROM 
+    total_cases tc
+JOIN 
+    status_counts sc
+ON 
+    tc.user_name = sc.user_name
+ORDER BY 
+    tc.user_name, 
+    sc.status;
