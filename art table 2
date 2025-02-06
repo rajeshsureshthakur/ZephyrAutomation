@@ -1,0 +1,25 @@
+private void loadARTValues(JComboBox<String> comboBox) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT DISTINCT ART_NAME FROM ARTSCRUMS ORDER BY ART_NAME";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    System.out.println("Starting to read results");
+                    comboBox.removeAllItems();
+                    int count = 0;
+                    while (rs.next()) {
+                        count++;
+                        String artName = rs.getString(1);  // Using column index instead of name
+                        System.out.println("Row " + count + ": " + artName);
+                        comboBox.addItem(artName);
+                    }
+                    System.out.println("Total rows processed: " + count);
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error loading ART values: " + e.getMessage());
+    }
+}
