@@ -1,3 +1,9 @@
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
+import javafx.scene.web.WebView;
+import java.nio.file.Paths;
+
 private void showHtmlForm() {
     JPanel htmlPanel = new JPanel(new BorderLayout());
     
