@@ -1,0 +1,32 @@
+private void showHtmlForm() {
+    JPanel htmlPanel = new JPanel(new BorderLayout());
+    
+    try {
+        // Create editor pane for HTML
+        JEditorPane editorPane = new JEditorPane();
+        editorPane.setEditable(false);  // Make it read-only
+        
+        // Load HTML content
+        // Option 1: From file
+        editorPane.setPage(new File("yourform.html").toURI().toURL());
+        // OR Option 2: From string
+        // editorPane.setContentType("text/html");
+        // editorPane.setText("<html><body><form>Your HTML here</form></body></html>");
+        
+        JScrollPane scrollPane = new JScrollPane(editorPane);
+        
+        // Back button
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(e -> cardLayout.show(mainPanel, "PREVIOUS_SCREEN"));
+        
+        htmlPanel.add(scrollPane, BorderLayout.CENTER);
+        htmlPanel.add(backButton, BorderLayout.SOUTH);
+        
+        mainPanel.add(htmlPanel, "HTML_FORM");
+        cardLayout.show(mainPanel, "HTML_FORM");
+        
+    } catch (IOException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error loading HTML form: " + e.getMessage());
+    }
+}
