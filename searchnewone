@@ -1,0 +1,58 @@
+// Store all releases in a class field
+private List<ReleaseItem> allReleases = new ArrayList<>();
+private DefaultComboBoxModel<ReleaseItem> model = new DefaultComboBoxModel<>();
+private JComboBox<ReleaseItem> releaseComboBox = new JComboBox<>(model);
+private JTextField searchField = new JTextField(20);
+
+// Initial loading of ComboBox
+private void loadReleaseComboBox() {
+    // Show initial items
+    model.removeAllElements();
+    model.addElement(new ReleaseItem(0, "Select Release"));
+    for (int i = 0; i < Math.min(50, allReleases.size()); i++) {
+        model.addElement(allReleases.get(i));
+    }
+}
+
+// Add search functionality
+searchField.addKeyListener(new KeyAdapter() {
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+            String searchText = searchField.getText().toLowerCase().trim();
+            model.removeAllElements();
+
+            // If search is empty, show initial items
+            if (searchText.isEmpty()) {
+                model.addElement(new ReleaseItem(0, "Select Release"));
+                for (int i = 0; i < Math.min(50, allReleases.size()); i++) {
+                    model.addElement(allReleases.get(i));
+                }
+                releaseComboBox.showPopup();
+                return;
+            }
+
+            // Add "Select Release" as first item
+            model.addElement(new ReleaseItem(0, "Select Release"));
+
+            // Filter and add matching items (up to 10)
+            int count = 0;
+            for (ReleaseItem item : allReleases) {
+                if (item.getName().toLowerCase().contains(searchText)) {
+                    model.addElement(item);
+                    count++;
+                    if (count >= 10) break;
+                }
+            }
+            
+            releaseComboBox.showPopup();
+        }
+    }
+});
+
+// Reset button if needed
+JButton resetButton = new JButton("Reset");
+resetButton.addActionListener(e -> {
+    searchField.setText("");
+    loadReleaseComboBox();
+});
