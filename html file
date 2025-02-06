@@ -1,0 +1,29 @@
+private void showHtmlForm() {
+    JPanel htmlPanel = new JPanel(new BorderLayout());
+    
+    try {
+        JEditorPane editorPane = new JEditorPane();
+        editorPane.setContentType("text/html");
+        editorPane.setEditable(false);
+
+        // Read the complete HTML file
+        String htmlContent = new String(Files.readAllBytes(Paths.get("yourfile.html")));
+        editorPane.setText(htmlContent);
+        
+        JScrollPane scrollPane = new JScrollPane(editorPane);
+        scrollPane.setPreferredSize(new Dimension(1200, 800));  // Set size as needed
+        
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(e -> cardLayout.show(mainPanel, "PREVIOUS_SCREEN"));
+        
+        htmlPanel.add(scrollPane, BorderLayout.CENTER);
+        htmlPanel.add(backButton, BorderLayout.SOUTH);
+        
+        mainPanel.add(htmlPanel, "HTML_FORM");
+        cardLayout.show(mainPanel, "HTML_FORM");
+        
+    } catch (IOException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error loading HTML content: " + e.getMessage());
+    }
+}
