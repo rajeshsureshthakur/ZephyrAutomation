@@ -1,56 +1,38 @@
-class StatusItem {
-    private int id;
-    private String name;
-    
-    public StatusItem(int id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-    
-    public int getId() { return id; }
-    public String getName() { return name; }
-    
-    @Override
-    public String toString() { return name; }
-}
+// Define status options
+String[] statusOptions = {"Completed", "On Hold", "In Progress"};
 
-// Create status mappings
-private StatusItem[] statusOptions = {
-    new StatusItem(1, "Completed"),
-    new StatusItem(2, "On Hold"),
-    new StatusItem(3, "In Progress")
-};
-
-// Custom cell editor for status column
-class StatusCellEditor extends DefaultCellEditor {
-    public StatusCellEditor(StatusItem[] items) {
-        super(new JComboBox<>(items));
-    }
-}
-
-// Table model with status handling
-DefaultTableModel model = new DefaultTableModel() {
-    @Override
-    public boolean isCellEditable(int row, int column) {
-        // Assuming status is column 1
-        return column == 1;
-    }
-};
-
-JTable table = new JTable(model);
+// Set up status dropdown for column 1
 TableColumn statusColumn = table.getColumnModel().getColumn(1);
-statusColumn.setCellEditor(new StatusCellEditor(statusOptions));
+JComboBox<String> statusComboBox = new JComboBox<>(statusOptions);
+statusColumn.setCellEditor(new DefaultCellEditor(statusComboBox));
 
-// Update handler
+// Table listener
 table.getModel().addTableModelListener(e -> {
     if (e.getType() == TableModelEvent.UPDATE) {
+        hasChanges[0] = true;
+        updateButton.setVisible(true);
         int row = e.getFirstRow();
         int column = e.getColumn();
+        String newValue = (String)model.getValueAt(row, column);
+        modifiedData.get(row).modified = true;
         
-        if (column == 1) {  // Status column
-            StatusItem selectedStatus = (StatusItem)model.getValueAt(row, column);
-            int statusId = selectedStatus.getId();
-            updateStatusInDB(row, statusId);
+        // Update the corresponding field based on column
+        switch(column) {
+            case 0: 
+                modifiedData.get(row).testCase = newValue; 
+                break;
+            case 1: 
+                modifiedData.get(row).status = newValue;  // Status from dropdown
+                break;
+            case 2: 
+                modifiedData.get(row).storyid = newValue; 
+                break;
+            case 5: 
+                modifiedData.get(row).prerequisites = newValue; 
+                break;
+            case 6: 
+                modifiedData.get(row).epicid = newValue; 
+                break;
         }
     }
 });
