@@ -1,0 +1,56 @@
+class StatusItem {
+    private int id;
+    private String name;
+    
+    public StatusItem(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+    
+    public int getId() { return id; }
+    public String getName() { return name; }
+    
+    @Override
+    public String toString() { return name; }
+}
+
+// Create status mappings
+private StatusItem[] statusOptions = {
+    new StatusItem(1, "Completed"),
+    new StatusItem(2, "On Hold"),
+    new StatusItem(3, "In Progress")
+};
+
+// Custom cell editor for status column
+class StatusCellEditor extends DefaultCellEditor {
+    public StatusCellEditor(StatusItem[] items) {
+        super(new JComboBox<>(items));
+    }
+}
+
+// Table model with status handling
+DefaultTableModel model = new DefaultTableModel() {
+    @Override
+    public boolean isCellEditable(int row, int column) {
+        // Assuming status is column 1
+        return column == 1;
+    }
+};
+
+JTable table = new JTable(model);
+TableColumn statusColumn = table.getColumnModel().getColumn(1);
+statusColumn.setCellEditor(new StatusCellEditor(statusOptions));
+
+// Update handler
+table.getModel().addTableModelListener(e -> {
+    if (e.getType() == TableModelEvent.UPDATE) {
+        int row = e.getFirstRow();
+        int column = e.getColumn();
+        
+        if (column == 1) {  // Status column
+            StatusItem selectedStatus = (StatusItem)model.getValueAt(row, column);
+            int statusId = selectedStatus.getId();
+            updateStatusInDB(row, statusId);
+        }
+    }
+});
