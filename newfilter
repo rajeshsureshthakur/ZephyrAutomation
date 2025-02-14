@@ -1,0 +1,43 @@
+// Create the sorter as a class field
+private TableRowSorter<TableModel> rowSorter;
+
+// After loading data into table model (in your loadTableData method):
+private void loadTableData(DefaultTableModel model) {
+    try {
+        // Your existing database loading code
+        while (rs.next()) {
+            model.addRow(new Object[]{ /* your data */ });
+        }
+        
+        // Set up row sorter after data is loaded
+        System.out.println("Setting up row sorter");
+        rowSorter = new TableRowSorter<>(model);
+        table.setRowSorter(rowSorter);
+        System.out.println("Row count after setting sorter: " + table.getRowCount());
+        
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
+// Then modify your filter listeners
+statusFilterCombo.addActionListener(e -> {
+    if (rowSorter == null) {
+        System.out.println("Row sorter is null!");
+        return;
+    }
+    String selectedStatus = (String) statusFilterCombo.getSelectedItem();
+    System.out.println("Status selected: " + selectedStatus);
+    if ("All".equals(selectedStatus)) {
+        rowSorter.setRowFilter(null);
+    } else {
+        RowFilter<Object, Object> filter = new RowFilter<Object, Object>() {
+            public boolean include(Entry entry) {
+                String cellValue = String.valueOf(entry.getValue(1)); // Status column
+                System.out.println("Comparing row value: " + cellValue + " with filter: " + selectedStatus);
+                return selectedStatus.equals(cellValue);
+            }
+        };
+        rowSorter.setRowFilter(filter);
+    }
+});
