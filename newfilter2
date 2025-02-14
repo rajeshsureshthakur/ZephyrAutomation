@@ -1,0 +1,24 @@
+statusFilterCombo.addActionListener(e -> {
+    String selectedStatus = (String) statusFilterCombo.getSelectedItem();
+    System.out.println("Filtering for status: " + selectedStatus);
+    
+    try {
+        if ("All".equals(selectedStatus)) {
+            rowSorter.setRowFilter(null);
+        } else {
+            RowFilter<TableModel, Object> statusFilter = new RowFilter<TableModel, Object>() {
+                @Override
+                public boolean include(Entry<? extends TableModel, ? extends Object> entry) {
+                    int statusColIndex = 1; // Verify this is your status column index
+                    String status = entry.getValue(statusColIndex).toString().trim();
+                    System.out.println("Row status: [" + status + "] Selected: [" + selectedStatus + "]");
+                    return selectedStatus.equals(status);
+                }
+            };
+            rowSorter.setRowFilter(statusFilter);
+        }
+    } catch (Exception ex) {
+        System.out.println("Filter error: " + ex.getMessage());
+        ex.printStackTrace();
+    }
+});
