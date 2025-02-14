@@ -1,0 +1,31 @@
+// First, make rowSorter class field if not already
+private TableRowSorter<TableModel> rowSorter;
+
+// After creating the table and loading data:
+public void setupTableSorter() {
+    // Remove any existing sorter
+    table.setRowSorter(null);
+    
+    // Create new sorter
+    rowSorter = new TableRowSorter<>(table.getModel());
+    table.setRowSorter(rowSorter);
+    
+    // Add filter listener
+    statusFilterCombo.addActionListener(e -> {
+        String selectedStatus = (String) statusFilterCombo.getSelectedItem();
+        System.out.println("Filtering for status: " + selectedStatus);
+        
+        if ("All".equals(selectedStatus)) {
+            rowSorter.setRowFilter(null);
+            System.out.println("Cleared filter. Row count: " + table.getRowCount());
+        } else {
+            RowFilter<TableModel, Object> statusFilter = RowFilter.regexFilter("^" + selectedStatus + "$", 1);
+            rowSorter.setRowFilter(statusFilter);
+            System.out.println("Applied filter. Row count: " + table.getRowCount());
+        }
+        
+        // Force table to repaint
+        table.revalidate();
+        table.repaint();
+    });
+}
