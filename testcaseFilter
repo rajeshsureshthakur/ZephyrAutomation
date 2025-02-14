@@ -1,0 +1,85 @@
+// Create filter panel above table
+JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+// Status filter dropdown
+JLabel statusFilterLabel = new JLabel("Filter Status:");
+String[] statusOptions = {"All", "Completed", "On Hold", "In Progress"};  // Add "All" option
+JComboBox<String> statusFilterCombo = new JComboBox<>(statusOptions);
+
+// Test case name filter
+JLabel nameFilterLabel = new JLabel("Filter Test Case:");
+JTextField nameFilterField = new JTextField(20);
+
+// Add to filter panel
+filterPanel.add(statusFilterLabel);
+filterPanel.add(statusFilterCombo);
+filterPanel.add(Box.createHorizontalStrut(20));  // Space between filters
+filterPanel.add(nameFilterLabel);
+filterPanel.add(nameFilterField);
+
+// Create TableRowSorter for filtering
+TableRowSorter<TableModel> rowSorter = new TableRowSorter<>(model);
+table.setRowSorter(rowSorter);
+
+// Add filter listeners
+statusFilterCombo.addActionListener(e -> {
+    String selectedStatus = (String) statusFilterCombo.getSelectedItem();
+    if ("All".equals(selectedStatus)) {
+        rowSorter.setRowFilter(null);
+    } else {
+        rowSorter.setRowFilter(RowFilter.regexFilter(selectedStatus, 1));  // 1 is status column
+    }
+});
+
+// Add document listener for test case name filter
+nameFilterField.getDocument().addDocumentListener(new DocumentListener() {
+    private void searchFilter() {
+        String text = nameFilterField.getText();
+        String status = (String) statusFilterCombo.getSelectedItem();
+        
+        RowFilter<TableModel, Object> nameFilter = null;
+        RowFilter<TableModel, Object> statusFilter = null;
+        
+        // Create filters
+        if (!text.isEmpty()) {
+            nameFilter = RowFilter.regexFilter("(?i)" + text, 0);  // 0 is test case column, (?i) for case insensitive
+        }
+        if (!"All".equals(status)) {
+            statusFilter = RowFilter.regexFilter(status, 1);
+        }
+        
+        // Combine filters if both are active
+        if (nameFilter != null && statusFilter != null) {
+            List<RowFilter<TableModel, Object>> filters = new ArrayList<>();
+            filters.add(nameFilter);
+            filters.add(statusFilter);
+            rowSorter.setRowFilter(RowFilter.andFilter(filters));
+        } else if (nameFilter != null) {
+            rowSorter.setRowFilter(nameFilter);
+        } else if (statusFilter != null) {
+            rowSorter.setRowFilter(statusFilter);
+        } else {
+            rowSorter.setRowFilter(null);
+        }
+    }
+
+    @Override
+    public void insertUpdate(DocumentEvent e) {
+        searchFilter();
+    }
+
+    @Override
+    public void removeUpdate(DocumentEvent e) {
+        searchFilter();
+    }
+
+    @Override
+    public void changedUpdate(DocumentEvent e) {
+        searchFilter();
+    }
+});
+
+// Add filter panel above table
+JPanel mainPanel = new JPanel(new BorderLayout());
+mainPanel.add(filterPanel, BorderLayout.NORTH);
+mainPanel.add(new JScrollPane(table), BorderLayout.CENTER);
