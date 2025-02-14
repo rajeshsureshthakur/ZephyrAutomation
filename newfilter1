@@ -1,0 +1,43 @@
+// Setup row sorter (make sure this is after data is loaded)
+rowSorter = new TableRowSorter<>(table.getModel());
+table.setRowSorter(rowSorter);
+
+// Status filter
+statusFilterCombo.addActionListener(e -> {
+    String selectedStatus = (String) statusFilterCombo.getSelectedItem();
+    System.out.println("Filtering for status: " + selectedStatus);
+    
+    try {
+        if ("All".equals(selectedStatus)) {
+            rowSorter.setRowFilter(null);
+        } else {
+            RowFilter<DefaultTableModel, Object> statusFilter = new RowFilter<DefaultTableModel, Object>() {
+                @Override
+                public boolean include(Entry<? extends DefaultTableModel, ? extends Object> entry) {
+                    int statusColIndex = 1; // Verify this is your status column index
+                    String status = entry.getValue(statusColIndex).toString().trim();
+                    System.out.println("Row status: [" + status + "] Selected: [" + selectedStatus + "]");
+                    return selectedStatus.equals(status);
+                }
+            };
+            rowSorter.setRowFilter(statusFilter);
+        }
+    } catch (Exception ex) {
+        System.out.println("Filter error: " + ex.getMessage());
+        ex.printStackTrace();
+    }
+});
+
+
+// Add this where you setup your table
+for (int i = 0; i < table.getColumnCount(); i++) {
+    String colName = table.getColumnName(i);
+    System.out.println("Column " + i + ": " + colName);
+}
+
+
+// Add this after data is loaded
+int statusCol = 1; // Change to your actual status column index
+for (int row = 0; row < table.getRowCount(); row++) {
+    System.out.println("Row " + row + " status: [" + table.getValueAt(row, statusCol) + "]");
+}
