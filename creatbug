@@ -1,3 +1,62 @@
+// Create custom class for Scrum
+class ScrumItem {
+    private int id;
+    private String name;
+    
+    public ScrumItem(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+    
+    public int getId() { return id; }
+    public String getName() { return name; }
+    
+    // This is what will show in the ComboBox
+    @Override
+    public String toString() { 
+        return name; 
+    }
+}
+
+// Modify the ComboBox to use ScrumItem
+JComboBox<ScrumItem> scrumComboBox = new JComboBox<>();
+
+// Modify the load function
+private void loadScrumData(JComboBox<ScrumItem> comboBox) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT SCRUM_ID, SCRUM_NAME FROM JIRADATA ORDER BY SCRUM_NAME";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    DefaultComboBoxModel<ScrumItem> model = (DefaultComboBoxModel<ScrumItem>)comboBox.getModel();
+                    model.removeAllElements();
+                    model.addElement(new ScrumItem(0, "Select Scrum"));
+                    while (rs.next()) {
+                        model.addElement(new ScrumItem(
+                            rs.getInt("SCRUM_ID"),
+                            rs.getString("SCRUM_NAME")
+                        ));
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error loading Scrum data: " + e.getMessage());
+    }
+}
+
+// When getting selected value
+ScrumItem selectedScrum = (ScrumItem)scrumComboBox.getSelectedItem();
+int scrumId = selectedScrum.getId();  // This is the ID you'll send to your create issue method
+
+
+
+
+
+
+
 private void loadAllDropdownData(JComboBox<String> artComboBox, JComboBox<String> scrumComboBox, JComboBox<String> releaseComboBox) {
     System.out.println("Starting to load dropdown data..."); 
     try {
