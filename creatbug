@@ -1,3 +1,68 @@
+// For ART (String type)
+private void setupStringSearchFilter(JTextField searchField, JComboBox<String> comboBox) {
+    DefaultComboBoxModel<String> originalModel = (DefaultComboBoxModel<String>) comboBox.getModel();
+    ArrayList<String> items = new ArrayList<>();
+    for (int i = 0; i < originalModel.getSize(); i++) {
+        items.add(originalModel.getElementAt(i));
+    }
+
+    searchField.getDocument().addDocumentListener(new DocumentListener() {
+        public void changedUpdate(DocumentEvent e) { filter(); }
+        public void removeUpdate(DocumentEvent e) { filter(); }
+        public void insertUpdate(DocumentEvent e) { filter(); }
+
+        private void filter() {
+            String filter = searchField.getText().toLowerCase();
+            DefaultComboBoxModel<String> filteredModel = new DefaultComboBoxModel<>();
+            for (String item : items) {
+                if (item.toLowerCase().contains(filter)) {
+                    filteredModel.addElement(item);
+                }
+            }
+            comboBox.setModel(filteredModel);
+            if (!filter.isEmpty()) {
+                comboBox.showPopup();
+            }
+        }
+    });
+}
+
+// For Scrum (ScrumItem type)
+private void setupScrumSearchFilter(JTextField searchField, JComboBox<ScrumItem> comboBox) {
+    DefaultComboBoxModel<ScrumItem> originalModel = (DefaultComboBoxModel<ScrumItem>) comboBox.getModel();
+    ArrayList<ScrumItem> items = new ArrayList<>();
+    for (int i = 0; i < originalModel.getSize(); i++) {
+        items.add(originalModel.getElementAt(i));
+    }
+
+    searchField.getDocument().addDocumentListener(new DocumentListener() {
+        public void changedUpdate(DocumentEvent e) { filter(); }
+        public void removeUpdate(DocumentEvent e) { filter(); }
+        public void insertUpdate(DocumentEvent e) { filter(); }
+
+        private void filter() {
+            String filter = searchField.getText().toLowerCase();
+            DefaultComboBoxModel<ScrumItem> filteredModel = new DefaultComboBoxModel<>();
+            for (ScrumItem item : items) {
+                if (item.getName().toLowerCase().contains(filter)) {
+                    filteredModel.addElement(item);
+                }
+            }
+            comboBox.setModel(filteredModel);
+            if (!filter.isEmpty()) {
+                comboBox.showPopup();
+            }
+        }
+    });
+}
+
+setupStringSearchFilter(artSearchField, artComboBox);
+setupScrumSearchFilter(scrumSearchField, scrumComboBox);
+setupStringSearchFilter(releaseSearchField, releaseComboBox);
+
+
+
+
 // Create custom class for Scrum
 class ScrumItem {
     private int id;
