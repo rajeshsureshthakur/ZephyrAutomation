@@ -1,3 +1,52 @@
+// Add JSON parsing library at the top
+import org.json.JSONObject;
+
+// In your createIssue method or where you handle the response:
+private void handleJiraResponse(String jsonResponse) {
+    try {
+        JSONObject json = new JSONObject(jsonResponse);
+        String issueKey = json.getString("issueKey");
+        String jiraUrl = "https://your-jira-domain.com/browse/" + issueKey;  // Replace with your JIRA URL
+
+        // Create custom message panel with hyperlink
+        JPanel messagePanel = new JPanel();
+        messagePanel.setLayout(new BoxLayout(messagePanel, BoxLayout.Y_AXIS));
+        
+        JLabel successLabel = new JLabel("Issue created successfully!");
+        JLabel linkLabel = new JLabel("<html>Click here to view: <a href=''>" + issueKey + "</a></html>");
+        
+        // Add click listener to open browser
+        linkLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    Desktop.getDesktop().browse(new URI(jiraUrl));
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        
+        linkLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        messagePanel.add(successLabel);
+        messagePanel.add(Box.createRigidArea(new Dimension(0, 10)));  // Add spacing
+        messagePanel.add(linkLabel);
+
+        // Show custom dialog
+        JOptionPane.showMessageDialog(null, messagePanel, 
+            "Success", JOptionPane.INFORMATION_MESSAGE);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error processing response: " + e.getMessage());
+    }
+}
+
+
+
+
+
 // For ART (String type)
 private void setupStringSearchFilter(JTextField searchField, JComboBox<String> comboBox) {
     DefaultComboBoxModel<String> originalModel = (DefaultComboBoxModel<String>) comboBox.getModel();
