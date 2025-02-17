@@ -1,3 +1,17 @@
+private void resetCreateBugScreen() {
+    artComboBox.setSelectedIndex(0);
+    scrumComboBox.setSelectedIndex(0);
+    releaseComboBox.setSelectedIndex(0);
+    priorityComboBox.setSelectedIndex(0);
+    
+    summaryField.setText("");
+    apisField.setText("");
+    labelsField.setText("");
+    assigneeField.setText("");
+
+    cardLayout.show(mainPanel, "CREATE_BUG_TASK");
+}
+
 // Add JSON parsing library at the top
 import org.json.JSONObject;
 
