@@ -1,0 +1,221 @@
+private void showCreateBugTaskScreen() {
+    JPanel bugTaskPanel = new JPanel(new BorderLayout());
+    bugTaskPanel.setPreferredSize(new Dimension(1200, 800));
+
+    // Title
+    JLabel titleLabel = new JLabel("Create Bug/Task");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+    JPanel titlePanel = new JPanel();
+    titlePanel.add(titleLabel);
+
+    // Form Panel using GridBagLayout for better control
+    JPanel formPanel = new JPanel(new GridBagLayout());
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(5, 10, 5, 10);
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.anchor = GridBagConstraints.WEST;
+
+    // Initialize components
+    DefaultComboBoxModel<String> artModel = new DefaultComboBoxModel<>();
+    JComboBox<String> artComboBox = new JComboBox<>(artModel);
+    JTextField artSearchField = new JTextField(20);
+
+    DefaultComboBoxModel<String> scrumModel = new DefaultComboBoxModel<>();
+    JComboBox<String> scrumComboBox = new JComboBox<>(scrumModel);
+    JTextField scrumSearchField = new JTextField(20);
+
+    DefaultComboBoxModel<String> releaseModel = new DefaultComboBoxModel<>();
+    JComboBox<String> releaseComboBox = new JComboBox<>(releaseModel);
+    JTextField releaseSearchField = new JTextField(20);
+
+    String[] priorities = {"Select Priority", "Highest", "High", "Medium", "Low", "Lowest"};
+    JComboBox<String> priorityComboBox = new JComboBox<>(priorities);
+    
+    JTextField summaryField = new JTextField(40);
+    JTextField apisField = new JTextField(40);
+    JTextField labelsField = new JTextField(40);
+    JTextField assigneeField = new JTextField(40);
+
+    // Add components with labels
+    // ART
+    gbc.gridy = 0;
+    gbc.gridx = 0;
+    formPanel.add(new JLabel("Agile Release Train:"), gbc);
+    gbc.gridx = 1;
+    JPanel artPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    artPanel.add(artComboBox);
+    artPanel.add(new JLabel("Search:"));
+    artPanel.add(artSearchField);
+    formPanel.add(artPanel, gbc);
+
+    // Scrum Team
+    gbc.gridy = 1;
+    gbc.gridx = 0;
+    formPanel.add(new JLabel("Scrum Team:"), gbc);
+    gbc.gridx = 1;
+    JPanel scrumPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    scrumPanel.add(scrumComboBox);
+    scrumPanel.add(new JLabel("Search:"));
+    scrumPanel.add(scrumSearchField);
+    formPanel.add(scrumPanel, gbc);
+
+    // Release Version
+    gbc.gridy = 2;
+    gbc.gridx = 0;
+    formPanel.add(new JLabel("Release Version:"), gbc);
+    gbc.gridx = 1;
+    JPanel releasePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    releasePanel.add(releaseComboBox);
+    releasePanel.add(new JLabel("Search:"));
+    releasePanel.add(releaseSearchField);
+    formPanel.add(releasePanel, gbc);
+
+    // Priority
+    gbc.gridy = 3;
+    gbc.gridx = 0;
+    formPanel.add(new JLabel("Priority:"), gbc);
+    gbc.gridx = 1;
+    formPanel.add(priorityComboBox, gbc);
+
+    // Summary
+    gbc.gridy = 4;
+    gbc.gridx = 0;
+    formPanel.add(new JLabel("Summary:"), gbc);
+    gbc.gridx = 1;
+    formPanel.add(summaryField, gbc);
+
+    // Impacted APIs
+    gbc.gridy = 5;
+    gbc.gridx = 0;
+    formPanel.add(new JLabel("Impacted APIs:"), gbc);
+    gbc.gridx = 1;
+    formPanel.add(apisField, gbc);
+
+    // Labels
+    gbc.gridy = 6;
+    gbc.gridx = 0;
+    formPanel.add(new JLabel("Labels:"), gbc);
+    gbc.gridx = 1;
+    formPanel.add(labelsField, gbc);
+
+    // Assignee
+    gbc.gridy = 7;
+    gbc.gridx = 0;
+    formPanel.add(new JLabel("Assignee:"), gbc);
+    gbc.gridx = 1;
+    formPanel.add(assigneeField, gbc);
+
+    // Load data for dropdowns
+    loadARTData(artModel);
+    loadScrumData(scrumModel);
+    loadReleaseData(releaseModel);
+
+    // Add search functionality
+    setupSearchFilter(artSearchField, artComboBox);
+    setupSearchFilter(scrumSearchField, scrumComboBox);
+    setupSearchFilter(releaseSearchField, releaseComboBox);
+
+    // Buttons Panel
+    JPanel buttonPanel = new JPanel();
+    JButton createButton = new JButton("Create Issue");
+    JButton backButton = new JButton("Back");
+
+    createButton.addActionListener(e -> {
+        createIssue(
+            (String) artComboBox.getSelectedItem(),
+            (String) scrumComboBox.getSelectedItem(),
+            (String) releaseComboBox.getSelectedItem(),
+            (String) priorityComboBox.getSelectedItem(),
+            summaryField.getText(),
+            apisField.getText(),
+            labelsField.getText(),
+            assigneeField.getText()
+        );
+    });
+
+    backButton.addActionListener(e -> cardLayout.show(mainPanel, "PREVIOUS_SCREEN"));
+
+    buttonPanel.add(createButton);
+    buttonPanel.add(backButton);
+
+    // Main panel assembly
+    bugTaskPanel.add(titlePanel, BorderLayout.NORTH);
+    bugTaskPanel.add(formPanel, BorderLayout.CENTER);
+    bugTaskPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+    mainPanel.add(bugTaskPanel, "CREATE_BUG_TASK");
+    cardLayout.show(mainPanel, "CREATE_BUG_TASK");
+}
+
+// Load data from database
+private void loadARTData(DefaultComboBoxModel<String> model) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT DISTINCT ART_NAME FROM JIRADATA ORDER BY ART_NAME";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    model.addElement("Select ART");
+                    while (rs.next()) {
+                        model.addElement(rs.getString("ART_NAME"));
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error loading ART data: " + e.getMessage());
+    }
+}
+
+// Similar methods for Scrum and Release data
+private void loadScrumData(DefaultComboBoxModel<String> model) {
+    // Similar to loadARTData but with SCRUM_TEAM column
+}
+
+private void loadReleaseData(DefaultComboBoxModel<String> model) {
+    // Similar to loadARTData but with RELEASE_VERSION column
+}
+
+// Search filter setup
+private void setupSearchFilter(JTextField searchField, JComboBox<String> comboBox) {
+    DefaultComboBoxModel<String> originalModel = (DefaultComboBoxModel<String>) comboBox.getModel();
+    ArrayList<String> items = new ArrayList<>();
+    for (int i = 0; i < originalModel.getSize(); i++) {
+        items.add(originalModel.getElementAt(i));
+    }
+
+    searchField.getDocument().addDocumentListener(new DocumentListener() {
+        public void changedUpdate(DocumentEvent e) { filter(); }
+        public void removeUpdate(DocumentEvent e) { filter(); }
+        public void insertUpdate(DocumentEvent e) { filter(); }
+
+        private void filter() {
+            String filter = searchField.getText();
+            DefaultComboBoxModel<String> filteredModel = new DefaultComboBoxModel<>();
+            for (String item : items) {
+                if (item.toLowerCase().contains(filter.toLowerCase())) {
+                    filteredModel.addElement(item);
+                }
+            }
+            comboBox.setModel(filteredModel);
+            if (!filter.isEmpty()) {
+                comboBox.showPopup();
+            }
+        }
+    });
+}
+
+private void createIssue(String art, String scrum, String release, 
+                        String priority, String summary, String apis, 
+                        String labels, String assignee) {
+    try {
+        // Call your issue creation Java file here
+        JiraIssueCreator.createIssue(art, scrum, release, priority, 
+                                    summary, apis, labels, assignee);
+        JOptionPane.showMessageDialog(null, "Issue created successfully!");
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error creating issue: " + e.getMessage());
+    }
+}
