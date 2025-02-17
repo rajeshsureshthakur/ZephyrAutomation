@@ -1,3 +1,59 @@
+private void loadAllDropdownData(JComboBox<String> artComboBox, JComboBox<String> scrumComboBox, JComboBox<String> releaseComboBox) {
+    System.out.println("Starting to load dropdown data..."); 
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT DISTINCT ART_NAME, SCRUM_NAME, RELEASE_VERSION FROM JIRADATA ORDER BY ART_NAME";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    // Get models for each combo box
+                    DefaultComboBoxModel<String> artModel = (DefaultComboBoxModel<String>)artComboBox.getModel();
+                    DefaultComboBoxModel<String> scrumModel = (DefaultComboBoxModel<String>)scrumComboBox.getModel();
+                    DefaultComboBoxModel<String> releaseModel = (DefaultComboBoxModel<String>)releaseComboBox.getModel();
+                    
+                    // Clear existing items
+                    artModel.removeAllElements();
+                    scrumModel.removeAllElements();
+                    releaseModel.removeAllElements();
+                    
+                    // Add default selections
+                    artModel.addElement("Select ART");
+                    scrumModel.addElement("Select Scrum");
+                    releaseModel.addElement("Select Release");
+                    
+                    // Create sets to store unique values
+                    Set<String> artSet = new HashSet<>();
+                    Set<String> scrumSet = new HashSet<>();
+                    Set<String> releaseSet = new HashSet<>();
+                    
+                    while (rs.next()) {
+                        artSet.add(rs.getString("ART_NAME"));
+                        scrumSet.add(rs.getString("SCRUM_NAME"));
+                        releaseSet.add(rs.getString("RELEASE_VERSION"));
+                    }
+                    
+                    // Add sorted values to combo boxes
+                    artSet.stream().sorted().forEach(artModel::addElement);
+                    scrumSet.stream().sorted().forEach(scrumModel::addElement);
+                    releaseSet.stream().sorted().forEach(releaseModel::addElement);
+                    
+                    System.out.println("Loaded ARTs: " + artSet.size());
+                    System.out.println("Loaded Scrums: " + scrumSet.size());
+                    System.out.println("Loaded Releases: " + releaseSet.size());
+                }
+            }
+        }
+    } catch (Exception e) {
+        System.out.println("Error loading dropdown data: " + e.getMessage());
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error loading dropdown data: " + e.getMessage());
+    }
+}
+
+loadAllDropdownData(artComboBox, scrumComboBox, releaseComboBox);
+
+
+
 private void loadARTData(JComboBox<String> comboBox) {
    try {
        Class.forName("oracle.jdbc.driver.OracleDriver");
