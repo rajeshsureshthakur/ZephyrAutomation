@@ -1,0 +1,183 @@
+private void showCreateBugTaskScreen() {
+    JPanel bugTaskPanel = new JPanel(null);  // Use null layout for absolute positioning
+    bugTaskPanel.setPreferredSize(new Dimension(800, 600));
+
+    // Title
+    JLabel titleLabel = new JLabel("Create Bug/Task");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+    titleLabel.setBounds(50, 20, 300, 40);
+    bugTaskPanel.add(titleLabel);
+
+    // ART Dropdown
+    JLabel artLabel = new JLabel("Agile Release Train: *");
+    artLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+    artLabel.setBounds(50, 80, 150, 30);
+
+    JComboBox<String> artComboBox = new JComboBox<>();
+    artComboBox.setFont(new Font("Arial", Font.PLAIN, 16));
+    artComboBox.setBounds(200, 80, 300, 30);
+
+    JTextField artSearchField = new JTextField();
+    artSearchField.setFont(new Font("Arial", Font.PLAIN, 16));
+    artSearchField.setBounds(520, 80, 150, 30);
+
+    // Scrum Team
+    JLabel scrumLabel = new JLabel("Scrum Team: *");
+    scrumLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+    scrumLabel.setBounds(50, 130, 150, 30);
+
+    JComboBox<String> scrumComboBox = new JComboBox<>();
+    scrumComboBox.setFont(new Font("Arial", Font.PLAIN, 16));
+    scrumComboBox.setBounds(200, 130, 300, 30);
+
+    JTextField scrumSearchField = new JTextField();
+    scrumSearchField.setFont(new Font("Arial", Font.PLAIN, 16));
+    scrumSearchField.setBounds(520, 130, 150, 30);
+
+    // Release Version
+    JLabel releaseLabel = new JLabel("Release Version: *");
+    releaseLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+    releaseLabel.setBounds(50, 180, 150, 30);
+
+    JComboBox<String> releaseComboBox = new JComboBox<>();
+    releaseComboBox.setFont(new Font("Arial", Font.PLAIN, 16));
+    releaseComboBox.setBounds(200, 180, 300, 30);
+
+    JTextField releaseSearchField = new JTextField();
+    releaseSearchField.setFont(new Font("Arial", Font.PLAIN, 16));
+    releaseSearchField.setBounds(520, 180, 150, 30);
+
+    // Priority
+    JLabel priorityLabel = new JLabel("Priority: *");
+    priorityLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+    priorityLabel.setBounds(50, 230, 150, 30);
+
+    String[] priorities = {"Select Priority", "Highest", "High", "Medium", "Low", "Lowest"};
+    JComboBox<String> priorityComboBox = new JComboBox<>(priorities);
+    priorityComboBox.setFont(new Font("Arial", Font.PLAIN, 16));
+    priorityComboBox.setBounds(200, 230, 300, 30);
+
+    // Summary
+    JLabel summaryLabel = new JLabel("Summary: *");
+    summaryLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+    summaryLabel.setBounds(50, 280, 150, 30);
+
+    JTextField summaryField = new JTextField();
+    summaryField.setFont(new Font("Arial", Font.PLAIN, 16));
+    summaryField.setBounds(200, 280, 470, 30);
+
+    // Impacted APIs
+    JLabel apisLabel = new JLabel("Impacted APIs:");
+    apisLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+    apisLabel.setBounds(50, 330, 150, 30);
+
+    JTextField apisField = new JTextField();
+    apisField.setFont(new Font("Arial", Font.PLAIN, 16));
+    apisField.setBounds(200, 330, 470, 30);
+
+    // Labels
+    JLabel labelsLabel = new JLabel("Labels:");
+    labelsLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+    labelsLabel.setBounds(50, 380, 150, 30);
+
+    JTextField labelsField = new JTextField();
+    labelsField.setFont(new Font("Arial", Font.PLAIN, 16));
+    labelsField.setBounds(200, 380, 470, 30);
+
+    // Assignee
+    JLabel assigneeLabel = new JLabel("Assignee: *");
+    assigneeLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+    assigneeLabel.setBounds(50, 430, 150, 30);
+
+    JTextField assigneeField = new JTextField();
+    assigneeField.setFont(new Font("Arial", Font.PLAIN, 16));
+    assigneeField.setBounds(200, 430, 470, 30);
+
+    // Buttons
+    JButton createButton = new JButton("Create Issue");
+    createButton.setFont(new Font("Arial", Font.BOLD, 16));
+    createButton.setBounds(200, 490, 150, 40);
+    createButton.setBackground(new Color(65, 131, 215));
+    createButton.setForeground(Color.WHITE);
+    createButton.setFocusPainted(false);
+
+    JButton backButton = new JButton("Back");
+    backButton.setFont(new Font("Arial", Font.BOLD, 16));
+    backButton.setBounds(370, 490, 150, 40);
+    backButton.setBackground(new Color(190, 190, 190));
+    backButton.setForeground(Color.WHITE);
+    backButton.setFocusPainted(false);
+
+    // Add hover effects
+    createButton.addMouseListener(new MouseAdapter() {
+        public void mouseEntered(MouseEvent e) {
+            createButton.setBackground(new Color(41, 128, 185));
+        }
+        public void mouseExited(MouseEvent e) {
+            createButton.setBackground(new Color(65, 131, 215));
+        }
+    });
+
+    backButton.addMouseListener(new MouseAdapter() {
+        public void mouseEntered(MouseEvent e) {
+            backButton.setBackground(new Color(160, 160, 160));
+        }
+        public void mouseExited(MouseEvent e) {
+            backButton.setBackground(new Color(190, 190, 190));
+        }
+    });
+
+    // Add components to panel
+    bugTaskPanel.add(artLabel);
+    bugTaskPanel.add(artComboBox);
+    bugTaskPanel.add(artSearchField);
+    bugTaskPanel.add(scrumLabel);
+    bugTaskPanel.add(scrumComboBox);
+    bugTaskPanel.add(scrumSearchField);
+    bugTaskPanel.add(releaseLabel);
+    bugTaskPanel.add(releaseComboBox);
+    bugTaskPanel.add(releaseSearchField);
+    bugTaskPanel.add(priorityLabel);
+    bugTaskPanel.add(priorityComboBox);
+    bugTaskPanel.add(summaryLabel);
+    bugTaskPanel.add(summaryField);
+    bugTaskPanel.add(apisLabel);
+    bugTaskPanel.add(apisField);
+    bugTaskPanel.add(labelsLabel);
+    bugTaskPanel.add(labelsField);
+    bugTaskPanel.add(assigneeLabel);
+    bugTaskPanel.add(assigneeField);
+    bugTaskPanel.add(createButton);
+    bugTaskPanel.add(backButton);
+
+    // Load data and add listeners
+    loadARTData(artComboBox);
+    loadScrumData(scrumComboBox);
+    loadReleaseData(releaseComboBox);
+
+    setupSearchFilter(artSearchField, artComboBox);
+    setupSearchFilter(scrumSearchField, scrumComboBox);
+    setupSearchFilter(releaseSearchField, releaseComboBox);
+
+    createButton.addActionListener(e -> {
+        createIssue(
+            (String) artComboBox.getSelectedItem(),
+            (String) scrumComboBox.getSelectedItem(),
+            (String) releaseComboBox.getSelectedItem(),
+            (String) priorityComboBox.getSelectedItem(),
+            summaryField.getText(),
+            apisField.getText(),
+            labelsField.getText(),
+            assigneeField.getText()
+        );
+    });
+
+    backButton.addActionListener(e -> cardLayout.show(mainPanel, "PREVIOUS_SCREEN"));
+
+    // Add scroll pane
+    JScrollPane scrollPane = new JScrollPane(bugTaskPanel);
+    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+    
+    mainPanel.add(scrollPane, "CREATE_BUG_TASK");
+    cardLayout.show(mainPanel, "CREATE_BUG_TASK");
+}
