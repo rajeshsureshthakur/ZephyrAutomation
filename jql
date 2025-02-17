@@ -1,0 +1,2 @@
+https://your-jira-instance.atlassian.net/rest/api/3/search?jql=cf[12345] IS NOT EMPTY&fields=customfield_12345&maxResults=1000" \
+-H "Accept: application/json" | jq -r '.issues[].fields.customfield_12345[]' | sort | uniq
