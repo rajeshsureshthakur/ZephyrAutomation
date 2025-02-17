@@ -1,3 +1,25 @@
+private void loadARTData(JComboBox<String> comboBox) {
+   try {
+       Class.forName("oracle.jdbc.driver.OracleDriver");
+       try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+           String sql = "SELECT DISTINCT ART_NAME FROM JIRADATA ORDER BY ART_NAME";
+           try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+               try (ResultSet rs = pstmt.executeQuery()) {
+                   DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>)comboBox.getModel();
+                   model.removeAllElements();
+                   model.addElement("Select ART");
+                   while (rs.next()) {
+                       model.addElement(rs.getString("ART_NAME"));
+                   }
+               }
+           }
+       }
+   } catch (Exception e) {
+       e.printStackTrace();
+       JOptionPane.showMessageDialog(null, "Error loading ART data: " + e.getMessage());
+   }
+}
+
 private void showCreateBugTaskScreen() {
     JPanel bugTaskPanel = new JPanel(new BorderLayout());
     bugTaskPanel.setPreferredSize(new Dimension(1200, 800));
