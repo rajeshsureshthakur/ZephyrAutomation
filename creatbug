@@ -1,3 +1,26 @@
+ while (attempt < MAX_RETRIES) {
+            try {
+                attempt++;
+                int responseCode = sendRequest(apiUrl);
+
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    System.out.println("Request successful!");
+                    break; // Exit loop on success
+                } else if (responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR) { // 500 Error
+                    System.out.println("Received 500 error, retrying attempt " + attempt);
+                    Thread.sleep(INITIAL_DELAY_MS * (long) Math.pow(2, attempt - 1)); // Exponential backoff
+                } else {
+                    System.out.println("Request failed with response code: " + responseCode);
+                    break; // Exit loop on other errors
+                }
+
+            } catch (Exception e) {
+                System.out.println("Exception occurred: " + e.getMessage());
+            }
+        }
+
+
+
 private void resetCreateBugScreen() {
     artComboBox.setSelectedIndex(0);
     scrumComboBox.setSelectedIndex(0);
