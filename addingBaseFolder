@@ -1,0 +1,77 @@
+public List<UserEntity> getEntityList() {
+        List<UserEntity> entities = new ArrayList<>();
+        String query = "SELECT entity_id, entity_name FROM userdata";
+        
+        try (Connection conn = DatabaseConfig.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            
+            while (rs.next()) {
+                entities.add(new UserEntity(
+                    rs.getInt("entity_id"),
+                    rs.getString("entity_name")
+                ));
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return entities;
+    }
+
+
+private void checkAndProceed() {
+        if (userDAO.checkTokenExists(userId)) {
+            proceed();
+        } else {
+            showEntitySelectionDialog();
+        }
+    }
+    
+    private void showEntitySelectionDialog() {
+        JDialog dialog = new JDialog(this, "Select Entity", true);
+        dialog.setSize(300, 150);
+        dialog.setLocationRelativeTo(this);
+        
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        
+        // Create and populate combo box
+        List<UserEntity> entities = userDAO.getEntityList();
+        JComboBox<UserEntity> entityCombo = new JComboBox<>(entities.toArray(new UserEntity[0]));
+        
+        JButton submitButton = new JButton("Submit");
+        submitButton.addActionListener(e -> {
+            UserEntity selectedEntity = (UserEntity) entityCombo.getSelectedItem();
+            if (selectedEntity != null) {
+                userDAO.updateUserToken(userId, selectedEntity.getEntityId());
+                dialog.dispose();
+                proceed();
+            }
+        });
+        
+        // Add components to panel
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(new JLabel("Select Entity:"), gbc);
+        
+        gbc.gridx = 1;
+        panel.add(entityCombo, gbc);
+        
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        panel.add(submitButton, gbc);
+        
+        dialog.add(panel);
+        dialog.setVisible(true);
+    }
+    
+    private void proceed() {
+        // Implementation for next screen
+        NextScreen nextScreen = new NextScreen();
+        nextScreen.setVisible(true);
+        this.dispose();
+    }
+}
