@@ -1,0 +1,179 @@
+private void showTabsScreen() {
+    JPanel tabsPanel = new JPanel(new BorderLayout());
+    tabsPanel.setPreferredSize(new Dimension(1200, 800));
+
+    // Create tabbed pane
+    JTabbedPane tabbedPane = new JTabbedPane();
+    tabbedPane.setFont(new Font("Arial", Font.BOLD, 14));
+
+    // Create card layout panel for changing tables
+    JPanel tablePanel = new JPanel(new CardLayout());
+    CardLayout tableCardLayout = (CardLayout) tablePanel.getLayout();
+
+    // Create Summary table
+    JPanel summaryPanel = createTablePanel(new String[] {
+        "S. No.", "Phase", "RAG Status", "RAG Comments"
+    }, "SUMMARY_DATA");
+
+    // Create Requirements table
+    JPanel requirementsPanel = createTablePanel(new String[] {
+        "S. No.", "Folder Name", "Zephyr Count", "JIRA Count", "Mapping Count", "RAG Status"
+    }, "REQUIREMENTS_DATA");
+
+    // Create TestCases table
+    JPanel testCasesPanel = createTablePanel(new String[] {
+        "S. No.", "Parent Folder Name", "Folder Name", "Zephyr Count", "Mapping Count", "RAG Status"
+    }, "TESTCASES_DATA");
+
+    // Create Execution table
+    JPanel executionPanel = createTablePanel(new String[] {
+        "S. No.", "Phase Name", "Total Count", "Pass Count", "Fail Count", "Status"
+    }, "EXECUTION_DATA");
+
+    // Add tables to card layout
+    tablePanel.add(summaryPanel, "SUMMARY");
+    tablePanel.add(requirementsPanel, "REQUIREMENTS");
+    tablePanel.add(testCasesPanel, "TESTCASES");
+    tablePanel.add(executionPanel, "EXECUTION");
+
+    // Create tabs
+    tabbedPane.addTab("Summary", null, new JPanel(), "Summary view");
+    tabbedPane.addTab("Requirements", null, new JPanel(), "Requirements view");
+    tabbedPane.addTab("TestCases", null, new JPanel(), "Test Cases view");
+    tabbedPane.addTab("Execution", null, new JPanel(), "Execution view");
+
+    // Add tab change listener
+    tabbedPane.addChangeListener(e -> {
+        int selectedIndex = tabbedPane.getSelectedIndex();
+        switch (selectedIndex) {
+            case 0: tableCardLayout.show(tablePanel, "SUMMARY"); break;
+            case 1: tableCardLayout.show(tablePanel, "REQUIREMENTS"); break;
+            case 2: tableCardLayout.show(tablePanel, "TESTCASES"); break;
+            case 3: tableCardLayout.show(tablePanel, "EXECUTION"); break;
+        }
+    });
+
+    // Back button
+    JButton backButton = new JButton("Back");
+    backButton.setFont(new Font("Arial", Font.BOLD, 14));
+    backButton.setPreferredSize(new Dimension(100, 40));
+    backButton.addActionListener(e -> cardLayout.show(mainPanel, "PREVIOUS_SCREEN"));
+
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+    buttonPanel.add(backButton);
+
+    // Add components to main panel
+    tabsPanel.add(tabbedPane, BorderLayout.NORTH);
+    tabsPanel.add(tablePanel, BorderLayout.CENTER);
+    tabsPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+    // Show first tab's table initially
+    tableCardLayout.show(tablePanel, "SUMMARY");
+
+    // Add to main panel
+    mainPanel.add(tabsPanel, "TABS_SCREEN");
+    cardLayout.show(mainPanel, "TABS_SCREEN");
+}
+
+// Helper method to create table panels
+private JPanel createTablePanel(String[] columns, String tableName) {
+    JPanel panel = new JPanel(new BorderLayout());
+    
+    // Create table model
+    DefaultTableModel model = new DefaultTableModel() {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false; // Make table read-only
+        }
+    };
+    
+    // Add columns
+    for (String column : columns) {
+        model.addColumn(column);
+    }
+    
+    // Create table
+    JTable table = new JTable(model);
+    table.setFont(new Font("Arial", Font.PLAIN, 12));
+    table.setRowHeight(25);
+    table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+    
+    // Set column widths
+    TableColumnModel columnModel = table.getColumnModel();
+    int[] columnWidths = new int[columns.length];
+    
+    // Set default width for all columns
+    for (int i = 0; i < columns.length; i++) {
+        columnWidths[i] = 150;
+    }
+    
+    // S. No. column should be smaller
+    if (columns.length > 0) {
+        columnWidths[0] = 60;
+    }
+    
+    // Apply column widths
+    for (int i = 0; i < columnWidths.length; i++) {
+        columnModel.getColumn(i).setPreferredWidth(columnWidths[i]);
+    }
+    
+    // Add table to scroll pane
+    JScrollPane scrollPane = new JScrollPane(table);
+    panel.add(scrollPane, BorderLayout.CENTER);
+    
+    // Load data
+    loadTableData(model, tableName);
+    
+    return panel;
+}
+
+// Method to load data from database
+private void loadTableData(DefaultTableModel model, String tableName) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "";
+            
+            // Different SQL based on table type
+            switch (tableName) {
+                case "SUMMARY_DATA":
+                    sql = "SELECT ROWNUM AS SNO, PHASE, RAG_STATUS, RAG_COMMENTS FROM SUMMARY_TABLE";
+                    break;
+                case "REQUIREMENTS_DATA":
+                    sql = "SELECT ROWNUM AS SNO, FOLDER_NAME, ZEPHYR_COUNT, JIRA_COUNT, MAPPING_COUNT, RAG_STATUS FROM REQUIREMENTS_TABLE";
+                    break;
+                case "TESTCASES_DATA":
+                    sql = "SELECT ROWNUM AS SNO, PARENT_FOLDER, FOLDER_NAME, ZEPHYR_COUNT, MAPPING_COUNT, RAG_STATUS FROM TESTCASES_TABLE";
+                    break;
+                case "EXECUTION_DATA":
+                    sql = "SELECT ROWNUM AS SNO, PHASE_NAME, TOTAL_COUNT, PASS_COUNT, FAIL_COUNT, STATUS FROM EXECUTION_TABLE";
+                    break;
+            }
+            
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    // Clear existing data
+                    model.setRowCount(0);
+                    
+                    // Get column count from model
+                    int columnCount = model.getColumnCount();
+                    
+                    while (rs.next()) {
+                        Object[] row = new Object[columnCount];
+                        for (int i = 0; i < columnCount; i++) {
+                            row[i] = rs.getObject(i + 1);
+                        }
+                        model.addRow(row);
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, 
+            "Error loading data: " + e.getMessage(),
+            "Database Error",
+            JOptionPane.ERROR_MESSAGE);
+    }
+}
