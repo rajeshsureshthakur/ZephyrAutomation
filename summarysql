@@ -1,0 +1,62 @@
+case "SUMMARY_DATA":
+    sql = "WITH " +
+          "req_status AS (" +
+          "  SELECT " +
+          "    CASE " +
+          "      WHEN ZEPHYR_COUNT = 0 AND JIRA_COUNT = 0 AND MAPPING_COUNT = 0 THEN 'N/A' " +
+          "      WHEN ZEPHYR_COUNT != JIRA_COUNT AND MAPPING_COUNT = 0 THEN 'Red' " +
+          "      WHEN ZEPHYR_COUNT != JIRA_COUNT OR MAPPING_COUNT = 0 THEN 'Amber' " +
+          "      ELSE 'Green' " +
+          "    END AS STATUS " +
+          "  FROM REQUIREMENTS_TABLE WHERE RELEASE_ID = ? " +
+          "), " +
+          "tc_status AS (" +
+          "  SELECT " +
+          "    CASE " +
+          "      WHEN ZEPHYR_COUNT = 0 AND MAPPING_COUNT = 0 THEN 'N/A' " +
+          "      WHEN ZEPHYR_COUNT != MAPPING_COUNT AND MAPPING_COUNT = 0 THEN 'Red' " +
+          "      WHEN ZEPHYR_COUNT != MAPPING_COUNT OR MAPPING_COUNT = 0 THEN 'Amber' " +
+          "      ELSE 'Green' " +
+          "    END AS STATUS " +
+          "  FROM TESTCASES_TABLE WHERE RELEASE_ID = ? " +
+          "), " +
+          "exec_status AS (" +
+          "  SELECT STATUS FROM EXECUTION_TABLE WHERE RELEASE_ID = ? " +
+          ") " +
+          "SELECT " +
+          "  ROW_NUMBER() OVER (ORDER BY PHASE) AS SNO, " +
+          "  PHASE, " +
+          "  CASE " +
+          "    WHEN PHASE = 'Requirements' THEN " +
+          "      CASE " +
+          "        WHEN (SELECT COUNT(*) FROM req_status WHERE STATUS = 'Red') > 2 THEN 'Red' " +
+          "        WHEN (SELECT COUNT(*) FROM req_status WHERE STATUS = 'Amber') > 0 THEN 'Amber' " +
+          "        WHEN (SELECT COUNT(*) FROM req_status WHERE STATUS = 'Green') = (SELECT COUNT(*) FROM req_status) THEN 'Green' " +
+          "        ELSE 'Amber' " +
+          "      END " +
+          "    WHEN PHASE = 'Test Cases' THEN " +
+          "      CASE " +
+          "        WHEN (SELECT COUNT(*) FROM tc_status WHERE STATUS = 'Red') > 2 THEN 'Red' " +
+          "        WHEN (SELECT COUNT(*) FROM tc_status WHERE STATUS = 'Amber') > 0 THEN 'Amber' " +
+          "        WHEN (SELECT COUNT(*) FROM tc_status WHERE STATUS = 'Green') = (SELECT COUNT(*) FROM tc_status) THEN 'Green' " +
+          "        ELSE 'Amber' " +
+          "      END " +
+          "    WHEN PHASE = 'Execution' THEN " +
+          "      CASE " +
+          "        WHEN (SELECT COUNT(*) FROM exec_status WHERE STATUS = 'Red') > 2 THEN 'Red' " +
+          "        WHEN (SELECT COUNT(*) FROM exec_status WHERE STATUS = 'Amber') > 0 THEN 'Amber' " +
+          "        WHEN (SELECT COUNT(*) FROM exec_status WHERE STATUS = 'Green') = (SELECT COUNT(*) FROM exec_status) THEN 'Green' " +
+          "        ELSE 'Amber' " +
+          "      END " +
+          "  END AS RAG_STATUS, " +
+          "  'Summary data for ' || PHASE AS RAG_COMMENTS " +
+          "FROM (SELECT 'Requirements' AS PHASE FROM DUAL " +
+          "      UNION ALL SELECT 'Test Cases' AS PHASE FROM DUAL " +
+          "      UNION ALL SELECT 'Execution' AS PHASE FROM DUAL) " +
+          "ORDER BY PHASE";
+    
+    // Need to set parameter multiple times because it appears in multiple subqueries
+    pstmt.setInt(1, releaseId);  // For Requirements
+    pstmt.setInt(2, releaseId);  // For Test Cases  
+    pstmt.setInt(3, releaseId);  // For Execution
+    break;
