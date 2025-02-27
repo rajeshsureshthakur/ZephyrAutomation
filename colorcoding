@@ -1,0 +1,71 @@
+private JPanel createTablePanel(String[] columns, String tableName) {
+    JPanel panel = new JPanel(new BorderLayout());
+    
+    // Create table model code as before...
+    
+    // Create table
+    JTable table = new JTable(model);
+    table.setFont(new Font("Arial", Font.PLAIN, 12));
+    table.setRowHeight(25);
+    table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+    
+    // Set column widths code as before...
+    
+    // Add RAG Status cell renderer - determine which column has RAG Status
+    int ragStatusColumnIndex = -1;
+    for (int i = 0; i < columns.length; i++) {
+        if (columns[i].equals("RAG Status")) {
+            ragStatusColumnIndex = i;
+            break;
+        }
+    }
+    
+    if (ragStatusColumnIndex != -1) {
+        table.getColumnModel().getColumn(ragStatusColumnIndex).setCellRenderer(new RAGStatusRenderer());
+    }
+    
+    // Add table to scroll pane
+    JScrollPane scrollPane = new JScrollPane(table);
+    panel.add(scrollPane, BorderLayout.CENTER);
+    
+    // Load data
+    loadTableData(model, tableName, releaseId);
+    
+    return panel;
+}
+
+// Custom cell renderer for RAG Status
+class RAGStatusRenderer extends DefaultTableCellRenderer {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, 
+            boolean isSelected, boolean hasFocus, int row, int column) {
+        
+        Component cell = super.getTableCellRendererComponent(
+                table, value, isSelected, hasFocus, row, column);
+        
+        String status = value != null ? value.toString() : "";
+        
+        if (status.equals("Red")) {
+            cell.setBackground(new Color(255, 200, 200));  // Light red
+            cell.setForeground(new Color(170, 0, 0));      // Dark red text
+        } else if (status.equals("Amber")) {
+            cell.setBackground(new Color(255, 235, 156));  // Light amber/orange
+            cell.setForeground(new Color(184, 134, 11));   // Dark amber text
+        } else if (status.equals("Green")) {
+            cell.setBackground(new Color(200, 255, 200));  // Light green
+            cell.setForeground(new Color(0, 128, 0));      // Dark green text
+        } else if (status.equals("N/A")) {
+            cell.setBackground(new Color(240, 240, 240));  // Light gray
+            cell.setForeground(Color.GRAY);                // Gray text
+        } else {
+            cell.setBackground(table.getBackground());
+            cell.setForeground(table.getForeground());
+        }
+        
+        // Add text alignment and border
+        setHorizontalAlignment(CENTER);
+        ((JComponent) cell).setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
+        
+        return cell;
+    }
+}
