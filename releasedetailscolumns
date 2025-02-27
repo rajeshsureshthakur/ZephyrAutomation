@@ -1,0 +1,56 @@
+private void showTabsScreen(int releaseId) {
+    JPanel tabsPanel = new JPanel(new BorderLayout());
+    // Increase horizontal size
+    tabsPanel.setPreferredSize(new Dimension(1500, 800));  // Increased from 1200 to 1500
+    
+    // Rest of your code remains the same
+}
+
+private JPanel createTablePanel(String[] columns, String tableName) {
+    JPanel panel = new JPanel(new BorderLayout());
+    
+    // Create table model and other code as before
+    
+    // Set column widths with special handling for folder name columns
+    TableColumnModel columnModel = table.getColumnModel();
+    
+    // Customize column widths based on the table type
+    if (tableName.equals("REQUIREMENTS_DATA")) {
+        // For Requirements table, make folder name column wider
+        for (int i = 0; i < columns.length; i++) {
+            if (i == 1) { // Folder Name column (index 1)
+                columnModel.getColumn(i).setPreferredWidth(300); // Wider for folder name
+            } else if (i == 0) { // S.No column
+                columnModel.getColumn(i).setPreferredWidth(60);  // Narrower for S.No.
+            } else {
+                columnModel.getColumn(i).setPreferredWidth(150); // Default width for others
+            }
+        }
+    } 
+    else if (tableName.equals("TESTCASES_DATA")) {
+        // For TestCases table, make both folder name columns wider
+        for (int i = 0; i < columns.length; i++) {
+            if (i == 1 || i == 2) { // Parent Folder or Folder Name (indices 1,2)
+                columnModel.getColumn(i).setPreferredWidth(250); // Wider for folder names
+            } else if (i == 0) { // S.No column
+                columnModel.getColumn(i).setPreferredWidth(60);  // Narrower for S.No.
+            } else {
+                columnModel.getColumn(i).setPreferredWidth(150); // Default width for others
+            }
+        }
+    }
+    else {
+        // Default column widths for other tables
+        for (int i = 0; i < columns.length; i++) {
+            if (i == 0) { // S.No column
+                columnModel.getColumn(i).setPreferredWidth(60);  // Narrower for S.No.
+            } else {
+                columnModel.getColumn(i).setPreferredWidth(150); // Default width for others
+            }
+        }
+    }
+    
+    // Continue with the rest of your code
+    
+    return panel;
+}
