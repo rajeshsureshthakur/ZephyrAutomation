@@ -1,0 +1,23 @@
+// For the Requirements table
+case "REQUIREMENTS_DATA":
+    sql = "SELECT ROW_NUMBER() OVER (ORDER BY FOLDER_NAME) AS SNO, " + 
+          "FOLDER_NAME, ZEPHYR_COUNT, JIRA_COUNT, MAPPING_COUNT, " +
+          "CASE " +
+          "  WHEN ZEPHYR_COUNT != JIRA_COUNT THEN 'Amber' " +
+          "  ELSE 'Green' " +
+          "END AS RAG_STATUS " +
+          "FROM REQUIREMENTS_TABLE WHERE RELEASE_ID = ? " +
+          "ORDER BY FOLDER_NAME";
+    break;
+
+// For the TestCases table
+case "TESTCASES_DATA":
+    sql = "SELECT ROW_NUMBER() OVER (ORDER BY PARENT_FOLDER, FOLDER_NAME) AS SNO, " + 
+          "PARENT_FOLDER, FOLDER_NAME, ZEPHYR_COUNT, MAPPING_COUNT, " +
+          "CASE " +
+          "  WHEN ZEPHYR_COUNT != MAPPING_COUNT THEN 'Amber' " +
+          "  ELSE 'Green' " +
+          "END AS RAG_STATUS " +
+          "FROM TESTCASES_TABLE WHERE RELEASE_ID = ? " +
+          "ORDER BY PARENT_FOLDER, FOLDER_NAME";
+    break;
