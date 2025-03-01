@@ -1,0 +1,143 @@
+private void showCreateTestCaseScreen() {
+    // Create panel with title at top
+    JPanel createTestCasePanel = new JPanel(null); // null layout for absolute positioning
+    createTestCasePanel.setPreferredSize(new Dimension(800, 600));
+    
+    // Title
+    JLabel titleLabel = new JLabel("Create Test Case");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+    titleLabel.setBounds(50, 30, 300, 30);
+    
+    // Select Folder button
+    JButton selectFolderButton = new JButton("Select Folder");
+    selectFolderButton.setFont(new Font("Arial", Font.PLAIN, 14));
+    selectFolderButton.setBounds(50, 100, 150, 35);
+    
+    // Selected folder display (optional, to show user what folder was selected)
+    JLabel selectedFolderLabel = new JLabel("No folder selected");
+    selectedFolderLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+    selectedFolderLabel.setBounds(220, 100, 400, 35);
+    
+    // Test Case Name
+    JLabel nameLabel = new JLabel("Test Case Name: *");
+    nameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+    nameLabel.setBounds(50, 160, 150, 30);
+    
+    JTextField nameField = new JTextField();
+    nameField.setFont(new Font("Arial", Font.PLAIN, 14));
+    nameField.setBounds(220, 160, 400, 30);
+    
+    // Status dropdown
+    JLabel statusLabel = new JLabel("Status: *");
+    statusLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+    statusLabel.setBounds(50, 220, 150, 30);
+    
+    String[] statusOptions = {"Select Status", "Completed", "Not Started", "On Hold", "Pending"};
+    JComboBox<String> statusComboBox = new JComboBox<>(statusOptions);
+    statusComboBox.setFont(new Font("Arial", Font.PLAIN, 14));
+    statusComboBox.setBounds(220, 220, 200, 30);
+    
+    // Action buttons
+    JButton createButton = new JButton("Create");
+    createButton.setFont(new Font("Arial", Font.BOLD, 14));
+    createButton.setBounds(220, 300, 120, 40);
+    createButton.setBackground(new Color(65, 131, 215));
+    createButton.setForeground(Color.WHITE);
+    createButton.setFocusPainted(false);
+    
+    JButton backButton = new JButton("Back");
+    backButton.setFont(new Font("Arial", Font.BOLD, 14));
+    backButton.setBounds(360, 300, 120, 40);
+    backButton.setBackground(new Color(190, 190, 190));
+    backButton.setForeground(Color.WHITE);
+    backButton.setFocusPainted(false);
+    
+    // Add hover effects
+    createButton.addMouseListener(new MouseAdapter() {
+        public void mouseEntered(MouseEvent e) {
+            createButton.setBackground(new Color(41, 128, 185));
+        }
+        public void mouseExited(MouseEvent e) {
+            createButton.setBackground(new Color(65, 131, 215));
+        }
+    });
+    
+    backButton.addMouseListener(new MouseAdapter() {
+        public void mouseEntered(MouseEvent e) {
+            backButton.setBackground(new Color(160, 160, 160));
+        }
+        public void mouseExited(MouseEvent e) {
+            backButton.setBackground(new Color(190, 190, 190));
+        }
+    });
+    
+    // Add action listeners
+    selectFolderButton.addActionListener(e -> {
+        // Call your folder selection Java file/method here
+        try {
+            String selectedFolder = FolderSelector.selectFolder();
+            if (selectedFolder != null && !selectedFolder.isEmpty()) {
+                selectedFolderLabel.setText(selectedFolder);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error selecting folder: " + ex.getMessage());
+        }
+    });
+    
+    createButton.addActionListener(e -> {
+        // Validate inputs
+        if (nameField.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter a test case name.");
+            return;
+        }
+        
+        if (statusComboBox.getSelectedIndex() == 0) {
+            JOptionPane.showMessageDialog(null, "Please select a status.");
+            return;
+        }
+        
+        if (selectedFolderLabel.getText().equals("No folder selected")) {
+            JOptionPane.showMessageDialog(null, "Please select a folder.");
+            return;
+        }
+        
+        // Store values
+        String testCaseName = nameField.getText();
+        String selectedStatus = (String) statusComboBox.getSelectedItem();
+        String folderPath = selectedFolderLabel.getText();
+        
+        // Call Java file to create test case
+        try {
+            TestCaseCreator.createTestCase(folderPath, testCaseName, selectedStatus);
+            JOptionPane.showMessageDialog(null, "Test case created successfully!");
+            
+            // Reset fields
+            nameField.setText("");
+            statusComboBox.setSelectedIndex(0);
+            selectedFolderLabel.setText("No folder selected");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error creating test case: " + ex.getMessage());
+        }
+    });
+    
+    backButton.addActionListener(e -> {
+        cardLayout.show(mainPanel, "PREVIOUS_SCREEN");
+    });
+    
+    // Add components to panel
+    createTestCasePanel.add(titleLabel);
+    createTestCasePanel.add(selectFolderButton);
+    createTestCasePanel.add(selectedFolderLabel);
+    createTestCasePanel.add(nameLabel);
+    createTestCasePanel.add(nameField);
+    createTestCasePanel.add(statusLabel);
+    createTestCasePanel.add(statusComboBox);
+    createTestCasePanel.add(createButton);
+    createTestCasePanel.add(backButton);
+    
+    // Add to main panel
+    mainPanel.add(createTestCasePanel, "CREATE_TEST_CASE");
+    cardLayout.show(mainPanel, "CREATE_TEST_CASE");
+}
