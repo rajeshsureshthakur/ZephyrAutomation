@@ -1,0 +1,24 @@
+try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            HttpPost uploadRequest = new HttpPost(apiUrl);
+            uploadRequest.setHeader("Authorization", authToken);
+
+            // Create multipart request body
+            HttpEntity multipartEntity = MultipartEntityBuilder.create()
+                .addBinaryBody("file", file, ContentType.APPLICATION_OCTET_STREAM, file.getName())
+                .build();
+
+            uploadRequest.setEntity(multipartEntity);
+
+            // Execute request
+            HttpResponse response = httpClient.execute(uploadRequest);
+            int statusCode = response.getStatusLine().getStatusCode();
+
+            if (statusCode == 200 || statusCode == 201) {
+                System.out.println("File uploaded successfully!");
+            } else {
+                System.out.println("Upload failed with status code: " + statusCode);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
