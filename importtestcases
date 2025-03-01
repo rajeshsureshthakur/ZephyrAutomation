@@ -1,0 +1,127 @@
+// Import necessary libraries
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import org.json.*;
+import java.util.concurrent.TimeUnit;
+
+public class ZephyrImporter {
+
+    private final String baseUrl;
+    private final String authToken;
+    
+    public ZephyrImporter(String baseUrl, String authToken) {
+        this.baseUrl = baseUrl;
+        this.authToken = authToken;
+    }
+    
+    public Long importTestCasesFromExcel(String excelFileName, String excelFilePath, 
+            int fieldMapId, int releaseId) throws Exception {
+        
+        // First API call to initiate the import
+        URL url = new URL(baseUrl + "/api/v1/import");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Authorization", "Bearer " + authToken);
+        conn.setDoOutput(true);
+        
+        // Create import request payload
+        JSONObject payload = new JSONObject();
+        payload.put("name", String.valueOf(System.currentTimeMillis()/1000));
+        payload.put("scheduledDate", System.currentTimeMillis());
+        payload.put("folder", excelFileName);
+        payload.put("fileExtension", excelFilePath.endsWith(".xlsx") ? ".xlsx" : ".xls");
+        payload.put("fieldMapId", fieldMapId);
+        payload.put("releaseId", releaseId);
+        payload.put("importEntityType", "testcase");
+        payload.put("status", "11000");
+        payload.put("isUpload", true);
+        
+        // Send the request
+        try (OutputStream os = conn.getOutputStream()) {
+            byte[] input = payload.toString().getBytes("utf-8");
+            os.write(input, 0, input.length);
+        }
+        
+        // Read the response
+        StringBuilder response = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+            String responseLine;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+        }
+        
+        System.out.println("Import initiated response: " + response.toString());
+        
+        // Poll the second API until import is complete
+        return pollForImportCompletion(releaseId);
+    }
+    
+    private Long pollForImportCompletion(int releaseId) throws Exception {
+        final int MAX_ATTEMPTS = 30;
+        final int POLL_INTERVAL_SECONDS = 10;
+        
+        for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+            System.out.println("Checking import status, attempt " + (attempt + 1));
+            
+            URL url = new URL(baseUrl + "/api/v1/imports/release/" + releaseId);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Authorization", "Bearer " + authToken);
+            
+            StringBuilder response = new StringBuilder();
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+            }
+            
+            String jsonResponse = response.toString();
+            System.out.println("Poll response: " + jsonResponse);
+            
+            // Parse response to get import ID
+            JSONArray imports = new JSONArray(jsonResponse);
+            if (imports.length() > 0) {
+                JSONObject importObject = imports.getJSONObject(0);
+                Long importId = importObject.getLong("id");
+                int testcaseCount = importObject.getInt("testcaseCount");
+                
+                if (testcaseCount > 0) {
+                    System.out.println("Import complete! ID: " + importId + 
+                            ", Test cases imported: " + testcaseCount);
+                    return importId;
+                }
+            }
+            
+            // Wait before polling again
+            TimeUnit.SECONDS.sleep(POLL_INTERVAL_SECONDS);
+        }
+        
+        throw new RuntimeException("Import did not complete within the allowed time");
+    }
+    
+    // Example usage
+    public static void main(String[] args) {
+        try {
+            ZephyrImporter importer = new ZephyrImporter(
+                    "https://your-zephyr-instance", 
+                    "your-auth-token");
+            
+            Long importId = importer.importTestCasesFromExcel(
+                    "Zephyr_NFT.xlsx",
+                    "/path/to/Zephyr_NFT.xlsx",
+                    5508,
+                    15189);
+            
+            System.out.println("Successfully completed import with ID: " + importId);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
