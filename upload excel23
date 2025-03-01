@@ -1,0 +1,74 @@
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+public class UploadExcelToZephyr {
+    public static void main(String[] args) {
+        String apiUrl = "https://zephyr-instance/api/upload"; // Replace with actual Zephyr API URL
+        String filePath = "C:\\path\\to\\testcases.xlsx"; // Local Excel file path
+        String authToken = "Bearer YOUR_ACCESS_TOKEN"; // Replace with your Zephyr API token
+        String boundary = "----WebKitFormBoundary12345"; // Unique boundary string
+
+        File file = new File(filePath);
+        if (!file.exists()) {
+            System.out.println("File not found!");
+            return;
+        }
+
+        try {
+            // Open a connection to the API
+            URL url = new URL(apiUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Authorization", authToken);
+            connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+            connection.setDoOutput(true);
+
+            // Write multipart form data
+            try (OutputStream outputStream = connection.getOutputStream();
+                 PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream, "UTF-8"), true)) {
+
+                // File part
+                writer.append("--").append(boundary).append("\r\n");
+                writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"").append(file.getName()).append("\"\r\n");
+                writer.append("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\r\n");
+                writer.append("\r\n");
+                writer.flush();
+
+                // Read file and write to request body
+                FileInputStream inputStream = new FileInputStream(file);
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+                outputStream.flush();
+                inputStream.close();
+
+                // Finish multipart request
+                writer.append("\r\n");
+                writer.append("--").append(boundary).append("--\r\n");
+                writer.flush();
+            }
+
+            // Read server response
+            int responseCode = connection.getResponseCode();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    responseCode < 400 ? connection.getInputStream() : connection.getErrorStream()));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+            reader.close();
+
+            // Print response
+            System.out.println("Response Code: " + responseCode);
+            System.out.println("Response: " + response.toString());
+
+            connection.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
