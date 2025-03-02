@@ -1,0 +1,45 @@
+// Add this after creating the combo box
+mapComboBox.setRenderer(new DefaultListCellRenderer() {
+    @Override
+    public Component getListCellRendererComponent(JList<?> list, Object value, 
+            int index, boolean isSelected, boolean cellHasFocus) {
+        
+        Component c = super.getListCellRendererComponent(
+                list, value, index, isSelected, cellHasFocus);
+        
+        if (!isSelected) {
+            c.setBackground(Color.WHITE);  // Force white background for non-selected items
+        }
+        
+        // Add padding
+        ((JLabel) c).setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        
+        return c;
+    }
+});
+
+// Fix dropdown popup background
+Object popupComponent = mapComboBox.getUI().getAccessibleChild(mapComboBox, 0);
+if (popupComponent instanceof JPopupMenu) {
+    JPopupMenu popup = (JPopupMenu) popupComponent;
+    popup.setBackground(Color.WHITE);
+    
+    // This is important - it sets the background of the entire popup area
+    popup.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+    
+    // Force the list inside the popup to have a white background
+    Component[] components = popup.getComponents();
+    for (Component component : components) {
+        if (component instanceof JScrollPane) {
+            JScrollPane scrollPane = (JScrollPane) component;
+            scrollPane.getViewport().setBackground(Color.WHITE);
+            scrollPane.setBackground(Color.WHITE);
+            
+            // Try to get the list inside the scroll pane
+            Component view = scrollPane.getViewport().getView();
+            if (view instanceof JList) {
+                ((JList<?>) view).setBackground(Color.WHITE);
+            }
+        }
+    }
+}
