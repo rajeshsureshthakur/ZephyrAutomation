@@ -1,0 +1,13 @@
+// Add this after creating the mapComboBox
+mapComboBox.addActionListener(e -> {
+    MapItem selectedMap = (MapItem) mapComboBox.getSelectedItem();
+    if (selectedMap != null && selectedMap.getId() != 0) {
+        // Skip showing dialog for the default "Select a Map" item (id=0)
+        JOptionPane.showMessageDialog(
+            importPanel,
+            "Map selected: " + selectedMap.getName(),
+            "Map Selection",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+});
