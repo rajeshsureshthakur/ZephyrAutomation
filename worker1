@@ -1,0 +1,37 @@
+// Create the combo box with default item immediately
+JComboBox<MapItem> mapComboBox = new JComboBox<>();
+mapComboBox.addItem(new MapItem(0, "Select a Map")); // Add default item right away
+mapComboBox.setBounds(50, 380, 500, 30);
+
+// Set renderer and other properties
+mapComboBox.setRenderer(new DefaultListCellRenderer() {
+    // Renderer code as before
+});
+
+// Fetch map data from API in background
+SwingWorker<Void, MapItem> worker = new SwingWorker<Void, List<MapItem>>() {
+    @Override
+    protected Void doInBackground() throws Exception {
+        try {
+            // Fetch maps from API
+            List<MapItem> maps = fetchMapsFromApi();
+            publish(maps); // Send the maps to process method
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    @Override
+    protected void process(List<List<MapItem>> chunks) {
+        // This is called on the EDT thread with batches of maps
+        for (List<MapItem> maps : chunks) {
+            allMaps.addAll(maps);
+            for (MapItem map : maps) {
+                mapComboBox.addItem(map);
+            }
+        }
+    }
+};
+worker.execute();
