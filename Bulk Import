@@ -1,0 +1,187 @@
+private void showBulkImportScreen() {
+    JPanel importPanel = new JPanel(null);  // Using null layout for absolute positioning
+    importPanel.setPreferredSize(new Dimension(800, 600));
+    
+    // Title
+    JLabel titleLabel = new JLabel("Bulk Import Test Cases");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+    titleLabel.setBounds(50, 30, 300, 30);
+    
+    // File upload section
+    JLabel uploadLabel = new JLabel("Upload Import File (.xlsx):");
+    uploadLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+    uploadLabel.setBounds(50, 100, 200, 30);
+    
+    JTextField filePathField = new JTextField();
+    filePathField.setEditable(false);
+    filePathField.setBounds(50, 140, 500, 30);
+    
+    JButton browseButton = new JButton("Browse");
+    browseButton.setFont(new Font("Arial", Font.PLAIN, 14));
+    browseButton.setBounds(560, 140, 100, 30);
+    
+    // Release folder section
+    JLabel folderLabel = new JLabel("Select Release Folder:");
+    folderLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+    folderLabel.setBounds(50, 200, 200, 30);
+    
+    JTextField folderPathField = new JTextField();
+    folderPathField.setEditable(false);
+    folderPathField.setBounds(50, 240, 500, 30);
+    
+    JButton selectFolderButton = new JButton("Select");
+    selectFolderButton.setFont(new Font("Arial", Font.PLAIN, 14));
+    selectFolderButton.setBounds(560, 240, 100, 30);
+    
+    // Map ID section
+    JLabel mapIdLabel = new JLabel("Enter Map ID:");
+    mapIdLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+    mapIdLabel.setBounds(50, 300, 200, 30);
+    
+    JTextField mapIdField = new JTextField();
+    mapIdField.setBounds(50, 340, 200, 30);
+    
+    // Action Buttons
+    JButton importButton = new JButton("Import Test Cases");
+    importButton.setFont(new Font("Arial", Font.BOLD, 14));
+    importButton.setBounds(50, 420, 200, 40);
+    importButton.setBackground(new Color(65, 131, 215));
+    importButton.setForeground(Color.WHITE);
+    importButton.setFocusPainted(false);
+    
+    JButton backButton = new JButton("Back");
+    backButton.setFont(new Font("Arial", Font.BOLD, 14));
+    backButton.setBounds(260, 420, 100, 40);
+    backButton.setBackground(new Color(190, 190, 190));
+    backButton.setForeground(Color.WHITE);
+    backButton.setFocusPainted(false);
+    
+    // Add hover effects
+    importButton.addMouseListener(new MouseAdapter() {
+        public void mouseEntered(MouseEvent e) {
+            importButton.setBackground(new Color(41, 128, 185));
+        }
+        public void mouseExited(MouseEvent e) {
+            importButton.setBackground(new Color(65, 131, 215));
+        }
+    });
+    
+    backButton.addMouseListener(new MouseAdapter() {
+        public void mouseEntered(MouseEvent e) {
+            backButton.setBackground(new Color(160, 160, 160));
+        }
+        public void mouseExited(MouseEvent e) {
+            backButton.setBackground(new Color(190, 190, 190));
+        }
+    });
+    
+    // Variables to store file information
+    final String[] selectedFilePath = {""};
+    final String[] selectedFileName = {""};
+    final String[] selectedFolderPath = {""};
+    
+    // Add action listeners
+    browseButton.addActionListener(e -> {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Excel files", "xlsx", "xls"));
+        int result = fileChooser.showOpenDialog(importPanel);
+        
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            selectedFilePath[0] = selectedFile.getAbsolutePath();
+            selectedFileName[0] = selectedFile.getName();
+            filePathField.setText(selectedFilePath[0]);
+        }
+    });
+    
+    selectFolderButton.addActionListener(e -> {
+        try {
+            selectedFolderPath[0] = FolderSelector.selectFolder();
+            folderPathField.setText(selectedFolderPath[0]);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error selecting folder: " + ex.getMessage());
+        }
+    });
+    
+    importButton.addActionListener(e -> {
+        // Validate inputs
+        if (selectedFilePath[0].isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please select a file to import.");
+            return;
+        }
+        
+        if (selectedFolderPath[0].isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please select a release folder.");
+            return;
+        }
+        
+        if (mapIdField.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter a Map ID.");
+            return;
+        }
+        
+        int mapId;
+        try {
+            mapId = Integer.parseInt(mapIdField.getText());
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "Map ID must be a number.");
+            return;
+        }
+        
+        // Call the import function
+        try {
+            int result = TestCaseImporter.importTestCases(
+                selectedFilePath[0],
+                selectedFileName[0],
+                selectedFolderPath[0],
+                mapId
+            );
+            
+            if (result == 1) {
+                JOptionPane.showMessageDialog(null, "Test cases imported successfully!");
+                // Reset fields after successful import
+                filePathField.setText("");
+                folderPathField.setText("");
+                mapIdField.setText("");
+                selectedFilePath[0] = "";
+                selectedFileName[0] = "";
+                selectedFolderPath[0] = "";
+            } else {
+                JOptionPane.showMessageDialog(null, "Failed to import test cases. Please try again.",
+                    "Import Failed", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error during import: " + ex.getMessage(),
+                "Import Error", JOptionPane.ERROR_MESSAGE);
+        }
+    });
+    
+    backButton.addActionListener(e -> {
+        cardLayout.show(mainPanel, "PREVIOUS_SCREEN");
+    });
+    
+    // Add components to panel
+    importPanel.add(titleLabel);
+    importPanel.add(uploadLabel);
+    importPanel.add(filePathField);
+    importPanel.add(browseButton);
+    importPanel.add(folderLabel);
+    importPanel.add(folderPathField);
+    importPanel.add(selectFolderButton);
+    importPanel.add(mapIdLabel);
+    importPanel.add(mapIdField);
+    importPanel.add(importButton);
+    importPanel.add(backButton);
+    
+    // Add to main panel
+    mainPanel.add(importPanel, "BULK_IMPORT");
+    cardLayout.show(mainPanel, "BULK_IMPORT");
+}
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.File;
+import javax.swing.filechooser.FileNameExtensionFilter;
