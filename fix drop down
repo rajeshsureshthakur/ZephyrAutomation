@@ -1,0 +1,27 @@
+// Add this to your filterMapDropdown method
+private void filterMapDropdown() {
+    String searchText = searchField.getText().toLowerCase().trim();
+    
+    // Clear current items except the first one (Select a Map)
+    while (mapComboBox.getItemCount() > 1) {
+        mapComboBox.removeItemAt(1);
+    }
+    
+    // Add matching items
+    int matchCount = 0;
+    for (MapItem map : allMaps) {
+        if (map.getName().toLowerCase().contains(searchText)) {
+            mapComboBox.addItem(map);
+            matchCount++;
+        }
+    }
+    
+    // Set popup size to match number of items (limit to 10 visible rows max)
+    int visibleRows = Math.min(matchCount + 1, 10); // +1 for "Select a Map"
+    mapComboBox.setMaximumRowCount(visibleRows);
+    
+    // Show dropdown if there are matching results and search text isn't empty
+    if (mapComboBox.getItemCount() > 1 && !searchText.isEmpty()) {
+        mapComboBox.showPopup();
+    }
+}
