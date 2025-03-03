@@ -1,0 +1,57 @@
+// After creating the file path field and browse button
+JLabel downloadLabel = new JLabel("<html><u>Download xlsx template</u></html>");
+downloadLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+downloadLabel.setForeground(Color.BLUE);
+downloadLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+downloadLabel.setBounds(50, 180, 200, 20);  // Position below the file path field
+
+// Add click action to download the template
+downloadLabel.addMouseListener(new MouseAdapter() {
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save Template File");
+        fileChooser.setSelectedFile(new File("template.xlsx"));
+        
+        int userSelection = fileChooser.showSaveDialog(importPanel);
+        
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File destinationFile = fileChooser.getSelectedFile();
+            
+            try {
+                // Get the template file from the same directory as the application
+                File templateFile = new File(System.getProperty("user.dir") + File.separator + "template.xlsx");
+                
+                // If template is packaged in a JAR, use resource stream instead
+                if (!templateFile.exists()) {
+                    // Copy from resources within JAR
+                    try (InputStream inputStream = getClass().getResourceAsStream("/template.xlsx");
+                         FileOutputStream outputStream = new FileOutputStream(destinationFile)) {
+                        
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = inputStream.read(buffer)) > 0) {
+                            outputStream.write(buffer, 0, length);
+                        }
+                    }
+                } else {
+                    // Direct file copy for standalone application
+                    Files.copy(templateFile.toPath(), destinationFile.toPath(), 
+                               StandardCopyOption.REPLACE_EXISTING);
+                }
+                
+                JOptionPane.showMessageDialog(importPanel, 
+                    "Template downloaded successfully to:\n" + destinationFile.getAbsolutePath());
+                
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(importPanel, 
+                    "Error downloading template: " + ex.getMessage(),
+                    "Download Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+});
+
+// Don't forget to add the label to your panel
+importPanel.add(downloadLabel);
