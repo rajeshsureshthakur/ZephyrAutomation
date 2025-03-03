@@ -1,0 +1,35 @@
+private void showConfirmationDialog() {
+        // Create custom dialog
+        JDialog dialog = new JDialog(this, "Confirmation", true);
+        dialog.setSize(300, 150);
+        dialog.setLayout(new FlowLayout());
+
+        // Checkbox for confirmation
+        JCheckBox checkBox = new JCheckBox("Are you sure?");
+        
+        // Buttons
+        JButton yesButton = new JButton("Yes");
+        JButton noButton = new JButton("No");
+
+        yesButton.addActionListener(e -> {
+            if (checkBox.isSelected()) {
+                dialog.dispose();
+                new NextScreen(); // Open next screen
+                dispose(); // Close current screen
+            } else {
+                JOptionPane.showMessageDialog(dialog, "Please check the box to proceed.", "Warning", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        noButton.addActionListener(e -> dialog.dispose());
+
+        // Add components to dialog
+        dialog.add(new JLabel("Confirm your action:"));
+        dialog.add(checkBox);
+        dialog.add(yesButton);
+        dialog.add(noButton);
+
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+}
