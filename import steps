@@ -1,0 +1,139 @@
+public interface ImportProgressListener {
+    void onStatusUpdate(int statusCode, String statusMessage);
+    void onComplete(int finalResult);
+}
+
+public class TestCaseImporter {
+    public static int importTestCases(String filePath, String fileName, String folderPath, 
+                                    int mapId, ImportProgressListener listener) {
+        // Initialize
+        listener.onStatusUpdate(1, "Starting import process...");
+        
+        // Validate file
+        listener.onStatusUpdate(2, "Validating file format...");
+        
+        // Processing file
+        listener.onStatusUpdate(3, "Processing Excel data...");
+        
+        // Call API
+        listener.onStatusUpdate(4, "Uploading to server...");
+        
+        // Wait for import to complete
+        listener.onStatusUpdate(5, "Waiting for server to process import...");
+        
+        // Check results
+        listener.onStatusUpdate(6, "Checking import results...");
+        
+        // Final result (success=1, failure=0)
+        int finalResult = 1; // or 0 if failed
+        
+        // Notify completion
+        listener.onComplete(finalResult);
+        
+        return finalResult;
+    }
+}
+
+
+private void showImportProgress() {
+    // Create a modal dialog
+    JDialog progressDialog = new JDialog((Frame)SwingUtilities.getWindowAncestor(importPanel), "Import Progress", true);
+    progressDialog.setLayout(new BorderLayout());
+    progressDialog.setSize(400, 200);
+    progressDialog.setLocationRelativeTo(importPanel);
+    
+    // Add progress components
+    JLabel statusLabel = new JLabel("Starting import...");
+    statusLabel.setHorizontalAlignment(JLabel.CENTER);
+    statusLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    
+    JProgressBar progressBar = new JProgressBar(0, 6); // 6 steps in our process
+    progressBar.setStringPainted(true);
+    
+    // Add to dialog
+    progressDialog.add(statusLabel, BorderLayout.CENTER);
+    progressDialog.add(progressBar, BorderLayout.SOUTH);
+    
+    // Make dialog non-closable during import
+    progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+    
+    // Show dialog in a non-blocking way
+    SwingWorker<Integer, Object[]> worker = new SwingWorker<Integer, Object[]>() {
+        @Override
+        protected Integer doInBackground() throws Exception {
+            // Call import with progress listener
+            return TestCaseImporter.importTestCases(
+                selectedFilePath[0],
+                selectedFileName[0],
+                selectedFolderPath[0],
+                selectedMap.getId(),
+                new ImportProgressListener() {
+                    @Override
+                    public void onStatusUpdate(int statusCode, String statusMessage) {
+                        publish(new Object[]{statusCode, statusMessage});
+                    }
+                    
+                    @Override
+                    public void onComplete(int finalResult) {
+                        // We don't need to do anything here since the return value
+                        // will be handled by the done() method
+                    }
+                }
+            );
+        }
+        
+        @Override
+        protected void process(List<Object[]> chunks) {
+            // Update UI with latest status
+            Object[] latestStatus = chunks.get(chunks.size() - 1);
+            int statusCode = (int) latestStatus[0];
+            String statusMessage = (String) latestStatus[1];
+            
+            statusLabel.setText(statusMessage);
+            progressBar.setValue(statusCode);
+        }
+        
+        @Override
+        protected void done() {
+            try {
+                int result = get();
+                progressDialog.dispose(); // Close dialog
+                
+                // Show final message
+                if (result == 1) {
+                    JOptionPane.showMessageDialog(null, "Test cases imported successfully!");
+                    // Reset fields after successful import
+                    resetFields();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Failed to import test cases. Please try again.",
+                        "Import Failed", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                progressDialog.dispose();
+                JOptionPane.showMessageDialog(null, "Error during import: " + ex.getMessage(),
+                    "Import Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    };
+    
+    // Start the worker
+    worker.execute();
+    
+    // Show dialog (this will block until dialog is closed)
+    progressDialog.setVisible(true);
+}
+
+
+importButton.addActionListener(e -> {
+    // Validate inputs
+    if (selectedFilePath[0].isEmpty()) {
+        JOptionPane.showMessageDialog(null, "Please select a file to import.");
+        return;
+    }
+    
+    // More validation...
+    
+    // Show progress dialog
+    showImportProgress();
+});
