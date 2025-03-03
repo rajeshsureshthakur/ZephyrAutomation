@@ -1,0 +1,136 @@
+private void showConfigureConfluencePage(int releaseId) {
+    JPanel confluencePanel = new JPanel(null);  // Using null layout for absolute positioning
+    confluencePanel.setPreferredSize(new Dimension(800, 400));
+    
+    // Title
+    JLabel titleLabel = new JLabel("Configure Confluence Page");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+    titleLabel.setBounds(50, 30, 400, 30);
+    
+    // Page ID fields
+    JLabel pageIdLabel = new JLabel("Enter Page ID:");
+    pageIdLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+    pageIdLabel.setBounds(50, 100, 120, 30);
+    
+    JTextField pageIdField = new JTextField();
+    pageIdField.setFont(new Font("Arial", Font.PLAIN, 14));
+    pageIdField.setBounds(180, 100, 300, 30);
+    
+    // Pre-populate if value exists in database
+    String existingPageId = getExistingPageId(releaseId);
+    if (existingPageId != null && !existingPageId.isEmpty()) {
+        pageIdField.setText(existingPageId);
+    }
+    
+    // Action buttons
+    JButton submitButton = new JButton("Submit");
+    submitButton.setFont(new Font("Arial", Font.BOLD, 14));
+    submitButton.setBounds(180, 170, 120, 40);
+    submitButton.setBackground(new Color(65, 131, 215));
+    submitButton.setForeground(Color.WHITE);
+    submitButton.setFocusPainted(false);
+    
+    JButton backButton = new JButton("Back");
+    backButton.setFont(new Font("Arial", Font.BOLD, 14));
+    backButton.setBounds(320, 170, 100, 40);
+    backButton.setBackground(new Color(190, 190, 190));
+    backButton.setForeground(Color.WHITE);
+    backButton.setFocusPainted(false);
+    
+    // Add hover effects
+    submitButton.addMouseListener(new MouseAdapter() {
+        public void mouseEntered(MouseEvent e) {
+            submitButton.setBackground(new Color(41, 128, 185));
+        }
+        public void mouseExited(MouseEvent e) {
+            submitButton.setBackground(new Color(65, 131, 215));
+        }
+    });
+    
+    backButton.addMouseListener(new MouseAdapter() {
+        public void mouseEntered(MouseEvent e) {
+            backButton.setBackground(new Color(160, 160, 160));
+        }
+        public void mouseExited(MouseEvent e) {
+            backButton.setBackground(new Color(190, 190, 190));
+        }
+    });
+    
+    // Add action listeners
+    submitButton.addActionListener(e -> {
+        String pageId = pageIdField.getText().trim();
+        
+        if (pageId.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter a Page ID.");
+            return;
+        }
+        
+        // Update the database
+        boolean success = updateConfluencePageId(releaseId, pageId);
+        
+        if (success) {
+            JOptionPane.showMessageDialog(null, "Confluence Page ID updated successfully!");
+            cardLayout.show(mainPanel, "MANAGE_RELEASE");  // Go back to previous screen
+        } else {
+            JOptionPane.showMessageDialog(null, "Failed to update Confluence Page ID. Please try again.",
+                "Update Failed", JOptionPane.ERROR_MESSAGE);
+        }
+    });
+    
+    backButton.addActionListener(e -> {
+        cardLayout.show(mainPanel, "MANAGE_RELEASE");
+    });
+    
+    // Add components to panel
+    confluencePanel.add(titleLabel);
+    confluencePanel.add(pageIdLabel);
+    confluencePanel.add(pageIdField);
+    confluencePanel.add(submitButton);
+    confluencePanel.add(backButton);
+    
+    // Add to main panel
+    mainPanel.add(confluencePanel, "CONFIGURE_CONFLUENCE");
+    cardLayout.show(mainPanel, "CONFIGURE_CONFLUENCE");
+}
+
+// Method to get existing page ID from the database
+private String getExistingPageId(int releaseId) {
+    String pageId = "";
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT CONFLUENCE_PAGEID FROM RELEASES WHERE RELEASE_ID = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, releaseId);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        pageId = rs.getString("CONFLUENCE_PAGEID");
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return pageId;
+}
+
+// Method to update the page ID in the database
+private boolean updateConfluencePageId(int releaseId, String pageId) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "UPDATE RELEASES SET CONFLUENCE_PAGEID = ? WHERE RELEASE_ID = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, pageId);
+                pstmt.setInt(2, releaseId);
+                int rowsAffected = pstmt.executeUpdate();
+                return rowsAffected > 0;
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
+    }
+    return false;
+}
