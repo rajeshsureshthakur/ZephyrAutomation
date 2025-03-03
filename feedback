@@ -1,0 +1,111 @@
+private void showFeedbackDialog() {
+    // Create a dialog
+    JDialog feedbackDialog = new JDialog((Frame)SwingUtilities.getWindowAncestor(mainPanel), "Provide Feedback", true);
+    feedbackDialog.setSize(600, 400);
+    feedbackDialog.setLocationRelativeTo(mainPanel);
+    feedbackDialog.setLayout(new BorderLayout());
+
+    // Title label
+    JLabel titleLabel = new JLabel("We value your feedback!");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+    titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+    titleLabel.setHorizontalAlignment(JLabel.CENTER);
+
+    // Feedback text area
+    JTextArea feedbackArea = new JTextArea();
+    feedbackArea.setFont(new Font("Arial", Font.PLAIN, 14));
+    feedbackArea.setLineWrap(true);
+    feedbackArea.setWrapStyleWord(true);
+    feedbackArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    
+    // Placeholder text that disappears when clicked
+    feedbackArea.setText("Please enter your suggestions, feedback, or report any errors here...");
+    feedbackArea.setForeground(Color.GRAY);
+    
+    feedbackArea.addFocusListener(new FocusAdapter() {
+        @Override
+        public void focusGained(FocusEvent e) {
+            if (feedbackArea.getText().equals("Please enter your suggestions, feedback, or report any errors here...")) {
+                feedbackArea.setText("");
+                feedbackArea.setForeground(Color.BLACK);
+            }
+        }
+        
+        @Override
+        public void focusLost(FocusEvent e) {
+            if (feedbackArea.getText().isEmpty()) {
+                feedbackArea.setText("Please enter your suggestions, feedback, or report any errors here...");
+                feedbackArea.setForeground(Color.GRAY);
+            }
+        }
+    });
+    
+    JScrollPane scrollPane = new JScrollPane(feedbackArea);
+    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+    // Button panel
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+    
+    JButton submitButton = new JButton("Submit Feedback");
+    submitButton.setFont(new Font("Arial", Font.BOLD, 14));
+    submitButton.setBackground(new Color(65, 131, 215));
+    submitButton.setForeground(Color.WHITE);
+    submitButton.setFocusPainted(false);
+    
+    JButton cancelButton = new JButton("Cancel");
+    cancelButton.setFont(new Font("Arial", Font.BOLD, 14));
+    cancelButton.setBackground(new Color(190, 190, 190));
+    cancelButton.setForeground(Color.WHITE);
+    cancelButton.setFocusPainted(false);
+    
+    // Button hover effects
+    submitButton.addMouseListener(new MouseAdapter() {
+        public void mouseEntered(MouseEvent e) {
+            submitButton.setBackground(new Color(41, 128, 185));
+        }
+        public void mouseExited(MouseEvent e) {
+            submitButton.setBackground(new Color(65, 131, 215));
+        }
+    });
+    
+    cancelButton.addMouseListener(new MouseAdapter() {
+        public void mouseEntered(MouseEvent e) {
+            cancelButton.setBackground(new Color(160, 160, 160));
+        }
+        public void mouseExited(MouseEvent e) {
+            cancelButton.setBackground(new Color(190, 190, 190));
+        }
+    });
+    
+    // Add action listeners
+    submitButton.addActionListener(e -> {
+        String feedback = feedbackArea.getText();
+        if (feedback.equals("Please enter your suggestions, feedback, or report any errors here...") || feedback.isEmpty()) {
+            JOptionPane.showMessageDialog(feedbackDialog, 
+                "Please enter your feedback before submitting.", 
+                "Empty Feedback", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Here you would normally save the feedback to a database or file
+        // For now, just show a confirmation message
+        JOptionPane.showMessageDialog(feedbackDialog, 
+            "Thank you for your feedback! Your response has been submitted.", 
+            "Feedback Submitted", JOptionPane.INFORMATION_MESSAGE);
+        
+        feedbackDialog.dispose();
+    });
+    
+    cancelButton.addActionListener(e -> feedbackDialog.dispose());
+    
+    // Add components to dialog
+    buttonPanel.add(submitButton);
+    buttonPanel.add(cancelButton);
+    
+    feedbackDialog.add(titleLabel, BorderLayout.NORTH);
+    feedbackDialog.add(scrollPane, BorderLayout.CENTER);
+    feedbackDialog.add(buttonPanel, BorderLayout.SOUTH);
+    
+    // Show dialog
+    feedbackDialog.setVisible(true);
+}
