@@ -1,0 +1,9 @@
+BEGIN
+   FOR r IN (SELECT constraint_name, table_name
+               FROM user_constraints
+              WHERE table_name = 'YOUR_TABLE_NAME') -- Change to your table name
+   LOOP
+      EXECUTE IMMEDIATE 'ALTER TABLE ' || r.table_name || ' DISABLE CONSTRAINT ' || r.constraint_name;
+   END LOOP;
+END;
+/
