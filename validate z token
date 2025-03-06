@@ -1,0 +1,46 @@
+// Create the token fields
+JTextField zephyrTokenField = new JTextField();
+zephyrTokenField.setFont(new Font("Arial", Font.PLAIN, 14));
+zephyrTokenField.setBounds(200, 100, 300, 30);
+
+JTextField jiraTokenField = new JTextField();
+jiraTokenField.setFont(new Font("Arial", Font.PLAIN, 14));
+jiraTokenField.setBounds(200, 150, 300, 30);
+
+// Add a focus listener to the Zephyr token field
+zephyrTokenField.addFocusListener(new FocusAdapter() {
+    @Override
+    public void focusLost(FocusEvent e) {
+        // Only validate if focus is transferring to the JIRA token field
+        if (e.getOppositeComponent() == jiraTokenField) {
+            String zephyrToken = zephyrTokenField.getText().trim();
+            
+            if (!zephyrToken.isEmpty()) {
+                // Call your validation method
+                boolean isValid = validateZephyrToken(zephyrToken);
+                
+                if (!isValid) {
+                    // Show error message
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "Invalid Zephyr token. Please check and try again.",
+                        "Validation Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    
+                    // Return focus to Zephyr token field
+                    SwingUtilities.invokeLater(() -> zephyrTokenField.requestFocus());
+                }
+            }
+        }
+    }
+});
+
+// Your validation method (implement with your actual validation logic)
+private boolean validateZephyrToken(String token) {
+    // Call your actual Java validation function here
+    // For example: return ZephyrValidator.validateToken(token);
+    
+    // Placeholder for demonstration
+    return ZephyrTokenValidator.validate(token);
+}
