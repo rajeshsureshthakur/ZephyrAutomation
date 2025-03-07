@@ -1,0 +1,28 @@
+// First, save a reference to the label instead of adding it anonymously
+JLabel statusLabel = new JLabel("Processing...");
+panel.add(statusLabel);
+
+// Create an array of messages to cycle through
+String[] messages = {
+    "Processing...", 
+    "Fetching data...", 
+    "Analyzing information...", 
+    "Almost there..."
+};
+
+// Create a timer to update the label every 10 seconds
+Timer timer = new Timer(10000, new ActionListener() {
+    int index = 0;
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        index = (index + 1) % messages.length;
+        statusLabel.setText(messages[index]);
+    }
+});
+
+// Start the timer
+timer.start();
+
+// Don't forget to stop the timer when you're done
+// timer.stop();  // Call this when your process completes
