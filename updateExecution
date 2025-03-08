@@ -1,0 +1,145 @@
+private void showUpdateTestExecutionScreen() {
+    JPanel executionPanel = new JPanel(null); // Using null layout for absolute positioning
+    executionPanel.setPreferredSize(new Dimension(800, 400));
+    
+    // Title
+    JLabel titleLabel = new JLabel("Update Test Execution Status");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+    titleLabel.setBounds(50, 30, 400, 30);
+    
+    // Test Phase Selection
+    JLabel phaseLabel = new JLabel("Select Test Phase:");
+    phaseLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+    phaseLabel.setBounds(50, 100, 150, 30);
+    
+    JTextField phaseField = new JTextField();
+    phaseField.setEditable(false);
+    phaseField.setFont(new Font("Arial", Font.PLAIN, 14));
+    phaseField.setBounds(200, 100, 300, 30);
+    
+    JButton selectPhaseButton = new JButton("Select");
+    selectPhaseButton.setFont(new Font("Arial", Font.PLAIN, 14));
+    selectPhaseButton.setBounds(520, 100, 100, 30);
+    
+    // Store the selected phase ID
+    final int[] selectedPhaseId = {0};
+    
+    // Execution Status Selection
+    JLabel statusLabel = new JLabel("Select Execution Status:");
+    statusLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+    statusLabel.setBounds(50, 160, 150, 30);
+    
+    String[] statusOptions = {"Select Status", "In Progress", "Pass", "Fail", "On Hold", "Blocked", "Not Executed"};
+    JComboBox<String> statusComboBox = new JComboBox<>(statusOptions);
+    statusComboBox.setFont(new Font("Arial", Font.PLAIN, 14));
+    statusComboBox.setBounds(200, 160, 300, 30);
+    
+    // Action Buttons
+    JButton updateButton = new JButton("Update Status");
+    updateButton.setFont(new Font("Arial", Font.BOLD, 14));
+    updateButton.setBounds(200, 250, 150, 40);
+    updateButton.setBackground(new Color(65, 131, 215));
+    updateButton.setForeground(Color.WHITE);
+    updateButton.setFocusPainted(false);
+    
+    JButton backButton = new JButton("Back");
+    backButton.setFont(new Font("Arial", Font.BOLD, 14));
+    backButton.setBounds(370, 250, 100, 40);
+    backButton.setBackground(new Color(190, 190, 190));
+    backButton.setForeground(Color.WHITE);
+    backButton.setFocusPainted(false);
+    
+    // Add hover effects
+    updateButton.addMouseListener(new MouseAdapter() {
+        public void mouseEntered(MouseEvent e) {
+            updateButton.setBackground(new Color(41, 128, 185));
+        }
+        public void mouseExited(MouseEvent e) {
+            updateButton.setBackground(new Color(65, 131, 215));
+        }
+    });
+    
+    backButton.addMouseListener(new MouseAdapter() {
+        public void mouseEntered(MouseEvent e) {
+            backButton.setBackground(new Color(160, 160, 160));
+        }
+        public void mouseExited(MouseEvent e) {
+            backButton.setBackground(new Color(190, 190, 190));
+        }
+    });
+    
+    // Add action listeners
+    selectPhaseButton.addActionListener(e -> {
+        try {
+            // Call the function to select test phase
+            int phaseId = TestPhaseSelector.selectPhase();
+            if (phaseId > 0) {
+                selectedPhaseId[0] = phaseId;
+                // Get phase name based on ID and display it
+                String phaseName = getPhaseNameById(phaseId);
+                phaseField.setText(phaseName);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error selecting test phase: " + ex.getMessage());
+        }
+    });
+    
+    updateButton.addActionListener(e -> {
+        // Validate inputs
+        if (selectedPhaseId[0] <= 0) {
+            JOptionPane.showMessageDialog(null, "Please select a test phase.");
+            return;
+        }
+        
+        if (statusComboBox.getSelectedIndex() == 0) {
+            JOptionPane.showMessageDialog(null, "Please select an execution status.");
+            return;
+        }
+        
+        String selectedStatus = (String) statusComboBox.getSelectedItem();
+        
+        try {
+            // Call function to update status
+            boolean success = TestExecutionUpdater.updateStatus(selectedPhaseId[0], selectedStatus);
+            
+            if (success) {
+                JOptionPane.showMessageDialog(null, "Execution status updated successfully!");
+                
+                // Reset fields
+                selectedPhaseId[0] = 0;
+                phaseField.setText("");
+                statusComboBox.setSelectedIndex(0);
+            } else {
+                JOptionPane.showMessageDialog(null, "Failed to update execution status.",
+                    "Update Failed", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error updating status: " + ex.getMessage());
+        }
+    });
+    
+    backButton.addActionListener(e -> cardLayout.show(mainPanel, "PREVIOUS_SCREEN"));
+    
+    // Add components to panel
+    executionPanel.add(titleLabel);
+    executionPanel.add(phaseLabel);
+    executionPanel.add(phaseField);
+    executionPanel.add(selectPhaseButton);
+    executionPanel.add(statusLabel);
+    executionPanel.add(statusComboBox);
+    executionPanel.add(updateButton);
+    executionPanel.add(backButton);
+    
+    // Add to main panel
+    mainPanel.add(executionPanel, "UPDATE_EXECUTION");
+    cardLayout.show(mainPanel, "UPDATE_EXECUTION");
+}
+
+// Helper method to get phase name by ID
+private String getPhaseNameById(int phaseId) {
+    // This would typically involve a database lookup
+    // Placeholder implementation
+    return "Phase " + phaseId;
+}
