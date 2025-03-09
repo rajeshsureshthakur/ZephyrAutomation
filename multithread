@@ -84,3 +84,15 @@ public class DynamicThreadPoolExample {
     }
 }
 
+
+ try {
+            // ✅ Wait indefinitely (or set a reasonable timeout) until all tasks are done
+            if (subExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)) {
+                System.out.println("All tasks completed.");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
