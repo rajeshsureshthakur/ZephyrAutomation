@@ -1,0 +1,46 @@
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class MainApp {
+    public static void main(String[] args) {
+        int userId = 101;
+        String name = "JohnDoe";
+        String token = "abc123";
+
+        // ✅ Create a thread pool with 3 threads
+        ExecutorService executor = Executors.newFixedThreadPool(3);
+
+        // ✅ Submit tasks to ExecutorService
+        executor.submit(new File1(userId, name, token));
+        executor.submit(new File2(userId, name, token));
+        executor.submit(new File3(userId, name, token));
+
+        // ✅ Shutdown the executor after tasks complete
+        executor.shutdown();
+    }
+}
+
+
+
+
+public class File3 implements Runnable {
+    private int userId;
+    private String name;
+    private String token;
+
+    public File3(int userId, String name, String token) {
+        this.userId = userId;
+        this.name = name;
+        this.token = token;
+    }
+
+    @Override
+    public void run() {
+        executeTask();
+    }
+
+    private void executeTask() {
+        System.out.println("File3 running for user: " + userId);
+        // 🔥 Your DB write logic here
+    }
+}
