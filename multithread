@@ -44,3 +44,43 @@ public class File3 implements Runnable {
         // 🔥 Your DB write logic here
     }
 }
+
+
+
+
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class DynamicThreadPoolExample {
+    public static void main(String[] args) {
+        List<String> parentFolders = List.of("A", "B", "C", "D", "E"); // 5 folders
+
+        // ✅ Dynamically set thread pool size based on list size
+        int threadPoolSize = Math.min(parentFolders.size(), Runtime.getRuntime().availableProcessors()); 
+
+        ExecutorService executor = Executors.newFixedThreadPool(threadPoolSize);
+        System.out.println("Thread pool size: " + threadPoolSize);
+
+        // ✅ Submit each folder as a task
+        for (String folder : parentFolders) {
+            executor.submit(() -> processFolder(folder));
+        }
+
+        executor.shutdown(); // Shutdown after tasks are submitted
+    }
+
+    private static void processFolder(String folder) {
+        System.out.println("Processing folder: " + folder + " in thread: " + Thread.currentThread().getName());
+
+        // 🔥 Simulating DB write (2 seconds delay)
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        System.out.println("Completed folder: " + folder);
+    }
+}
+
