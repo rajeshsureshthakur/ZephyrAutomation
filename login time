@@ -1,0 +1,53 @@
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class UserDAO {
+
+    private Connection connection;
+
+    public UserDAO(Connection connection) {
+        this.connection = connection;
+    }
+
+    public void updateLoginTime(int userId) throws SQLException {
+        String sql = "UPDATE users SET last_login = ? WHERE user_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now())); // Set current timestamp
+            stmt.setInt(2, userId); // Set user ID
+            stmt.executeUpdate();
+            System.out.println("Login time updated for user: " + userId);
+        }
+    }
+}
+
+
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Connection conn = /* Your DB connection */;
+        String sql = "SELECT last_login FROM users WHERE user_id = ?";
+        
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, 101);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                Timestamp timestamp = rs.getTimestamp("last_login");
+                LocalDateTime loginTime = timestamp.toLocalDateTime();
+                
+                // Format to DD-MM-YYYY
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+                String formattedDate = loginTime.format(formatter);
+                
+                System.out.println("Last Login: " + formattedDate);
+            }
+        }
+
+        conn.close();
+    }
+}
