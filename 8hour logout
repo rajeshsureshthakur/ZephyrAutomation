@@ -1,0 +1,47 @@
+import java.time.LocalDateTime;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+public class AutoLogoutManager {
+    private LocalDateTime loginTime;
+    private boolean isLoggedIn = true;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    public void login() {
+        loginTime = LocalDateTime.now(); // Store login time
+        isLoggedIn = true;
+        System.out.println("User logged in at: " + loginTime);
+
+        startAutoLogoutThread(); // Start monitoring
+    }
+
+    private void startAutoLogoutThread() {
+        scheduler.scheduleAtFixedRate(() -> {
+            if (isLoggedIn) {
+                LocalDateTime currentTime = LocalDateTime.now();
+                long hoursPassed = java.time.Duration.between(loginTime, currentTime).toHours();
+
+                if (hoursPassed >= 8) {
+                    logout();
+                } else {
+                    System.out.println("Checked at " + currentTime + " | Hours passed: " + hoursPassed);
+                }
+            }
+        }, 0, 60, TimeUnit.MINUTES); // Check every 60 minutes
+    }
+
+    public void logout() {
+        isLoggedIn = false;
+        scheduler.shutdown(); // Stop the scheduled task
+        System.out.println("User has been automatically logged out after 8 hours.");
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        AutoLogoutManager userSession = new AutoLogoutManager();
+        userSession.login();
+
+        // Simulate application running
+        Thread.sleep(10 * 60 * 60 * 1000); // Simulate 10 hours
+    }
+}
