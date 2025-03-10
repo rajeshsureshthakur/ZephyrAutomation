@@ -51,3 +51,62 @@ public class Main {
         conn.close();
     }
 }
+
+UTC-------------------
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.Timestamp;
+import java.time.*;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Connection conn = /* Your DB connection */;
+        String sql = "UPDATE users SET last_login = ? WHERE user_id = ?";
+        
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            // Get current time in UTC
+            ZonedDateTime utcNow = ZonedDateTime.now(ZoneId.of("UTC"));
+            stmt.setTimestamp(1, Timestamp.valueOf(utcNow.toLocalDateTime())); // Store in UTC
+            stmt.setInt(2, 101);
+            stmt.executeUpdate();
+        }
+
+        conn.close();
+    }
+}
+
+
+import java.sql.*;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Connection conn = /* Your DB connection */;
+        String sql = "SELECT last_login FROM users WHERE user_id = ?";
+        
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, 101);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                Timestamp timestamp = rs.getTimestamp("last_login");
+                LocalDateTime utcDateTime = timestamp.toLocalDateTime();
+                
+                // Convert UTC to user's time zone (Example: Asia/Kolkata)
+                ZoneId userTimeZone = ZoneId.of("Asia/Kolkata");
+                ZonedDateTime userLocalTime = utcDateTime.atZone(ZoneId.of("UTC")).withZoneSameInstant(userTimeZone);
+
+                // Format as DD-MM-YYYY HH:mm:ss
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+                String formattedDate = userLocalTime.format(formatter);
+                
+                System.out.println("User Last Login (Local Time): " + formattedDate);
+            }
+        }
+
+        conn.close();
+    }
+}
+
