@@ -1,0 +1,51 @@
+import java.sql.*;
+import java.util.List;
+
+public class ProjectDAO {
+
+    private Connection connection;
+
+    public ProjectDAO(Connection connection) {
+        this.connection = connection;
+    }
+
+    public void searchProjectsByIds(List<Integer> projectIds) throws SQLException {
+        if (projectIds.isEmpty()) {
+            System.out.println("No project IDs provided.");
+            return;
+        }
+
+        // Generate a dynamic IN clause (?, ?, ?)
+        String placeholders = String.join(",", projectIds.stream().map(id -> "?").toArray(String[]::new));
+        String sql = "SELECT * FROM projects WHERE project_id IN (" + placeholders + ")";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            for (int i = 0; i < projectIds.size(); i++) {
+                stmt.setInt(i + 1, projectIds.get(i)); // Set values dynamically
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    System.out.println("Project ID: " + rs.getInt("project_id") + ", Name: " + rs.getString("project_name"));
+                }
+            }
+        }
+    }
+}
+
+
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@your-db-url", "username", "password");
+
+        ProjectDAO projectDAO = new ProjectDAO(conn);
+        projectDAO.searchProjectsByIds(Arrays.asList(101, 102, 103));
+
+        conn.close();
+    }
+}
