@@ -1,0 +1,42 @@
+import java.sql.*;
+import java.util.regex.Pattern;
+
+public class LoginService {
+    private static final Pattern VALID_USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9]+$"); // Only letters and digits
+
+    public boolean authenticateUser(String username, String password) {
+        // Validate username format
+        if (!isValidUsername(username)) {
+            System.out.println("Invalid username: Only letters and numbers allowed.");
+            return false;
+        }
+
+        String query = "SELECT password FROM users WHERE LOWER(username) = LOWER(?)"; // Case-insensitive search
+
+        try (Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@yourDB", "user", "pass");
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, username.toLowerCase()); // Convert input username to lowercase
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                String storedPassword = rs.getString("password");
+                return storedPassword.equals(password); // Compare passwords
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private boolean isValidUsername(String username) {
+        return VALID_USERNAME_PATTERN.matcher(username).matches(); // Check if username is valid
+    }
+
+    public static void main(String[] args) {
+        LoginService service = new LoginService();
+        boolean isAuthenticated = service.authenticateUser("User123", "password123");
+        System.out.println("Login Successful? " + isAuthenticated);
+    }
+}
