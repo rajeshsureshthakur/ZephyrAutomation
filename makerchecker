@@ -1,0 +1,92 @@
+public User getUserDetails(int userId) {
+    String query = "SELECT manager_name, manager_verified FROM users WHERE user_id = ?";
+    User user = null;
+    
+    try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+         PreparedStatement stmt = conn.prepareStatement(query)) {
+        
+        stmt.setInt(1, userId);
+        ResultSet rs = stmt.executeQuery();
+        
+        if (rs.next()) {
+            String managerName = rs.getString("manager_name");
+            int managerVerified = rs.getInt("manager_verified");
+            user = new User(managerName, managerVerified);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    
+    return user;
+}
+
+
+
+public void showManagerPopup(String managerName, String newManagerName) {
+    JPanel panel = new JPanel();
+    JLabel label = new JLabel("Mr. " + newManagerName + " has selected your name as Manager. Do you accept?");
+    JTextField newManagerField = new JTextField(20);
+    newManagerField.setText(managerName);
+
+    int option = JOptionPane.showOptionDialog(null, 
+            panel, 
+            "Manager Confirmation", 
+            JOptionPane.YES_NO_OPTION, 
+            JOptionPane.QUESTION_MESSAGE, 
+            null, 
+            new Object[] {"Accept", "Suggest New Manager"}, 
+            "Accept");
+
+    if (option == JOptionPane.YES_OPTION) {
+        // On accept, update manager_verified to 1
+        updateManagerVerified(managerName, 1);
+    } else {
+        // On suggest new manager, update the manager name
+        String suggestedManager = newManagerField.getText();
+        updateManagerName(newManagerName, suggestedManager);
+    }
+}
+
+public void updateManagerVerified(String managerName, int verifiedStatus) {
+    String updateQuery = "UPDATE users SET manager_verified = ? WHERE manager_name = ?";
+    
+    try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+         PreparedStatement stmt = conn.prepareStatement(updateQuery)) {
+        
+        stmt.setInt(1, verifiedStatus);
+        stmt.setString(2, managerName);
+        stmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+public void updateManagerName(String currentManagerName, String newManagerName) {
+    String updateQuery = "UPDATE users SET manager_name = ? WHERE manager_name = ?";
+    
+    try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+         PreparedStatement stmt = conn.prepareStatement(updateQuery)) {
+        
+        stmt.setString(1, newManagerName);
+        stmt.setString(2, currentManagerName);
+        stmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+
+
+
+public void checkAndPromptManager(int userId, String managerName) {
+    User user = getUserDetails(userId);
+    
+    if (user != null && user.getManagerVerified() == 0 && user.getManagerName().equals(managerName)) {
+        showManagerPopup(user.getManagerName(), managerName);
+    }
+}
+
+
+
+// Call this function when a user X registers and specifies Manager Y
+checkAndPromptManager(userXId, "ManagerY");
