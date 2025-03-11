@@ -90,3 +90,69 @@ public void checkAndPromptManager(int userId, String managerName) {
 
 // Call this function when a user X registers and specifies Manager Y
 checkAndPromptManager(userXId, "ManagerY");
+
+
+
+public void showManagerPopup(String managerName, String newManagerName) {
+    // Initial confirmation dialog
+    JPanel panel = new JPanel(new GridLayout(0, 1));
+    JLabel label = new JLabel("Mr. " + newManagerName + " has selected your name as Manager. Do you accept?");
+    
+    // Add the label to the panel
+    panel.add(label);
+    
+    int option = JOptionPane.showOptionDialog(null, 
+            panel, 
+            "Manager Confirmation", 
+            JOptionPane.YES_NO_CANCEL_OPTION, 
+            JOptionPane.QUESTION_MESSAGE, 
+            null, 
+            new Object[] {"Accept", "Decline", "Suggest New Manager"}, 
+            "Accept");
+    
+    if (option == 0) {
+        // On accept, update manager_verified to 1
+        updateManagerVerified(managerName, 1);
+    } else if (option == 1) {
+        // On decline, update manager_verified to 0 (declined)
+        updateManagerVerified(managerName, 0);
+    } else if (option == 2) {
+        // Show another dialog for suggesting a new manager
+        JPanel suggestPanel = new JPanel(new GridLayout(0, 1, 5, 5));
+        
+        JLabel suggestLabel = new JLabel("Please suggest a new manager:");
+        JTextField newManagerField = new JTextField(20);
+        
+        // Default to current manager name
+        newManagerField.setText(managerName);
+        
+        // Add components to panel
+        suggestPanel.add(suggestLabel);
+        suggestPanel.add(newManagerField);
+        
+        int suggestOption = JOptionPane.showConfirmDialog(
+                null, 
+                suggestPanel, 
+                "Suggest New Manager", 
+                JOptionPane.OK_CANCEL_OPTION, 
+                JOptionPane.PLAIN_MESSAGE);
+        
+        if (suggestOption == JOptionPane.OK_OPTION) {
+            // Get the suggested manager name
+            String suggestedManager = newManagerField.getText().trim();
+            
+            // Validate input
+            if (suggestedManager.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                        null, 
+                        "Manager name cannot be empty!", 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Update the manager name
+            updateManagerName(newManagerName, suggestedManager);
+        }
+    }
+}
