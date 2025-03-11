@@ -271,3 +271,21 @@ public void showManagerPopup(String managerName, String newManagerName) {
     dialog.setLocationRelativeTo(null);
     dialog.setVisible(true);
 }
+
+
+JFrame frame = new JFrame("Open URL Example");
+        frame.setSize(300, 150);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new FlowLayout());
+
+        JLabel linkLabel = new JLabel("<html><a href=''>Click here to visit Google</a></html>");
+        linkLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        linkLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                openWebpage("https://www.google.com");
+            }
+        });
+
+Desktop.getDesktop().browse(new URI(url));
