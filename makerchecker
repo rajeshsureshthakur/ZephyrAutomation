@@ -156,3 +156,118 @@ public void showManagerPopup(String managerName, String newManagerName) {
         }
     }
 }
+
+
+
+
+
+public void showManagerPopup(String managerName, String newManagerName) {
+    // Initial confirmation dialog
+    JPanel panel = new JPanel(new GridLayout(0, 1));
+    JLabel label = new JLabel("Mr. " + newManagerName + " has selected your name as Manager. Do you accept?");
+    
+    // Add the label to the panel
+    panel.add(label);
+    
+    // Create a non-closable JDialog to force user to choose one of the two options
+    JDialog dialog = new JDialog((JFrame)null, "Manager Confirmation", true);
+    dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+    
+    // Remove window close button functionality
+    dialog.addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowClosing(WindowEvent e) {
+            // Do nothing - prevent closing with X button
+        }
+    });
+    
+    // Create button panel with only two options
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    
+    JButton acceptButton = new JButton("Accept");
+    JButton suggestButton = new JButton("Suggest New Manager");
+    
+    acceptButton.addActionListener(e -> {
+        // On accept, update manager_verified to 1
+        updateManagerVerified(managerName, 1);
+        dialog.dispose();
+    });
+    
+    suggestButton.addActionListener(e -> {
+        dialog.dispose();  // Close first dialog
+        
+        // Show another dialog for suggesting a new manager
+        JPanel suggestPanel = new JPanel(new GridLayout(0, 1, 5, 5));
+        
+        JLabel suggestLabel = new JLabel("Please suggest a new manager:");
+        JTextField newManagerField = new JTextField(20);
+        
+        // Default to current manager name
+        newManagerField.setText(managerName);
+        
+        // Add components to panel
+        suggestPanel.add(suggestLabel);
+        suggestPanel.add(newManagerField);
+        
+        // Create another non-closable dialog
+        JDialog suggestDialog = new JDialog((JFrame)null, "Suggest New Manager", true);
+        suggestDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        
+        // Remove window close button functionality
+        suggestDialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                // Do nothing - prevent closing with X button
+            }
+        });
+        
+        // Create button panel
+        JPanel suggestButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton submitButton = new JButton("Submit");
+        
+        submitButton.addActionListener(ev -> {
+            // Get the suggested manager name
+            String suggestedManager = newManagerField.getText().trim();
+            
+            // Validate input
+            if (suggestedManager.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                        suggestDialog, 
+                        "Manager name cannot be empty!", 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Update the manager name
+            updateManagerName(newManagerName, suggestedManager);
+            suggestDialog.dispose();
+        });
+        
+        suggestButtonPanel.add(submitButton);
+        
+        // Add panels to dialog
+        suggestDialog.setLayout(new BorderLayout());
+        suggestDialog.add(suggestPanel, BorderLayout.CENTER);
+        suggestDialog.add(suggestButtonPanel, BorderLayout.SOUTH);
+        
+        // Set size and display
+        suggestDialog.pack();
+        suggestDialog.setLocationRelativeTo(null);
+        suggestDialog.setVisible(true);
+    });
+    
+    // Add buttons to panel
+    buttonPanel.add(acceptButton);
+    buttonPanel.add(suggestButton);
+    
+    // Add panels to dialog
+    dialog.setLayout(new BorderLayout());
+    dialog.add(panel, BorderLayout.CENTER);
+    dialog.add(buttonPanel, BorderLayout.SOUTH);
+    
+    // Set size and display
+    dialog.pack();
+    dialog.setLocationRelativeTo(null);
+    dialog.setVisible(true);
+}
