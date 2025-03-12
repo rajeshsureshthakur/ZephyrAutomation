@@ -1,0 +1,9 @@
+SELECT p.projectName
+FROM projects p
+JOIN users u 
+ON p.projectId IN (
+    SELECT REGEXP_SUBSTR(u.projectId, '[0-9]+', 1, LEVEL) 
+    FROM DUAL
+    CONNECT BY REGEXP_SUBSTR(u.projectId, '[0-9]+', 1, LEVEL) IS NOT NULL
+)
+WHERE u.userId = 123; -- Change userId as needed
