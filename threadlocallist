@@ -1,0 +1,43 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class ThreadLocalListExample {
+    
+    // ThreadLocal variable ensures each thread has its own list
+    private static final ThreadLocal<List<String>> threadLocalList = ThreadLocal.withInitial(ArrayList::new);
+
+    public static void main(String[] args) {
+        int numFolders = 5; // Assume 5 folders, hence 5 threads
+        ExecutorService executor = Executors.newFixedThreadPool(numFolders);
+
+        for (int i = 1; i <= numFolders; i++) {
+            int folderNumber = i;
+            executor.submit(() -> processFolder(folderNumber));
+        }
+
+        executor.shutdown();
+    }
+
+    private static void processFolder(int folderId) {
+        List<String> localList = threadLocalList.get(); // Get the thread's own list
+
+        // Simulating data collection
+        for (int i = 1; i <= 3; i++) {
+            localList.add("Data_" + folderId + "_" + i);
+        }
+
+        // Simulating database push (only one thread should push its list)
+        pushToDatabase(localList);
+
+        // Clear the list after pushing
+        localList.clear();
+        threadLocalList.remove(); // Remove to prevent memory leaks
+    }
+
+    private static void pushToDatabase(List<String> data) {
+        System.out.println(Thread.currentThread().getName() + " - Pushing to DB: " + data);
+        // Your database insert logic here
+    }
+}
