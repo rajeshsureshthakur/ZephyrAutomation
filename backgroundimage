@@ -1,0 +1,36 @@
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
+
+public class BackgroundImageExample extends JPanel {
+    private Image backgroundImage;
+
+    public BackgroundImageExample() {
+        try {
+            // Load the background image
+            backgroundImage = ImageIO.read(new File("path_to_your_image.jpg"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        // Draw the background image
+        g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+    }
+
+    public static void main(String[] args) {
+        // Create the JFrame
+        JFrame frame = new JFrame("Background Image Example");
+        BackgroundImageExample panel = new BackgroundImageExample();
+
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 600);  // Set the size of the frame
+        frame.add(panel);  // Add the panel to the frame
+        frame.setVisible(true);  // Make the frame visible
+    }
+}
