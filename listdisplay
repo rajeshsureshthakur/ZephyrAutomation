@@ -1,0 +1,79 @@
+zephyrDropdown.addActionListener(e -> {
+    // Ignore the first item (label item)
+    if (zephyrDropdown.getSelectedIndex() <= 0) {
+        return;
+    }
+    
+    // Create processing dialog
+    JDialog processingDialog = new JDialog(this, "Processing", false); // non-modal
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    JLabel loadingLabel = new JLabel("Loading releases for Project...");
+    JProgressBar progressBar = new JProgressBar();
+    progressBar.setIndeterminate(true);
+    
+    panel.add(loadingLabel, BorderLayout.NORTH);
+    panel.add(progressBar, BorderLayout.CENTER);
+    processingDialog.add(panel);
+    processingDialog.setSize(300, 100);
+    processingDialog.setLocationRelativeTo(this);
+    processingDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE); // Prevent closing
+    
+    // Show the dialog before starting the worker
+    processingDialog.setVisible(true);
+    
+    SwingWorker<List<ReleaseItem>, Void> worker = new SwingWorker<>() {
+        @Override
+        protected List<ReleaseItem> doInBackground() throws Exception {
+            ProjectItem selectedProject = (ProjectItem) zephyrDropdown.getSelectedItem();
+            userSelectedProjectId = selectedProject.getId();
+            loadUserReleases(); // Assuming this populates allReleases list
+            
+            // For debugging
+            System.out.println("Loaded " + allReleases.size() + " releases");
+            
+            return allReleases; // Return the loaded releases
+        }
+        
+        @Override
+        protected void done() {
+            try {
+                List<ReleaseItem> releases = get(); // Get loaded releases
+                
+                // Set the flag before updating
+                isUpdatingReleaseComboBox = true;
+                
+                // Update model on EDT
+                model.removeAllElements();
+                model.addElement(new ReleaseItem(0, "All Releases"));
+                
+                // Add all releases
+                for (ReleaseItem release : releases) {
+                    System.out.println("Adding release: " + release);
+                    model.addElement(release);
+                }
+                
+                // Update UI
+                releaseComboBox.setSelectedIndex(0);
+                releaseComboBox.revalidate();
+                releaseComboBox.repaint();
+                
+                // Reset flag
+                isUpdatingReleaseComboBox = false;
+                
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                // Show error to user
+                JOptionPane.showMessageDialog(null, 
+                    "Error loading releases: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            } finally {
+                // Always close dialog
+                processingDialog.dispose();
+            }
+        }
+    };
+    
+    // Execute worker after dialog is visible
+    worker.execute();
+});
