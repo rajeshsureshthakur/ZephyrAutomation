@@ -1,0 +1,60 @@
+DefaultComboBoxModel<ReleaseItem> model = new DefaultComboBoxModel<>();
+JComboBox<ReleaseItem> releaseComboBox = new JComboBox<>(model);
+releaseComboBox.setFont(new Font("Arial", Font.PLAIN, 15));
+releaseComboBox.setPreferredSize(new Dimension(200, 28));
+
+zephyrDropdown.addActionListener(e -> {
+    JDialog processingDialog = new JDialog(this, "Processing", true);
+    JPanel panel = new JPanel();
+    panel.add(new JLabel("Loading releases for Project..."));
+    processingDialog.add(panel);
+    processingDialog.setSize(300, 100);
+    processingDialog.setLocationRelativeTo(this);
+    
+    // Make the dialog non-modal so the worker can run
+    processingDialog.setModal(false);
+    processingDialog.setVisible(true);
+    
+    SwingWorker<Void, Void> worker = new SwingWorker<>() {
+        @Override
+        protected Void doInBackground() throws Exception {
+            ProjectItem selectedProject = (ProjectItem) zephyrDropdown.getSelectedItem();
+            if (selectedProject != null) {
+                userSelectedProjectId = selectedProject.getId();
+                loadUserReleases(); // Assuming this populates allReleases list
+                
+                // Need to update UI components on EDT
+                return null;
+            }
+            return null;
+        }
+        
+        @Override
+        protected void done() {
+            // Update the model on the Event Dispatch Thread
+            SwingUtilities.invokeLater(() -> {
+                // Clear existing items first
+                model.removeAllElements();
+                
+                // Add "All Releases" item
+                model.addElement(new ReleaseItem(0, "All Releases"));
+                
+                // Add all other releases
+                for (int i = 0; i < allReleases.size(); i++) {
+                    model.addElement(allReleases.get(i));
+                    System.out.println(allReleases.get(i));
+                }
+                
+                // Force combo box to refresh
+                releaseComboBox.setSelectedIndex(0);
+                releaseComboBox.revalidate();
+                releaseComboBox.repaint();
+                
+                // Close the dialog
+                processingDialog.dispose();
+            });
+        }
+    };
+    
+    worker.execute();
+});
