@@ -1,0 +1,13 @@
+private void disableCloseButton() {
+            Window window = SwingUtilities.getWindowAncestor(this); // Get the JFrame dynamically
+            if (window instanceof JFrame) {
+                ((JFrame) window).setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+                window.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosing(WindowEvent e) {
+                        JOptionPane.showMessageDialog(window, "Closing is disabled on this screen!");
+                    }
+                });
+            }
+        }
+    }
