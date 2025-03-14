@@ -1,0 +1,11 @@
+if (enableClose) {
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Allow closing
+        } else {
+            frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // Prevent closing
+            frame.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    JOptionPane.showMessageDialog(frame, "Closing is disabled on this screen!");
+                }
+            });
+        }
