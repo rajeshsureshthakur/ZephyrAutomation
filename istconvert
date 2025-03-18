@@ -1,0 +1,31 @@
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+
+public class TimeZoneConversion {
+    public static void main(String[] args) {
+        // Given EST date-time string
+        String startDate = "19/03/2025 11:20:05";
+
+        // Define formatter for input string
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
+        // Parse string to LocalDateTime (without timezone)
+        LocalDateTime localDateTime = LocalDateTime.parse(startDate, formatter);
+
+        // Define EST ZoneId
+        ZoneId estZone = ZoneId.of("America/New_York");
+
+        // Convert LocalDateTime to ZonedDateTime in EST
+        ZonedDateTime estZonedDateTime = localDateTime.atZone(estZone);
+
+        // Convert to IST ZoneId
+        ZoneId istZone = ZoneId.of("Asia/Kolkata");
+        ZonedDateTime istZonedDateTime = estZonedDateTime.withZoneSameInstant(istZone);
+
+        // Format to string in IST
+        String istTimeString = istZonedDateTime.format(formatter);
+
+        // Print IST time
+        System.out.println("Converted IST Time: " + istTimeString);
+    }
+}
