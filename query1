@@ -1,0 +1,20 @@
+WITH status_counts AS (
+    SELECT u.user_id, u.user_soeid, u.manager_id, z.automation_status, COUNT(*) as status_count
+    FROM users u
+    JOIN zephyrdata z ON u.user_soeid = z.AUTOMATION_CONTACT
+    WHERE z.release_id = 15606
+    GROUP BY u.user_id, u.user_soeid, u.manager_id, z.automation_status
+),
+user_status AS (
+    SELECT e.user_id, e.user_name, COALESCE(SUM(CASE WHEN s.automation_status = 2 THEN s.status_count ELSE 0 END), 0) AS completed_count
+    FROM users e
+    LEFT JOIN status_counts s ON e.user_id = s.user_id
+    GROUP BY e.user_id, e.user_name
+)
+SELECT 
+    LPAD(' ', 2 * (LEVEL - 1)) || u.user_name AS employee_name,
+    u.completed_count
+FROM user_status u
+START WITH u.user_id = (SELECT user_id FROM users WHERE user_soeid = 'rr66759') 
+CONNECT BY PRIOR u.user_id = (SELECT manager_id FROM users WHERE user_id = u.user_id)
+ORDER BY employee_name DESC;
