@@ -1,0 +1,102 @@
+/**
+ * Opens a dialog for selecting a cycle and entering a test name.
+ * @param parent The parent component (typically your main frame)
+ * @param cycleList The list of Cycle objects to display in the dropdown
+ * @return An Object[] array where index 0 contains the selected cycle ID (Integer) 
+ *         and index 1 contains the test name (String), or null if canceled
+ */
+public Object[] openCycleSelectionDialog(Component parent, List<Cycle> cycleList) {
+    // Create the dialog
+    final JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(parent), "Select Cycle and Test", true);
+    dialog.setSize(350, 200);
+    dialog.setLocationRelativeTo(parent);
+    dialog.setLayout(new BorderLayout());
+    
+    // Result array to store the selected ID and test name
+    final Object[] result = new Object[2];
+    final boolean[] dialogConfirmed = new boolean[1];
+    
+    // Create main panel with GridBagLayout
+    JPanel mainPanel = new JPanel(new GridBagLayout());
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(5, 5, 5, 5);
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    
+    // Cycle dropdown
+    JLabel cycleLabel = new JLabel("Select Cycle:");
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    mainPanel.add(cycleLabel, gbc);
+    
+    final JComboBox<String> cycleComboBox = new JComboBox<>();
+    DefaultComboBoxModel<String> comboModel = new DefaultComboBoxModel<>();
+    for (Cycle cycle : cycleList) {
+        comboModel.addElement(cycle.getName());
+    }
+    cycleComboBox.setModel(comboModel);
+    gbc.gridx = 1;
+    gbc.gridy = 0;
+    gbc.weightx = 1.0;
+    mainPanel.add(cycleComboBox, gbc);
+    
+    // Test name text field
+    JLabel testNameLabel = new JLabel("Enter Test Name:");
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.weightx = 0.0;
+    mainPanel.add(testNameLabel, gbc);
+    
+    final JTextField testNameField = new JTextField(20);
+    gbc.gridx = 1;
+    gbc.gridy = 1;
+    gbc.weightx = 1.0;
+    mainPanel.add(testNameField, gbc);
+    
+    // Add main panel to dialog
+    dialog.add(mainPanel, BorderLayout.CENTER);
+    
+    // Button panel
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    JButton createButton = new JButton("Create");
+    createButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            int selectedIndex = cycleComboBox.getSelectedIndex();
+            if (selectedIndex != -1) {
+                String testName = testNameField.getText().trim();
+                
+                if (testName.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, 
+                        "Please enter a test name", 
+                        "Input Error", 
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                // Store the selected cycle ID and test name
+                result[0] = cycleList.get(selectedIndex).getId();
+                result[1] = testName;
+                dialogConfirmed[0] = true;
+                dialog.dispose();
+            }
+        }
+    });
+    
+    JButton backButton = new JButton("Back");
+    backButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            dialog.dispose();
+        }
+    });
+    
+    buttonPanel.add(createButton);
+    buttonPanel.add(backButton);
+    dialog.add(buttonPanel, BorderLayout.SOUTH);
+    
+    // Display the dialog and wait until it's closed
+    dialog.setVisible(true);
+    
+    // Return the result if confirmed, otherwise null
+    return dialogConfirmed[0] ? result : null;
+}
