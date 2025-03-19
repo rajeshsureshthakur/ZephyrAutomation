@@ -1,0 +1,53 @@
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.List;
+
+public class FolderProcessor {
+
+    public void processFolders(List<String> folders) {
+        for (String folder : folders) {
+            boolean success = false;
+            int maxRetries = 3;
+            int attempt = 0;
+
+            while (!success && attempt < maxRetries) {
+                attempt++;
+                System.out.println("Processing folder: " + folder + " (Attempt " + attempt + ")");
+                success = processFolder(folder);
+
+                if (!success) {
+                    System.out.println("An error occurred. Retrying folder: " + folder);
+                }
+            }
+
+            if (!success) {
+                System.out.println("Failed to process folder: " + folder + " after " + maxRetries + " attempts.");
+            }
+        }
+    }
+
+    private boolean processFolder(String folder) {
+        try {
+            // Replace with your actual request logic
+            URL url = new URL("http://example.com/api/" + folder);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            int statusCode = connection.getResponseCode();
+
+            if (statusCode >= 200 && statusCode < 300) {
+                System.out.println("Folder processed successfully: " + folder);
+                return true;
+            } else if (statusCode == 400 || statusCode == 500) {
+                System.out.println("Error processing folder: " + folder + " - Status code: " + statusCode);
+                return false;
+            } else {
+                System.out.println("Received unexpected status code: " + statusCode);
+                return false;
+            }
+        } catch (IOException e) {
+            System.out.println("Exception processing folder: " + folder + " - " + e.getMessage());
+            return false;
+        }
+    }
+}
