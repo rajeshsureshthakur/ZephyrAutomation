@@ -1,0 +1,35 @@
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.List;
+
+public class PhaseService {
+    
+    public List<Integer> getCyclePhaseIds(int releaseId) throws Exception {
+        List<Integer> phaseIdList = new ArrayList<>();
+
+        // Simulated API response (Replace with actual API call)
+        JSONArray phaseResponse = ApiClient.getJsonArrayResponseFromGet(
+                String.format(GET_PHASE_URL, releaseId), apiToken);
+
+        // Iterate over JSON array
+        for (int i = 0; i < phaseResponse.length(); i++) {
+            JSONObject currentMainObj = phaseResponse.getJSONObject(i);
+
+            // Check if the current object matches the given releaseId
+            if (currentMainObj.getInt("id") == releaseId) {
+                // Extract cyclePhases array
+                JSONArray cyclePhases = currentMainObj.getJSONArray("cyclePhases");
+
+                // Collect all phase IDs
+                for (int j = 0; j < cyclePhases.length(); j++) {
+                    JSONObject phaseObj = cyclePhases.getJSONObject(j);
+                    phaseIdList.add(phaseObj.getInt("id"));
+                }
+                break; // Exit loop once the required releaseId is found
+            }
+        }
+
+        return phaseIdList;
+    }
+}
