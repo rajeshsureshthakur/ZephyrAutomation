@@ -1,0 +1,89 @@
+import java.sql.*;
+import java.util.List;
+
+public class ReleaseManager {
+
+    private Connection connection;
+
+    public ReleaseManager(Connection connection) {
+        this.connection = connection;
+    }
+
+    // Method to check if releases exist for a project
+    public boolean releasesExistForProject(int projectId) throws SQLException {
+        String checkQuery = "SELECT COUNT(*) FROM releases WHERE project_id = ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(checkQuery)) {
+            stmt.setInt(1, projectId);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        }
+        return false;
+    }
+
+    // Method to fetch releases (dummy implementation)
+    public List<Release> fetchRelease(int projectId) {
+        // Implement your logic to fetch releases from an external source or API
+        return someExternalService.fetchReleasesForProject(projectId);
+    }
+
+    // Method to insert releases into the releases table
+    public void insertReleases(List<Release> releases) throws SQLException {
+        String insertQuery = "INSERT INTO releases (project_id, release_id) VALUES (?, ?)";
+
+        try (PreparedStatement stmt = connection.prepareStatement(insertQuery)) {
+            for (Release release : releases) {
+                stmt.setInt(1, release.getProjectId());
+                stmt.setInt(2, release.getReleaseId());
+                stmt.addBatch();
+            }
+
+            // Execute batch insert
+            stmt.executeBatch();
+        }
+    }
+
+    // Method to fetch and process releases for a project
+    public void fetchAndProcessReleases(int projectId) throws SQLException {
+        if (!releasesExistForProject(projectId)) {
+            // If no releases exist, fetch and insert them
+            List<Release> releases = fetchRelease(projectId);
+            if (releases != null && !releases.isEmpty()) {
+                insertReleases(releases);
+            }
+        }
+        
+        // Proceed to fetch and select releases (after ensuring they exist in the table)
+        fetchAndProcessSelectedReleases(projectId);
+    }
+
+    // Method to fetch and process selected releases
+    public void fetchAndProcessSelectedReleases(int projectId) throws SQLException {
+        String selectQuery = "SELECT release_id FROM releases WHERE project_id = ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(selectQuery)) {
+            stmt.setInt(1, projectId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                int releaseId = rs.getInt("release_id");
+                // Process the release data as needed
+                System.out.println("Processing release: " + releaseId);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        // Assume you have established a JDBC connection
+        try (Connection connection = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:ORCL", "username", "password")) {
+            ReleaseManager manager = new ReleaseManager(connection);
+            int projectId = 123; // Example project ID
+            manager.fetchAndProcessReleases(projectId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
