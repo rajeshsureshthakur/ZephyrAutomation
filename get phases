@@ -1,0 +1,41 @@
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.List;
+
+public class JsonParser {
+    public static List<Integer> getCyclePhaseIds(String jsonResponse, int inputId) {
+        List<Integer> cyclePhaseIds = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        try {
+            JsonNode rootArray = objectMapper.readTree(jsonResponse);
+            
+            for (JsonNode mainNode : rootArray) {
+                if (mainNode.has("id") && mainNode.get("id").asInt() == inputId) {
+                    if (mainNode.has("cyclePhases")) {
+                        for (JsonNode phase : mainNode.get("cyclePhases")) {
+                            if (phase.has("id")) {
+                                cyclePhaseIds.add(phase.get("id").asInt());
+                            }
+                        }
+                    }
+                    break; // Exit loop after finding the matching ID
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return cyclePhaseIds;
+    }
+
+    public static void main(String[] args) {
+        String jsonResponse = "[ { \"id\": 34278, \"name\": \"NET_2025_Apr_NG_3.50_StandaloneTest_Cycle\", \"cyclePhases\": [ { \"id\": 94673, \"name\": \"NET_2025_Apr_NG_3.50_StandaloneTest_Phase\" } ], \"created on\": 1741696971337 }, { \"id\": 34277, \"name\": \"NET_2025_Apr_NG_3.50_SanityTest_Cycle\", \"cyclePhases\": [ { \"id\": 94672, \"name\": \"NET_2025_ApI_NG_3.50_Sanitylest_Phase\" } ], \"created on\": 1741696969699 } ]";
+
+        int inputId = 34278;
+        List<Integer> cycleIds = getCyclePhaseIds(jsonResponse, inputId);
+        
+        System.out.println("Cycle Phase IDs for main ID " + inputId + ": " + cycleIds);
+    }
+}
