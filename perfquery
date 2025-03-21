@@ -1,0 +1,10 @@
+SELECT 
+    T1.'Scrum Team' AS "Scrum Team",
+    COUNT(CASE WHEN T1.'Status' = 'To Do' THEN T1.'Issue key' END) AS "To Do",
+    COUNT(CASE WHEN T1.'Status' = 'In Progress' THEN T1.'Issue key' END) AS "In Progress",
+    COUNT(CASE WHEN T1.'Status' = 'Review' THEN T1.'Issue key' END) AS "Review",
+    COUNT(CASE WHEN T1.'Status' = 'Done' THEN T1.'Issue key' END) AS "Done",
+    COUNT(T1.'Issue key') AS "Total Issues"
+FROM T1
+GROUP BY T1.'Scrum Team'
+ORDER BY T1.'Scrum Team'
