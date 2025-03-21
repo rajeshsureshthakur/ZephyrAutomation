@@ -1,0 +1,15 @@
+SELECT 
+    T1.'ART name' AS 'ART Name',
+
+    /* Apply Yellow for T1 (DEV EPIC) */
+    '<span style="background-color: #FFD700">' || T1.* || '</span>' AS 'DEV EPIC - All Columns',
+
+    /* Apply Light Blue for T2 (NFT EPIC) */
+    '<span style="background-color: #ADD8E6">' || T2.* || '</span>' AS 'NFT EPIC - All Columns',
+
+    /* Apply Light Green for T3 (ANOTHER EPIC) */
+    '<span style="background-color: #90EE90">' || T3.* || '</span>' AS 'ANOTHER EPIC - All Columns'
+
+FROM T1
+LEFT JOIN T2 ON T1.'ART name' = T2.'ART name'
+LEFT JOIN T3 ON T1.'ART name' = T3.'ART name'
