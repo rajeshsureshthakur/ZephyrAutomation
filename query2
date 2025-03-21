@@ -1,0 +1,28 @@
+SELECT
+    T1."Agile Release Train" AS "ART Name",
+    SUM(CASE WHEN LOWER(T1."Severity") = 'critical' THEN 1 ELSE 0 END) AS "Critical",
+    SUM(CASE WHEN LOWER(T1."Severity") = 'highest' THEN 1 ELSE 0 END) AS "Highest",
+    SUM(CASE WHEN LOWER(T1."Severity") = 'high' THEN 1 ELSE 0 END) AS "High",
+    SUM(CASE WHEN LOWER(T1."Severity") = 'medium' THEN 1 ELSE 0 END) AS "Medium",
+    SUM(CASE WHEN LOWER(T1."Severity") = 'low' THEN 1 ELSE 0 END) AS "Low",
+    SUM(CASE WHEN LOWER(T1."Severity") = 'lowest' THEN 1 ELSE 0 END) AS "Lowest",
+    COUNT(T1."Key") AS "Total Issues"
+FROM T1
+GROUP BY T1."Agile Release Train"
+
+UNION ALL
+
+SELECT
+    'TOTAL' AS "ART Name",
+    SUM(CASE WHEN LOWER(T1."Severity") = 'critical' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN LOWER(T1."Severity") = 'highest' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN LOWER(T1."Severity") = 'high' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN LOWER(T1."Severity") = 'medium' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN LOWER(T1."Severity") = 'low' THEN 1 ELSE 0 END),
+    SUM(CASE WHEN LOWER(T1."Severity") = 'lowest' THEN 1 ELSE 0 END),
+    COUNT(T1."Key")
+FROM T1
+
+ORDER BY 
+    CASE WHEN "ART Name" = 'TOTAL' THEN 1 ELSE 0 END, 
+    "ART Name";
