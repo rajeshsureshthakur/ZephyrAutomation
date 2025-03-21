@@ -1,0 +1,37 @@
+WITH issue_counts AS (
+    SELECT
+        T1."Agile Release Train" AS art_name,
+        SUM(CASE WHEN LOWER(T1."Severity") = 'critical' THEN 1 ELSE 0 END) AS critical_count,
+        SUM(CASE WHEN LOWER(T1."Severity") = 'highest' THEN 1 ELSE 0 END) AS highest_count,
+        SUM(CASE WHEN LOWER(T1."Severity") = 'high' THEN 1 ELSE 0 END) AS high_count,
+        SUM(CASE WHEN LOWER(T1."Severity") = 'medium' THEN 1 ELSE 0 END) AS medium_count,
+        SUM(CASE WHEN LOWER(T1."Severity") = 'low' THEN 1 ELSE 0 END) AS low_count,
+        SUM(CASE WHEN LOWER(T1."Severity") = 'lowest' THEN 1 ELSE 0 END) AS lowest_count,
+        COUNT(T1."Key") AS total_issues
+    FROM T1
+    GROUP BY T1."Agile Release Train"
+)
+SELECT
+    art_name AS "ART Name",
+    critical_count AS "Critical",
+    highest_count AS "Highest",
+    high_count AS "High",
+    medium_count AS "Medium",
+    low_count AS "Low",
+    lowest_count AS "Lowest",
+    total_issues AS "Total Issues"
+FROM issue_counts
+UNION ALL
+SELECT
+    'Total' AS "ART Name",
+    SUM(critical_count) AS "Critical",
+    SUM(highest_count) AS "Highest",
+    SUM(high_count) AS "High",
+    SUM(medium_count) AS "Medium",
+    SUM(low_count) AS "Low",
+    SUM(lowest_count) AS "Lowest",
+    SUM(total_issues) AS "Total Issues"
+FROM issue_counts
+ORDER BY
+    CASE WHEN "ART Name" = 'Total' THEN 1 ELSE 0 END,
+    "ART Name";
