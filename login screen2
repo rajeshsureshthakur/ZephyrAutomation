@@ -1,0 +1,120 @@
+public JPanel createLoginPanel(int width, int height, ActionListener loginButtonListener) {
+    // Create main panel to hold everything
+    JPanel mainPanel = new JPanel();
+    mainPanel.setLayout(null);
+    mainPanel.setSize(width, height);
+    mainPanel.setPreferredSize(new Dimension(width, height));
+    
+    // Try to load background image
+    BufferedImage backgroundImage;
+    try {
+        // Replace this URL with your actual image path
+        backgroundImage = ImageIO.read(new URL("https://example.com/path/to/your/image.jpg"));
+    } catch (IOException e) {
+        // If image loading fails, create a gradient background instead
+        backgroundImage = createGradientBackground(width, height);
+    }
+    
+    // Create background panel
+    JPanel backgroundPanel = new BackgroundPanel(backgroundImage);
+    backgroundPanel.setLayout(null);
+    backgroundPanel.setBounds(0, 0, width, height);
+    mainPanel.add(backgroundPanel);
+    
+    // App title
+    JLabel titleLabel = new JLabel("Test Management Application");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+    titleLabel.setForeground(Color.WHITE);
+    titleLabel.setBounds(width/2 - 190, 60, 380, 40);
+    titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    backgroundPanel.add(titleLabel);
+    
+    // Create a white semi-transparent panel for login form
+    JPanel loginPanel = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.85f));
+            g2d.setColor(Color.WHITE);
+            g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+            g2d.dispose();
+        }
+    };
+    loginPanel.setBounds(width/2 - 190, 120, 380, 350);
+    loginPanel.setOpaque(false);
+    loginPanel.setLayout(null);
+    backgroundPanel.add(loginPanel);
+    
+    // Login form title
+    JLabel loginTitle = new JLabel("Sign In");
+    loginTitle.setFont(new Font("Arial", Font.BOLD, 20));
+    loginTitle.setForeground(new Color(50, 50, 50));
+    loginTitle.setBounds(0, 20, 380, 30);
+    loginTitle.setHorizontalAlignment(SwingConstants.CENTER);
+    loginPanel.add(loginTitle);
+    
+    // Add user ID field
+    JLabel userIdLabel = new JLabel("User ID:");
+    userIdLabel.setBounds(40, 80, 300, 25);
+    loginPanel.add(userIdLabel);
+    
+    JTextField userIdField = new JTextField();
+    userIdField.setBounds(40, 110, 300, 35);
+    loginPanel.add(userIdField);
+    
+    // Add password field
+    JLabel passwordLabel = new JLabel("Password:");
+    passwordLabel.setBounds(40, 160, 300, 25);
+    loginPanel.add(passwordLabel);
+    
+    JPasswordField passwordField = new JPasswordField();
+    passwordField.setBounds(40, 190, 300, 35);
+    loginPanel.add(passwordField);
+    
+    // Add login button
+    JButton loginButton = new JButton("Login");
+    loginButton.setBounds(40, 250, 300, 40);
+    loginButton.setBackground(new Color(70, 130, 180));
+    loginButton.setForeground(Color.WHITE);
+    loginButton.setFocusPainted(false);
+    if (loginButtonListener != null) {
+        loginButton.addActionListener(loginButtonListener);
+    } else {
+        // Add default action listener that captures username/password
+        loginButton.addActionListener(e -> {
+            String userId = userIdField.getText();
+            String password = new String(passwordField.getPassword());
+            // You would handle login validation here or pass this data back
+            System.out.println("Login attempt: " + userId);
+        });
+    }
+    loginPanel.add(loginButton);
+    
+    // Add status label for showing errors/messages
+    JLabel statusLabel = new JLabel("");
+    statusLabel.setBounds(40, 300, 300, 25);
+    statusLabel.setForeground(Color.RED);
+    statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    loginPanel.add(statusLabel);
+    
+    return mainPanel;
+}
+
+// Assuming this method exists for gradient creation
+private BufferedImage createGradientBackground(int width, int height) {
+    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    Graphics2D g2d = image.createGraphics();
+    
+    // Create a blue gradient
+    GradientPaint gp = new GradientPaint(
+        0, 0, new Color(100, 149, 237), // Cornflower blue
+        0, height, new Color(25, 25, 112) // Midnight blue
+    );
+    
+    g2d.setPaint(gp);
+    g2d.fillRect(0, 0, width, height);
+    g2d.dispose();
+    
+    return image;
+}
