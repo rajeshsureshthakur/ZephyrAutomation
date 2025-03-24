@@ -10,7 +10,7 @@ public class TestcaseAssigneeUpdater extends JFrame {
     
     private JTable table;
     private JComboBox<String> assigneeDropdown;
-    private List<Integer> assigneeIds = new ArrayList<>();
+    private List<String> assigneeNames = new ArrayList<>();
     private Connection conn;
 
     public TestcaseAssigneeUpdater() {
@@ -36,8 +36,8 @@ public class TestcaseAssigneeUpdater extends JFrame {
                 if (selectedRow != -1) {
                     // Get the selected testcase ID from the table
                     int testcaseId = (Integer) table.getValueAt(selectedRow, 0);
-                    int assigneeId = assigneeIds.get(assigneeDropdown.getSelectedIndex());
-                    updateAssignee(testcaseId, assigneeId);
+                    String selectedAssignee = (String) assigneeDropdown.getSelectedItem();
+                    updateAssignee(testcaseId, selectedAssignee);
                 }
             }
         });
@@ -74,7 +74,7 @@ public class TestcaseAssigneeUpdater extends JFrame {
     // Load table data from database
     private void loadTableData() {
         try {
-            String sql = "SELECT testcaseID, testcaseName, epicID, storyID, assigneeID FROM testcases";
+            String sql = "SELECT testcaseID, testcaseName, epicID, storyID, assignee FROM testcases";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             
@@ -84,7 +84,7 @@ public class TestcaseAssigneeUpdater extends JFrame {
             model.addColumn("Testcase Name");
             model.addColumn("Epic ID");
             model.addColumn("Story ID");
-            model.addColumn("Assignee ID");
+            model.addColumn("Assignee");
             
             while (rs.next()) {
                 model.addRow(new Object[]{
@@ -92,7 +92,7 @@ public class TestcaseAssigneeUpdater extends JFrame {
                     rs.getString("testcaseName"),
                     rs.getString("epicID"),
                     rs.getString("storyID"),
-                    rs.getInt("assigneeID")
+                    rs.getString("assignee")
                 });
             }
             
@@ -109,17 +109,18 @@ public class TestcaseAssigneeUpdater extends JFrame {
     // Load assignee usernames into the dropdown
     private void loadAssigneeDropdown() {
         try {
-            String sql = "SELECT userID, username FROM users";
+            String sql = "SELECT username FROM users";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             
             assigneeDropdown.removeAllItems();
-            assigneeIds.clear();
+            assigneeNames.clear();
             
-            // Populate dropdown with usernames and their IDs
+            // Populate dropdown with usernames
             while (rs.next()) {
-                assigneeIds.add(rs.getInt("userID"));
-                assigneeDropdown.addItem(rs.getString("username"));
+                String username = rs.getString("username");
+                assigneeNames.add(username);
+                assigneeDropdown.addItem(username);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -127,11 +128,11 @@ public class TestcaseAssigneeUpdater extends JFrame {
     }
 
     // Update assignee in the database
-    private void updateAssignee(int testcaseId, int assigneeId) {
+    private void updateAssignee(int testcaseId, String assignee) {
         try {
-            String sql = "UPDATE testcases SET assigneeID = ? WHERE testcaseID = ?";
+            String sql = "UPDATE testcases SET assignee = ? WHERE testcaseID = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, assigneeId);
+            stmt.setString(1, assignee);
             stmt.setInt(2, testcaseId);
             stmt.executeUpdate();
             
