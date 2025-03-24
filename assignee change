@@ -1,0 +1,149 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class TestcaseAssigneeUpdater extends JFrame {
+    
+    private JTable table;
+    private JComboBox<String> assigneeDropdown;
+    private List<Integer> assigneeIds = new ArrayList<>();
+    private Connection conn;
+
+    public TestcaseAssigneeUpdater() {
+        // Set up the frame
+        setTitle("Testcase Assignee Updater");
+        setSize(800, 600);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+        
+        // Initialize database connection
+        initDBConnection();
+        
+        // Create dropdown for assignee selection
+        assigneeDropdown = new JComboBox<>();
+        assigneeDropdown.setPreferredSize(new Dimension(200, 30));
+        
+        // Add action listener for assignee change
+        assigneeDropdown.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // When an assignee is selected, update the selected testcase in the table
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow != -1) {
+                    // Get the selected testcase ID from the table
+                    int testcaseId = (Integer) table.getValueAt(selectedRow, 0);
+                    int assigneeId = assigneeIds.get(assigneeDropdown.getSelectedIndex());
+                    updateAssignee(testcaseId, assigneeId);
+                }
+            }
+        });
+        
+        // Create table with dummy data
+        table = new JTable();
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        loadTableData();
+        
+        // Add components to the frame
+        JPanel topPanel = new JPanel();
+        topPanel.add(new JLabel("Change Assignee:"));
+        topPanel.add(assigneeDropdown);
+        
+        add(topPanel, BorderLayout.NORTH);
+        add(new JScrollPane(table), BorderLayout.CENTER);
+        
+        setVisible(true);
+    }
+
+    // Initialize database connection
+    private void initDBConnection() {
+        try {
+            // Replace these with your DB credentials
+            String url = "jdbc:mysql://localhost:3306/your_db_name";
+            String user = "your_db_user";
+            String password = "your_db_password";
+            conn = DriverManager.getConnection(url, user, password);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Load table data from database
+    private void loadTableData() {
+        try {
+            String sql = "SELECT testcaseID, testcaseName, epicID, storyID, assigneeID FROM testcases";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            
+            // Populate table with data
+            DefaultTableModel model = new DefaultTableModel();
+            model.addColumn("Testcase ID");
+            model.addColumn("Testcase Name");
+            model.addColumn("Epic ID");
+            model.addColumn("Story ID");
+            model.addColumn("Assignee ID");
+            
+            while (rs.next()) {
+                model.addRow(new Object[]{
+                    rs.getInt("testcaseID"),
+                    rs.getString("testcaseName"),
+                    rs.getString("epicID"),
+                    rs.getString("storyID"),
+                    rs.getInt("assigneeID")
+                });
+            }
+            
+            table.setModel(model);
+            
+            // Populate assignee dropdown
+            loadAssigneeDropdown();
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Load assignee usernames into the dropdown
+    private void loadAssigneeDropdown() {
+        try {
+            String sql = "SELECT userID, username FROM users";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            
+            assigneeDropdown.removeAllItems();
+            assigneeIds.clear();
+            
+            // Populate dropdown with usernames and their IDs
+            while (rs.next()) {
+                assigneeIds.add(rs.getInt("userID"));
+                assigneeDropdown.addItem(rs.getString("username"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Update assignee in the database
+    private void updateAssignee(int testcaseId, int assigneeId) {
+        try {
+            String sql = "UPDATE testcases SET assigneeID = ? WHERE testcaseID = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, assigneeId);
+            stmt.setInt(2, testcaseId);
+            stmt.executeUpdate();
+            
+            JOptionPane.showMessageDialog(this, "Assignee updated successfully!");
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error updating assignee.");
+        }
+    }
+
+    public static void main(String[] args) {
+        new TestcaseAssigneeUpdater();
+    }
+}
