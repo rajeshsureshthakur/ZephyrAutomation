@@ -1,0 +1,29 @@
+// Add cell change listener
+table.getModel().addTableModelListener(e -> {
+    if (e.getType() == TableModelEvent.UPDATE) {
+        hasChanges[0] = true;
+        updateButton.setVisible(true);
+
+        int modelRow = e.getFirstRow();  // This is already the model row index
+        int column = e.getColumn();
+        
+        if (modelRow < 0 || modelRow >= modifiedData.size()) {
+            System.out.println("Invalid row index: " + modelRow);
+            return;
+        }
+
+        String newValue = (String) model.getValueAt(modelRow, column);
+
+        // Ensure modifiedData contains the row
+        if (modelRow < modifiedData.size()) {
+            modifiedData.get(modelRow).modified = true;
+
+            switch (column) {
+                case 0 -> modifiedData.get(modelRow).testCase = newValue;
+                case 1 -> modifiedData.get(modelRow).status = newValue;
+                case 2 -> modifiedData.get(modelRow).storyid = newValue;
+                case 4 -> modifiedData.get(modelRow).epicid = newValue;
+            }
+        }
+    }
+});
