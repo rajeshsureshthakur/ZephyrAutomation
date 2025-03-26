@@ -1,0 +1,161 @@
+Certainly! Below is a write-up that you can use to explain the features, screens, and usage of your tool to users. You can adjust any specific details or phrasing as needed:
+
+---
+
+# **Zephyr Activity Management Tool - User Guide**
+
+Welcome to the **Zephyr Activity Management Tool**. This tool is designed to streamline your interaction with Zephyr, allowing you to perform a variety of activities related to release management, requirements import, test case management, and more, all through an intuitive Java Swing interface.
+
+This guide provides an overview of the tool’s features and explains how to navigate and use each screen effectively.
+
+---
+
+## **1. Login Screen**
+
+### **Overview:**
+The **Login Screen** is the first step to accessing the tool. It allows users to securely log in to the system using their SOEID and passcode.
+
+### **Features:**
+- **SOEID:** Enter your SOEID (System of Employment ID) here.
+- **Passcode:** Enter your passcode associated with your account.
+- **Forgot Password:** If you forget your passcode, simply click on the “Forgot Password” option. This will send an email with a link to reset your passcode.
+- **Register New User:** If you are a new user, click on the “Register” button to create an account. The registration screen will ask for details such as:
+  - **Full Name**
+  - **Email Address**
+  - **SOEID**
+  - **Zephyr Token**
+  - **Manager Name**
+  - **Other necessary information**
+
+### **How to Use:**
+- Enter your **SOEID** and **Passcode** to log in.
+- Click the “Forgot Password” link if you need to reset your passcode.
+- If you're new to the system, click **Register** and provide the required details.
+
+---
+
+## **2. Main Dashboard**
+
+### **Overview:**
+Once logged in, you will be taken to the **Main Dashboard**, where you can access all features of Zephyr including managing releases, importing requirements, importing test cases, and more.
+
+### **Features:**
+- **Navigation Menu:** A menu with buttons for different activities such as:
+  - **Create Release**
+  - **Import Requirements**
+  - **Import Test Cases**
+  - **View Existing Releases and Test Cases**
+  - **Update Requirements/Test Cases**
+  - **Logout**
+- **Quick Access Links:** Commonly used links for fast navigation.
+
+---
+
+## **3. Create Release**
+
+### **Overview:**
+The **Create Release** feature allows you to define and manage your releases within Zephyr.
+
+### **Features:**
+- **Release Name:** Enter the name of the release.
+- **Release Date:** Set the date for the release.
+- **Release Version:** Define the version of the release.
+- **Description:** Add any additional information or notes related to the release.
+- **Save and Submit:** Once all details are filled, click the “Create Release” button to save.
+
+### **How to Use:**
+- Navigate to the **Create Release** section from the dashboard.
+- Fill in the required fields (Release Name, Release Date, Version, etc.).
+- Click **Submit** to save and create the release.
+
+---
+
+## **4. Import Requirements**
+
+### **Overview:**
+The **Import Requirements** feature allows users to import requirement data directly into Zephyr.
+
+### **Features:**
+- **File Upload:** Upload a CSV, Excel, or other supported file formats containing requirement data.
+- **Mapping Fields:** Ensure the correct mapping of columns from your file to Zephyr fields (e.g., Requirement ID, Description, Priority).
+- **Import Preview:** Preview the data before final import.
+- **Submit:** After verifying the data, click on “Import” to finalize the process.
+
+### **How to Use:**
+- Go to the **Import Requirements** section.
+- Upload your file and map the fields as necessary.
+- Click on **Preview Import** to check the data.
+- Once satisfied, click **Import** to add the requirements into Zephyr.
+
+---
+
+## **5. Import Test Cases**
+
+### **Overview:**
+Use the **Import Test Cases** feature to bring in test case data from external sources (CSV, Excel, etc.) into Zephyr.
+
+### **Features:**
+- **Test Case File Upload:** Upload your test case file.
+- **Field Mapping:** Map the test case data fields (Test Case ID, Description, Steps, Expected Results, etc.) to Zephyr fields.
+- **Preview:** Preview the test cases before importing.
+- **Import:** After confirming the details, click the **Import** button to add the test cases.
+
+### **How to Use:**
+- Access the **Import Test Cases** section from the dashboard.
+- Upload your file containing test cases.
+- Map the fields and preview the test cases.
+- Finally, click **Import** to save the test cases in Zephyr.
+
+---
+
+## **6. View and Update Releases, Requirements, and Test Cases**
+
+### **Overview:**
+You can easily view and update the releases, requirements, and test cases within Zephyr using this feature.
+
+### **Features:**
+- **View:** See the list of existing releases, requirements, or test cases.
+- **Search and Filter:** Search for specific records using various filters (e.g., Release Name, Requirement ID, Test Case ID).
+- **Update:** Edit and modify the details of existing entries. For example, update the description of a requirement or modify the steps in a test case.
+- **Save Changes:** After making changes, click **Save** to update the records.
+
+### **How to Use:**
+- Navigate to the relevant section (Releases, Requirements, or Test Cases).
+- Use the search bar and filters to find the entry you want to view or update.
+- After making any changes, click **Save** to apply the updates.
+
+---
+
+## **7. Logout**
+
+### **Overview:**
+When you're done using the tool, you can log out from the system to ensure your data remains secure.
+
+### **How to Use:**
+- Simply click the **Logout** button located on the main dashboard or any other screen to end your session.
+
+---
+
+## **Additional Features**
+
+- **Email Notifications:** Receive notifications for important actions, such as a successful import or when a release is created.
+- **Data Validation:** The tool includes built-in validation to ensure the data being entered or imported follows the required format.
+- **Error Handling:** If any error occurs during the process (such as an invalid file format), the system will display a relevant message and guide you on how to resolve it.
+
+---
+
+## **Tips for Using the Tool Effectively**
+- **Ensure your files are properly formatted** before importing them into Zephyr.
+- **Use the search and filter features** to easily locate specific records.
+- **Regularly check your email** for any notifications related to account activity or tool updates.
+- **Log out when you're finished** to maintain security.
+
+---
+
+We hope this guide helps you get the most out of the **Zephyr Activity Management Tool**. If you have any questions or run into any issues, please don't hesitate to reach out to support.
+
+Happy testing!
+
+---
+
+This write-up should help users easily understand the various features and functionalities of your tool. Let me know if you'd like any adjustments or additional sections added!
