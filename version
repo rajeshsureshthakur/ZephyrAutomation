@@ -1,0 +1,20 @@
+public boolean isUpdateAvailable() throws Exception {
+    BigDecimal jarCurrVersion = BigDecimal.valueOf(0);
+    BigDecimal jarNextVersion = BigDecimal.valueOf(0);
+
+    // Query to get CURR_VERSION from USERS table and NEXT_VERSION from VERSION table
+    String query = "SELECT " +
+                   "(SELECT CURR_VERSION FROM USERS WHERE USER_ID = ?) AS CURR_VERSION, " +
+                   "(SELECT NEXT_VERSION FROM VERSION) AS NEXT_VERSION " +
+                   "FROM DUAL"; // DUAL is used for selecting single values in Oracle
+
+    List<Map<String, Object>> results = new DBHelper().executeSelectQuery(query, userId); // Pass userId dynamically
+
+    for (Map<String, Object> row : results) {
+        jarCurrVersion = (BigDecimal) row.get("CURR_VERSION");
+        jarNextVersion = (BigDecimal) row.get("NEXT_VERSION");
+
+        return jarNextVersion.floatValue() > jarCurrVersion.floatValue(); // Compare values
+    }
+    return false;
+}
