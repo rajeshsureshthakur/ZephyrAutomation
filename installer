@@ -1,0 +1,88 @@
+import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+
+public class CQEInstaller extends JFrame {
+    private JTextField pathField;
+    private String installPath;
+    
+    public CQEInstaller() {
+        setTitle("CQE Project Management - Installer");
+        setSize(500, 300);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        // Header Panel
+        JPanel headerPanel = new JPanel();
+        headerPanel.setBackground(new Color(70, 130, 180));
+        JLabel titleLabel = new JLabel("CQE Project Management - Setup Wizard", JLabel.CENTER);
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        headerPanel.add(titleLabel);
+        add(headerPanel, BorderLayout.NORTH);
+
+        // Content Panel
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new GridLayout(3, 1, 10, 10));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JLabel descriptionLabel = new JLabel("Welcome to the CQE Project Management installer.", JLabel.CENTER);
+        contentPanel.add(descriptionLabel);
+        
+        JPanel pathPanel = new JPanel();
+        pathField = new JTextField(25);
+        pathField.setText(FileSystemView.getFileSystemView().getDefaultDirectory().getAbsolutePath() + "\\CQEProject");
+        JButton browseButton = new JButton("Browse...");
+        
+        browseButton.addActionListener(e -> chooseInstallPath());
+        pathPanel.add(new JLabel("Installation Path: "));
+        pathPanel.add(pathField);
+        pathPanel.add(browseButton);
+        contentPanel.add(pathPanel);
+        
+        add(contentPanel, BorderLayout.CENTER);
+        
+        // Button Panel
+        JPanel buttonPanel = new JPanel();
+        JButton installButton = new JButton("Install");
+        JButton cancelButton = new JButton("Cancel");
+        
+        installButton.addActionListener(e -> startInstallation());
+        cancelButton.addActionListener(e -> System.exit(0));
+        
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(installButton);
+        add(buttonPanel, BorderLayout.SOUTH);
+    }
+    
+    private void chooseInstallPath() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fileChooser.setDialogTitle("Select Installation Folder");
+        
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            pathField.setText(selectedFile.getAbsolutePath());
+        }
+    }
+    
+    private void startInstallation() {
+        installPath = pathField.getText();
+        JOptionPane.showMessageDialog(this, "Installing CQE Project Management at: " + installPath,
+                "Installation", JOptionPane.INFORMATION_MESSAGE);
+        
+        // TODO: Add download and extraction logic here
+    }
+    
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            CQEInstaller installer = new CQEInstaller();
+            installer.setVisible(true);
+        });
+    }
+}
