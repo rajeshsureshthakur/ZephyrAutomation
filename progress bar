@@ -1,0 +1,39 @@
+private void startInstallation() {
+    installPath = pathField.getText();
+
+    // Create progress dialog
+    JDialog progressDialog = new JDialog(this, "Installing...", true);
+    progressDialog.setSize(300, 100);
+    progressDialog.setLocationRelativeTo(this);
+    progressDialog.setLayout(new BorderLayout());
+
+    JLabel progressLabel = new JLabel("Installing CQE Project Management...", JLabel.CENTER);
+    JProgressBar progressBar = new JProgressBar(0, 100);
+    progressBar.setIndeterminate(true); // Show indeterminate loading effect
+
+    progressDialog.add(progressLabel, BorderLayout.NORTH);
+    progressDialog.add(progressBar, BorderLayout.CENTER);
+
+    // Run installation in a background thread
+    SwingWorker<Void, Void> worker = new SwingWorker<>() {
+        @Override
+        protected Void doInBackground() {
+            try {
+                Thread.sleep(5000); // Simulate installation process (replace with actual logic)
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void done() {
+            progressDialog.dispose();
+            JOptionPane.showMessageDialog(CQEInstaller.this, "Installation completed successfully!",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+        }
+    };
+
+    worker.execute();
+    progressDialog.setVisible(true);
+}
