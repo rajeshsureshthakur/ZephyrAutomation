@@ -1,0 +1,23 @@
+import java.io.File;
+
+public class FolderProcessor {
+    public static void main(String[] args) {
+        // Specify the parent directory
+        String parentDir = "path/to/your/main/directory";
+
+        // Get a list of all folders inside the parent directory
+        File directory = new File(parentDir);
+        File[] folders = directory.listFiles(File::isDirectory);
+
+        if (folders != null) {
+            // Loop through each folder and process it
+            for (File folder : folders) {
+                System.out.println("Processing folder: " + folder.getName());
+
+                // Add your logic here to process the folder
+            }
+        } else {
+            System.out.println("No folders found or invalid directory.");
+        }
+    }
+}
