@@ -1,0 +1,35 @@
+private void loadUserReleasesZephyr(int selectedProjectId) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+             Connection connZephyr = DriverManager.getConnection(ZDB_URL, ZDB_USER, ZDB_PASSWORD)) {
+
+            String sql = "SELECT * FROM ITCC.RELEASES WHERE PROJECT_ID = ?";
+            String insertSql = "INSERT INTO TARGET_TABLE (PROJECT_ID, RELEASE_ID, RELEASE_NAME, START_DATE, END_DATE) " +
+                               "VALUES (?, ?, ?, ?, ?)";
+
+            try (PreparedStatement pstmt = connZephyr.prepareStatement(sql);
+                 PreparedStatement pstmt1 = conn.prepareStatement(insertSql)) { // Declare pstmt1 here, so it's not closed early
+
+                pstmt.setInt(1, selectedProjectId);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        pstmt1.setInt(1, selectedProjectId);
+                        pstmt1.setInt(2, rs.getInt("ID"));
+                        pstmt1.setString(3, rs.getString("NAME"));
+                        pstmt1.setDate(4, rs.getDate("START_DATE"));
+                        pstmt1.setDate(5, rs.getDate("END_DATE"));
+
+                        System.out.println("Inserting Release: " + rs.getString("NAME"));
+                        pstmt1.executeUpdate();
+                    }
+                } // rs is closed here, but pstmt1 remains open until loop ends
+            }
+
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
