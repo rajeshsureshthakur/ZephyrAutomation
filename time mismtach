@@ -1,0 +1,7 @@
+SELECT last_updated, 
+       CAST(last_updated AS TIMESTAMP WITH TIME ZONE) AT TIME ZONE DBTIMEZONE AS adjusted_last_updated,
+       SYSTIMESTAMP, 
+       SYSTIMESTAMP AT TIME ZONE DBTIMEZONE AS adjusted_systimestamp,
+       SYSTIMESTAMP AT TIME ZONE DBTIMEZONE - INTERVAL '10' MINUTE AS time_check
+FROM zephyrdata 
+WHERE release_id = 15614;
