@@ -1,0 +1,58 @@
+private void loadUserReleasesZephyr(int selectedProjectId) {
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+             Connection connZephyr = DriverManager.getConnection(ZDB_URL, ZDB_USER, ZDB_PASSWORD)) {
+
+            conn.setAutoCommit(false); // For better performance on batch inserts
+
+            // Step 1: Delete existing releases for the project
+            String deleteSql = "DELETE FROM TARGET_TABLE WHERE PROJECT_ID = ?";
+            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
+                deleteStmt.setInt(1, selectedProjectId);
+                deleteStmt.executeUpdate();
+                System.out.println("Deleted old releases for project ID: " + selectedProjectId);
+            }
+
+            // Step 2: Fetch fresh release data from source
+            String selectSql = "SELECT ID, NAME, START_DATE, END_DATE FROM ITCC.RELEASES WHERE PROJECT_ID = ?";
+            try (PreparedStatement selectStmt = connZephyr.prepareStatement(selectSql)) {
+                selectStmt.setInt(1, selectedProjectId);
+
+                try (ResultSet rs = selectStmt.executeQuery()) {
+
+                    // Step 3: Insert fresh data
+                    String insertSql = "INSERT INTO TARGET_TABLE (PROJECT_ID, RELEASE_ID, RELEASE_NAME, START_DATE, END_DATE) " +
+                                       "VALUES (?, ?, ?, ?, ?)";
+                    try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+
+                        int count = 0;
+                        while (rs.next()) {
+                            insertStmt.setInt(1, selectedProjectId);
+                            insertStmt.setInt(2, rs.getInt("ID"));
+                            insertStmt.setString(3, rs.getString("NAME"));
+                            insertStmt.setDate(4, rs.getDate("START_DATE"));
+                            insertStmt.setDate(5, rs.getDate("END_DATE"));
+                            insertStmt.addBatch();
+
+                            count++;
+                            if (count % 100 == 0) {
+                                insertStmt.executeBatch();
+                            }
+                        }
+
+                        // Execute remaining batch
+                        insertStmt.executeBatch();
+                        conn.commit();
+
+                        System.out.println("Inserted " + count + " new releases for project ID: " + selectedProjectId);
+                    }
+                }
+            }
+
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
