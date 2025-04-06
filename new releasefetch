@@ -1,0 +1,123 @@
+private void loadUserReleasesZephyr(int selectedProjectId) {
+    final int BATCH_SIZE = 100;
+    int count = 0;
+
+    try {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+             Connection connZephyr = DriverManager.getConnection(ZDB_URL, ZDB_USER, ZDB_PASSWORD)) {
+
+            conn.setAutoCommit(false); // Improve batch performance
+
+            // Step 1: Fetch all release_ids from source (Zephyr)
+            Set<Integer> sourceIds = new HashSet<>();
+            String selectSource = "SELECT ID, NAME, START_DATE, END_DATE FROM ITCC.RELEASES WHERE PROJECT_ID = ?";
+            PreparedStatement srcStmt = connZephyr.prepareStatement(selectSource);
+            srcStmt.setInt(1, selectedProjectId);
+            ResultSet srcRs = srcStmt.executeQuery();
+
+            // Store data for insert/merge and IDs for comparison
+            List<ReleaseItem> releases = new ArrayList<>();
+
+            while (srcRs.next()) {
+                int id = srcRs.getInt("ID");
+                sourceIds.add(id);
+                releases.add(new ReleaseItem(
+                        id,
+                        srcRs.getString("NAME"),
+                        srcRs.getDate("START_DATE"),
+                        srcRs.getDate("END_DATE")
+                ));
+            }
+
+            // Step 2: Fetch all release_ids from target
+            Set<Integer> targetIds = new HashSet<>();
+            String selectTarget = "SELECT RELEASE_ID FROM TARGET_TABLE WHERE PROJECT_ID = ?";
+            PreparedStatement tgtStmt = conn.prepareStatement(selectTarget);
+            tgtStmt.setInt(1, selectedProjectId);
+            ResultSet tgtRs = tgtStmt.executeQuery();
+
+            while (tgtRs.next()) {
+                targetIds.add(tgtRs.getInt("RELEASE_ID"));
+            }
+
+            // Step 3: Compute IDs to delete
+            Set<Integer> toDelete = new HashSet<>(targetIds);
+            toDelete.removeAll(sourceIds); // Only those missing in source
+
+            // Step 4: Delete obsolete entries
+            if (!toDelete.isEmpty()) {
+                String deleteSql = "DELETE FROM TARGET_TABLE WHERE PROJECT_ID = ? AND RELEASE_ID = ?";
+                PreparedStatement delStmt = conn.prepareStatement(deleteSql);
+
+                for (int id : toDelete) {
+                    delStmt.setInt(1, selectedProjectId);
+                    delStmt.setInt(2, id);
+                    delStmt.addBatch();
+                }
+
+                delStmt.executeBatch();
+                conn.commit(); // Commit deletion
+            }
+
+            // Step 5: Merge (Insert if not exists)
+            String mergeSql =
+                "MERGE INTO TARGET_TABLE tgt " +
+                "USING (SELECT ? AS PROJECT_ID, ? AS RELEASE_ID, ? AS RELEASE_NAME, ? AS START_DATE, ? AS END_DATE FROM dual) src " +
+                "ON (tgt.RELEASE_ID = src.RELEASE_ID AND tgt.PROJECT_ID = src.PROJECT_ID) " +
+                "WHEN NOT MATCHED THEN " +
+                "INSERT (PROJECT_ID, RELEASE_ID, RELEASE_NAME, START_DATE, END_DATE) " +
+                "VALUES (src.PROJECT_ID, src.RELEASE_ID, src.RELEASE_NAME, src.START_DATE, src.END_DATE)";
+
+            PreparedStatement mergeStmt = conn.prepareStatement(mergeSql);
+
+            for (ReleaseItem release : releases) {
+                mergeStmt.setInt(1, selectedProjectId);
+                mergeStmt.setInt(2, release.getId());
+                mergeStmt.setString(3, release.getName());
+                mergeStmt.setDate(4, release.getStartDate());
+                mergeStmt.setDate(5, release.getEndDate());
+                mergeStmt.addBatch();
+
+                count++;
+                if (count % BATCH_SIZE == 0) {
+                    mergeStmt.executeBatch();
+                    conn.commit();
+                }
+            }
+
+            if (count % BATCH_SIZE != 0) {
+                mergeStmt.executeBatch();
+                conn.commit();
+            }
+
+            System.out.println("Sync completed. Total releases processed: " + count);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
+
+
+
+class ReleaseItem {
+    private int id;
+    private String name;
+    private Date startDate;
+    private Date endDate;
+
+    public ReleaseItem(int id, String name, Date startDate, Date endDate) {
+        this.id = id;
+        this.name = name;
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
+
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public Date getStartDate() { return startDate; }
+    public Date getEndDate() { return endDate; }
+}
